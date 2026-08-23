@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://dddgcgy40v6w3"]
+
+[ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_c01ro"]
+[ext_resource type="Resource" uid="uid://dib54ta36rtbv" path="res://Items/Apple.tres" id="2_0woea"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c01ro"]
+
+[node name="Product" type="Area3D" unique_id=1674909838]
+script = ExtResource("1_c01ro")
+Item = ExtResource("2_0woea")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=937005696]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1174232889]
+shape = SubResource("BoxShape3D_c01ro")

@@ -3,6 +3,7 @@
 [ext_resource type="Material" uid="uid://g3q6l4ir3ope" path="res://Materials/floor_prototype.tres" id="1_5a7ea"]
 [ext_resource type="PackedScene" uid="uid://dfdug5q5p77vk" path="res://Scenes/player.tscn" id="1_a02cp"]
 [ext_resource type="Texture2D" uid="uid://8rv8rkmuej3d" path="res://Textures/prototype_512x512_Blue.png" id="1_go701"]
+[ext_resource type="PackedScene" uid="uid://dddgcgy40v6w3" path="res://Scenes/product.tscn" id="4_8j60k"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
 albedo_texture = ExtResource("1_go701")
@@ -20,14 +21,17 @@ size = Vector3(40, 0.1, 40)
 transform = Transform3D(1, 0, 0, 0, 0.49999997, 0.86602545, 0, -0.86602545, 0.49999997, 0, 0, 0)
 shadow_enabled = true
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=577458796]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=577458796]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=475311952]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=475311952]
 material_override = ExtResource("1_5a7ea")
 mesh = SubResource("PlaneMesh_y1t4u")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1474512990]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1474512990]
 shape = SubResource("BoxShape3D_y1t4u")
 
 [node name="Player" parent="." unique_id=1723693451 instance=ExtResource("1_a02cp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+
+[node name="ss" parent="." unique_id=1674909838 instance=ExtResource("4_8j60k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1154536, 1.6576736, -2.3451366)

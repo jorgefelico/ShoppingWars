@@ -206,7 +206,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5413852, 0.8169602, 0.05431
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7060176, 0.8169602, 0.05431351)
 
 [node name="Apple28" parent="Node3D2" unique_id=2059207988 instance=ExtResource("2_ajjbv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8795372, 0.8169602, 0.05431351)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5356964, 0.94365644, -0.08822706)
 
 [node name="Apple29" parent="Node3D2" unique_id=705862454 instance=ExtResource("2_ajjbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.29420346, 0.97934115, -0.119469225)

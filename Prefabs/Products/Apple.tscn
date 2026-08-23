@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://c47mufmp5i703"]
+
+[ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_j1n8c"]
+[ext_resource type="PackedScene" uid="uid://dtigmuwil0gip" path="res://Models/apple.blend" id="2_lskbq"]
+
+[node name="Apple" type="Node3D" unique_id=166238257]
+script = ExtResource("1_j1n8c")
+DisplayName = &"Apple"
+
+[node name="apple" parent="." unique_id=1336027980 instance=ExtResource("2_lskbq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)

@@ -44,6 +44,14 @@ public partial class PlayerController : CharacterBody3D
             pitch = Mathf.Clamp(pitch, -MaxPitch, MaxPitch);
             Camera.Rotation = new Vector3(pitch, Camera.Rotation.Y, Camera.Rotation.Z);
         }
+
+        if(@event is InputEventMouseButton)
+        {
+            if(Input.MouseMode == Input.MouseModeEnum.Visible)
+            {
+                Input.MouseMode = Input.MouseModeEnum.Captured;
+            }
+        }
     }
 
     public override void _PhysicsProcess(double delta)

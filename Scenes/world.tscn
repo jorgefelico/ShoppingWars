@@ -1,8 +1,14 @@
 [gd_scene format=3 uid="uid://l188u5sqw25o"]
 
+[ext_resource type="Material" uid="uid://g3q6l4ir3ope" path="res://Materials/floor_prototype.tres" id="1_5a7ea"]
 [ext_resource type="PackedScene" uid="uid://dfdug5q5p77vk" path="res://Scenes/player.tscn" id="1_a02cp"]
+[ext_resource type="Texture2D" uid="uid://8rv8rkmuej3d" path="res://Textures/prototype_512x512_Blue.png" id="1_go701"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
+albedo_texture = ExtResource("1_go701")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_y1t4u"]
+material = SubResource("StandardMaterial3D_a02cp")
 size = Vector2(40, 40)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_y1t4u"]
@@ -17,6 +23,7 @@ shadow_enabled = true
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=577458796]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=475311952]
+material_override = ExtResource("1_5a7ea")
 mesh = SubResource("PlaneMesh_y1t4u")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1474512990]

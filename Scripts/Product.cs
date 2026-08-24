@@ -6,13 +6,19 @@ public partial class Product : Node3D
     [Export] public int Price;
     [Export] public int Damage;
     [Export] public float Mass;
-
+    [Export] public bool ScaleVariation = false;
     private RigidBody3D Body;
 
     public override void _Ready()
     {
+        if (ScaleVariation)
+        {
+            RandomNumberGenerator rand = new RandomNumberGenerator();
+            Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
+        }
+
         Body = FindRigidBody(this);
-        if(Body != null && Mass > 0f)
+        if (Body != null && Mass > 0f)
         {
             Body.Mass = Mass;
         }
@@ -20,15 +26,15 @@ public partial class Product : Node3D
 
     private static RigidBody3D FindRigidBody(Node node)
     {
-        if(node is RigidBody3D body)
+        if (node is RigidBody3D body)
         {
             return body;
         }
 
         foreach (Node child in node.GetChildren())
         {
-            RigidBody3D found = FindRigidBody(child); 
-            if(found != null)
+            RigidBody3D found = FindRigidBody(child);
+            if (found != null)
             {
                 return found;
             }

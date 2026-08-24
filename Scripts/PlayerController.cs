@@ -2,10 +2,9 @@ using Godot;
 
 public partial class PlayerController : CharacterBody3D
 {
-    [Export]
-    private Node3D Head;
-    [Export]
-    private Camera3D Camera;
+    [Export] private Node3D Head;
+    [Export] private Camera3D Camera;
+    [Export] private RayCast3D RayCast;
     const float Speed = 5.0f;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
@@ -45,9 +44,9 @@ public partial class PlayerController : CharacterBody3D
             Camera.Rotation = new Vector3(pitch, Camera.Rotation.Y, Camera.Rotation.Z);
         }
 
-        if(@event is InputEventMouseButton)
+        if (@event is InputEventMouseButton)
         {
-            if(Input.MouseMode == Input.MouseModeEnum.Visible)
+            if (Input.MouseMode == Input.MouseModeEnum.Visible)
             {
                 Input.MouseMode = Input.MouseModeEnum.Captured;
             }
@@ -56,6 +55,20 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        // Raycasting Stuff
+        RayCast.ForceRaycastUpdate();
+        if (RayCast.IsColliding())
+        {
+            var collider = RayCast.GetCollider() as Node;
+            if (collider is Product product)
+            {
+                if (Input.IsActionPressed("interact"))
+                {
+                    // TODO: Do some logic here on interactables.
+                }
+            }
+        }
+        // Movement
         if (IsOnFloor())
         {
             Velocity = new Vector3(Velocity.X, -Gravity, Velocity.Z);

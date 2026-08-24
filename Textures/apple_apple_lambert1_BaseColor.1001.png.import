@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctpn8qq3l6lyt"
-path.s3tc="res://.godot/imported/apple_apple_lambert1_BaseColor.1001.png-68570026290931a500b8a790fb9ea3fd.s3tc.ctex"
+path.s3tc="res://.godot/imported/apple_apple_lambert1_BaseColor.1001.png-14ee7cd53f05d70177f6e860f2868f18.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -14,8 +14,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://Models/apple_apple_lambert1_BaseColor.1001.png"
-dest_files=["res://.godot/imported/apple_apple_lambert1_BaseColor.1001.png-68570026290931a500b8a790fb9ea3fd.s3tc.ctex"]
+source_file="res://Textures/apple_apple_lambert1_BaseColor.1001.png"
+dest_files=["res://.godot/imported/apple_apple_lambert1_BaseColor.1001.png-14ee7cd53f05d70177f6e860f2868f18.s3tc.ctex"]
 
 [params]
 

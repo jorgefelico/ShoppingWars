@@ -6,19 +6,24 @@
 [sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
 radius = 0.08317375
 
-[node name="Apple" type="Node3D" unique_id=166238257]
+[node name="Area3D" type="Area3D" unique_id=1412821752]
+script = ExtResource("1_ma4hh")
+DisplayName = &"Apple"
+Price = 3
+Damage = 5
+Mass = 0.2
+ScaleVariation = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1420073300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075, 0)
+shape = SubResource("SphereShape3D_y1t4u")
+
+[node name="Apple" type="Node3D" parent="." unique_id=166238257]
 script = ExtResource("1_ma4hh")
 DisplayName = &"Apple"
 Price = 3
 Damage = 5
 Mass = 0.2
 
-[node name="Area3D" type="Area3D" parent="." unique_id=1412821752]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1420073300]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 0)
-shape = SubResource("SphereShape3D_y1t4u")
-
-[node name="apple" parent="." unique_id=1336027980 instance=ExtResource("2_l77x7")]
+[node name="apple" parent="Apple" unique_id=1336027980 instance=ExtResource("2_l77x7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)

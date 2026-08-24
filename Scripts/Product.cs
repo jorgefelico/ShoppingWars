@@ -14,7 +14,6 @@ public partial class Product : Node3D
         Body = FindRigidBody(this);
         if(Body != null && Mass > 0f)
         {
-            GD.Print("Name: " + Body.Name);
             Body.Mass = Mass;
         }
     }

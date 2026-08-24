@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dltuejiiomdlx"]
+
+[ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="1_sxb2t"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_l8b7g"]
+size = Vector2(8, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_y1t4u"]
+size = Vector3(8, 4, 0.01)
+
+[node name="PrototypeWall" type="StaticBody3D" unique_id=924598980]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=734337585]
+material_override = ExtResource("1_sxb2t")
+mesh = SubResource("QuadMesh_l8b7g")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=522589801]
+shape = SubResource("BoxShape3D_y1t4u")

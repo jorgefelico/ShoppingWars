@@ -4,12 +4,13 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast")]
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
 Camera = NodePath("Head/Camera")
 RayCast = NodePath("Head/Camera/RayCast3D")
+ItemHand = NodePath("Head/Camera/ItemHand")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")
@@ -22,3 +23,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 [node name="RayCast3D" type="RayCast3D" parent="Head/Camera" unique_id=1833017106]
 target_position = Vector3(0, 0, -10)
 collide_with_areas = true
+
+[node name="ItemHand" type="Node3D" parent="Head/Camera" unique_id=1807680406]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03201081, -0.6330581, -1.0167637)

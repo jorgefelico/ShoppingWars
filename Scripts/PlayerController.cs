@@ -5,6 +5,8 @@ public partial class PlayerController : CharacterBody3D
     [Export] private Node3D Head;
     [Export] private Camera3D Camera;
     [Export] private RayCast3D RayCast;
+    [Export] private Node3D ItemHand;
+    [Export] private float PickUpRange = 2.0f;
     const float Speed = 5.0f;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
@@ -12,6 +14,8 @@ public partial class PlayerController : CharacterBody3D
     const float Sensitivity = 0.002f;
     const float Gravity = 9.8f;
     static readonly float MaxPitch = Mathf.DegToRad(85f);
+
+    Product _heldItem;
 
     public override void _Ready()
     {
@@ -51,6 +55,12 @@ public partial class PlayerController : CharacterBody3D
                 Input.MouseMode = Input.MouseModeEnum.Captured;
             }
         }
+
+        if (Input.IsActionJustPressed("interact") && _heldItem != null)
+        {
+            _heldItem.Dropped();
+            _heldItem = null;
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -62,9 +72,18 @@ public partial class PlayerController : CharacterBody3D
             var collider = RayCast.GetCollider() as Node;
             if (collider is Product product)
             {
-                if (Input.IsActionPressed("interact"))
+                // Pick Up
+                if (Input.IsActionJustPressed("interact") && _heldItem == null)
                 {
-                    // TODO: Do some logic here on interactables.
+                    float distance = product.GlobalBasis.Column0.DistanceSquaredTo(this.GlobalBasis.Column0);
+                    if (distance <= PickUpRange)
+                    {
+                        _heldItem = product;
+                        _heldItem.PickedUp();
+                        _heldItem.GetParent()?.RemoveChild(_heldItem);
+                        ItemHand.AddChild(_heldItem);
+                    }
+
                 }
             }
         }
@@ -101,15 +120,4 @@ public partial class PlayerController : CharacterBody3D
         }
         MoveAndSlide();
     }
-
-    public override void _BodyEntered(Node3D body)
-{
-    if (body is Product apple)
-    {
-        Vector3 dir = (GlobalPosition - apple.GlobalPosition).Normalized();
-        apple.LinearVelocity = dir * 4f;
-        // apple.Damage, apple.Price etc.
-    }
-}
-
 }

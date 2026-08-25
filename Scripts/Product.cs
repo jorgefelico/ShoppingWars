@@ -6,7 +6,6 @@ public partial class Product : RigidBody3D
     [Export] public int Price;
     [Export] public int Damage;
     [Export] public bool ScaleVariation = false;
-    private RigidBody3D Body;
 
     public override void _Ready()
     {
@@ -17,21 +16,21 @@ public partial class Product : RigidBody3D
         }
     }
 
-    private static RigidBody3D FindRigidBody(Node node)
+    public void PickedUp()
     {
-        if (node is RigidBody3D body)
-        {
-            return body;
-        }
+        SetDeferred(RigidBody3D.PropertyName.ProcessMode, (int)ProcessModeEnum.Disabled);
+    }
 
-        foreach (Node child in node.GetChildren())
-        {
-            RigidBody3D found = FindRigidBody(child);
-            if (found != null)
-            {
-                return found;
-            }
-        }
-        return null;
+    public void Dropped()
+    {
+        Node sceneRoot = GetTree().CurrentScene;
+        Reparent(sceneRoot);
+        SetDeferred(RigidBody3D.PropertyName.ProcessMode, (int)ProcessModeEnum.Pausable);
+    }
+
+    public void Throw()
+    {
+        SetDeferred(RigidBody3D.PropertyName.ProcessMode, (int)ProcessModeEnum.Pausable);
+        GD.Print("Throwing " + DisplayName);
     }
 }

@@ -25,4 +25,21 @@ target_position = Vector3(0, 0, -2)
 collide_with_areas = true
 
 [node name="ItemHand" type="Node3D" parent="Head/Camera" unique_id=1807680406]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03201081, -0.1646241, -1.0167637)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4249195, -0.1646241, -0.92713153)
+
+[node name="CrossHair" type="CanvasLayer" parent="." unique_id=239139730]
+
+[node name="Dot" type="ColorRect" parent="CrossHair" unique_id=190442646]
+custom_minimum_size = Vector2(3, 3)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.0
+offset_top = -2.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

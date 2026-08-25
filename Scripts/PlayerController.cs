@@ -7,6 +7,7 @@ public partial class PlayerController : CharacterBody3D
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
     [Export] private float PickUpRange = 2.0f;
+    [Export] private float ThrowVelocity = 50.0f;
     const float Speed = 5.0f;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
@@ -66,6 +67,16 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        // Throwing
+        if (Input.IsActionJustPressed("fire") && _heldItem != null)
+        {
+            Vector3 camForward = -Camera.GlobalBasis.Z;
+            Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
+            Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
+            _heldItem.Dropped();
+            _heldItem.LinearVelocity = dir * ThrowVelocity;
+        }
+
         // Raycasting Stuff
         RayCast.ForceRaycastUpdate();
 

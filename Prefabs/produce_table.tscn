@@ -216,9 +216,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20525646, 0.97934115, 0.094
 
 [node name="Apple32" parent="Node3D2" unique_id=1519745122 instance=ExtResource("2_ajjbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.40986168, 1.0710193, -0.1383917)
-Price = 3
-Damage = 5
-Mass = 150.0
 
 [node name="Apple34" parent="Node3D2" unique_id=642921964 instance=ExtResource("2_ajjbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4095273, 0.97934115, 0.01346302)

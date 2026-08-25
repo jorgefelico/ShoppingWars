@@ -49,8 +49,7 @@ _subresources={
 },
 "nodes": {
 "PATH:obj_Apple_hight": {
-"generate/physics": true,
-"physics/body_type": 1
+"generate/physics": false
 }
 }
 }

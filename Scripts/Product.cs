@@ -1,11 +1,10 @@
 using Godot;
 
-public partial class Product : Node3D
+public partial class Product : RigidBody3D
 {
     [Export] public StringName DisplayName;
     [Export] public int Price;
     [Export] public int Damage;
-    [Export] public float Mass;
     [Export] public bool ScaleVariation = false;
     private RigidBody3D Body;
 
@@ -15,12 +14,6 @@ public partial class Product : Node3D
         {
             RandomNumberGenerator rand = new RandomNumberGenerator();
             Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
-        }
-
-        Body = FindRigidBody(this);
-        if (Body != null && Mass > 0f)
-        {
-            Body.Mass = Mass;
         }
     }
 

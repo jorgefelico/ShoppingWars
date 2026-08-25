@@ -102,4 +102,14 @@ public partial class PlayerController : CharacterBody3D
         MoveAndSlide();
     }
 
+    public override void _BodyEntered(Node3D body)
+{
+    if (body is Product apple)
+    {
+        Vector3 dir = (GlobalPosition - apple.GlobalPosition).Normalized();
+        apple.LinearVelocity = dir * 4f;
+        // apple.Damage, apple.Price etc.
+    }
+}
+
 }

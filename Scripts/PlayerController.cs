@@ -16,6 +16,7 @@ public partial class PlayerController : CharacterBody3D
     static readonly float MaxPitch = Mathf.DegToRad(85f);
 
     Product _heldItem;
+    Product _highlightedItem;
 
     public override void _Ready()
     {
@@ -67,25 +68,32 @@ public partial class PlayerController : CharacterBody3D
     {
         // Raycasting Stuff
         RayCast.ForceRaycastUpdate();
-        if (RayCast.IsColliding())
-        {
-            var collider = RayCast.GetCollider() as Node;
-            if (collider is Product product)
-            {
-                // Pick Up
-                if (Input.IsActionJustPressed("interact") && _heldItem == null)
-                {
-                    float distance = product.GlobalBasis.Column0.DistanceSquaredTo(this.GlobalBasis.Column0);
-                    if (distance <= PickUpRange)
-                    {
-                        _heldItem = product;
-                        _heldItem.PickedUp();
-                        _heldItem.GetParent()?.RemoveChild(_heldItem);
-                        ItemHand.AddChild(_heldItem);
-                    }
 
+        Product newHighlight = null;
+        if (RayCast.GetCollider() is Product product && product != _heldItem)
+        {
+            newHighlight = product;
+
+            // Pick Up
+            if (Input.IsActionJustPressed("interact") && _heldItem == null)
+            {
+                float distance = product.GlobalPosition.DistanceTo(GlobalPosition);
+                if (distance <= PickUpRange)
+                {
+                    _heldItem = product;
+                    _heldItem.PickedUp();
+                    _heldItem.GetParent()?.RemoveChild(_heldItem);
+                    ItemHand.AddChild(_heldItem);
+                    _heldItem.Position = Vector3.Zero;
                 }
             }
+        }
+
+        if (newHighlight != _highlightedItem)
+        {
+            _highlightedItem?.OutlineOff();
+            _highlightedItem = newHighlight;
+            _highlightedItem?.OutlineOn();
         }
         // Movement
         if (IsOnFloor())

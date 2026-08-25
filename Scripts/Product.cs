@@ -7,6 +7,7 @@ public partial class Product : RigidBody3D
     [Export] public int Damage;
     [Export] public bool ScaleVariation = false;
 
+    MeshInstance3D _outline;
     public override void _Ready()
     {
         if (ScaleVariation)
@@ -14,6 +15,49 @@ public partial class Product : RigidBody3D
             RandomNumberGenerator rand = new RandomNumberGenerator();
             Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
         }
+
+        MeshInstance3D mesh = FindMeshInstance(this);
+        if (mesh != null)
+        {
+            _outline = new MeshInstance3D
+            {
+                Mesh = mesh.Mesh,
+                Visible = false,
+            };
+            ShaderMaterial outlineMaterial = new()
+            {
+                Shader = GD.Load<Shader>("res://Shaders/outline.gdshader"),
+            };
+            for (int i = 0; i < mesh.GetSurfaceOverrideMaterialCount(); i++)
+            {
+                _outline.SetSurfaceOverrideMaterial(i, outlineMaterial);
+            }
+            mesh.AddChild(_outline);
+        }
+
+    }
+
+    static MeshInstance3D FindMeshInstance(Node node)
+    {
+        if (node is MeshInstance3D mi)
+            return mi;
+        foreach (Node child in node.GetChildren())
+        {
+            MeshInstance3D found = FindMeshInstance(child);
+            if (found != null)
+                return found;
+        }
+        return null;
+    }
+
+    public void OutlineOn()
+    {
+        _outline.Visible = true;
+    }
+
+    public void OutlineOff()
+    {
+        _outline.Visible = false;
     }
 
     public void PickedUp()

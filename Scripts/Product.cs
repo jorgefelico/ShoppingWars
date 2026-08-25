@@ -71,10 +71,4 @@ public partial class Product : RigidBody3D
         Reparent(sceneRoot);
         SetDeferred(RigidBody3D.PropertyName.ProcessMode, (int)ProcessModeEnum.Pausable);
     }
-
-    public void Throw()
-    {
-        SetDeferred(RigidBody3D.PropertyName.ProcessMode, (int)ProcessModeEnum.Pausable);
-        GD.Print("Throwing " + DisplayName);
-    }
 }

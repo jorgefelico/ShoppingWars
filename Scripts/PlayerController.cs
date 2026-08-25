@@ -67,16 +67,13 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
-        // Throwing
-        if (Input.IsActionJustPressed("fire") && _heldItem != null)
-        {
-            Vector3 camForward = -Camera.GlobalBasis.Z;
-            Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
-            Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
-            _heldItem.Dropped();
-            _heldItem.LinearVelocity = dir * ThrowVelocity;
-        }
+        HandleThrow();
+        HandleItemInteractRaycast();
+        HandleMovement(delta);
+    }
 
+    private void HandleItemInteractRaycast()
+    {
         // Raycasting Stuff
         RayCast.ForceRaycastUpdate();
 
@@ -93,7 +90,6 @@ public partial class PlayerController : CharacterBody3D
                 {
                     _heldItem = product;
                     _heldItem.PickedUp();
-                    _heldItem.GetParent()?.RemoveChild(_heldItem);
                     ItemHand.AddChild(_heldItem);
                     _heldItem.Position = Vector3.Zero;
                 }
@@ -106,6 +102,10 @@ public partial class PlayerController : CharacterBody3D
             _highlightedItem = newHighlight;
             _highlightedItem?.OutlineOn();
         }
+    }
+
+    private void HandleMovement(double delta)
+    {
         // Movement
         if (IsOnFloor())
         {
@@ -138,5 +138,19 @@ public partial class PlayerController : CharacterBody3D
             Velocity = new Vector3(newX, Velocity.Y, newZ);
         }
         MoveAndSlide();
+    }
+
+    private void HandleThrow()
+    {
+        // Throwing
+        if (Input.IsActionJustPressed("fire") && _heldItem != null)
+        {
+            Vector3 camForward = -Camera.GlobalBasis.Z;
+            Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
+            Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
+            _heldItem.Dropped();
+            _heldItem.LinearVelocity = dir * ThrowVelocity;
+            _heldItem = null;
+        }
     }
 }

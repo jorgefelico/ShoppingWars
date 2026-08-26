@@ -193,18 +193,18 @@ public partial class PlayerController : CharacterBody3D
         }
         if (Input.IsActionJustPressed("scroll_up"))
         {
-            SwitchInventorySlot(Inventory.NextItem());
+            SwitchInventorySlot(Inventory.SelectNextItem());
         }
         if (Input.IsActionJustPressed("scroll_down"))
         {
-            SwitchInventorySlot(Inventory.PreviousItem());
+            SwitchInventorySlot(Inventory.SelectPreviousItem());
         }
     }
 
     private void SwitchInventorySlot(int index)
     {
         if (_heldItem != null) _heldItem.Visible = false;
-        _heldItem = Inventory.getItem(index);
+        _heldItem = Inventory.GetItem(index);
         Inventory.SetCurrentSelectedItem(index);
         if (_heldItem == null) return;
         _heldItem.Visible = true;

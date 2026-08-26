@@ -11,14 +11,14 @@ public partial class Inventory : Node
         InventoryItems = new Product[InventorySize];
     }
 
-    public Product getItem(int index)
+    public Product GetItem(int index)
     {
         return InventoryItems[index];
     }
 
     public void AddItem(Product product)
     {
-        for (int i = 0; i < InventorySize; i++)
+        for (int i = 0; i < InventoryItems.Length; i++)
         {
             if (InventoryItems[i] == null)
             {
@@ -36,13 +36,7 @@ public partial class Inventory : Node
 
     public bool IsInventoryFull()
     {
-        bool isFull = true;
-
-        foreach (Product item in InventoryItems)
-        {
-            if (item == null) isFull = false;
-        }
-        return isFull;
+        return FreeSlots() == 0;
     }
 
     public int FreeSlots()
@@ -55,9 +49,9 @@ public partial class Inventory : Node
         return freeCount;
     }
 
-    public int NextItem()
+    public int SelectNextItem()
     {
-        if (selectedItemIndex < InventorySize)
+        if (selectedItemIndex < InventoryItems.Length - 1)
         {
             selectedItemIndex += 1;
             return selectedItemIndex;
@@ -69,7 +63,7 @@ public partial class Inventory : Node
         }
     }
 
-    public int PreviousItem()
+    public int SelectPreviousItem()
     {
         if (selectedItemIndex > 0)
         {
@@ -78,7 +72,7 @@ public partial class Inventory : Node
         }
         else
         {
-            selectedItemIndex = InventorySize - 1;
+            selectedItemIndex = InventoryItems.Length - 1;
             return selectedItemIndex;
         }
     }

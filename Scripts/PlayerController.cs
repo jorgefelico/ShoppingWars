@@ -191,6 +191,14 @@ public partial class PlayerController : CharacterBody3D
         {
             SwitchInventorySlot(4);
         }
+        if (Input.IsActionJustPressed("scroll_up"))
+        {
+            SwitchInventorySlot(Inventory.NextItem());
+        }
+        if (Input.IsActionJustPressed("scroll_down"))
+        {
+            SwitchInventorySlot(Inventory.PreviousItem());
+        }
     }
 
     private void SwitchInventorySlot(int index)

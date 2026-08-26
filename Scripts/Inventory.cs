@@ -55,31 +55,31 @@ public partial class Inventory : Node
         return freeCount;
     }
 
-    public Product NextItem()
+    public int NextItem()
     {
         if (selectedItemIndex < InventorySize)
         {
             selectedItemIndex += 1;
-            return InventoryItems[selectedItemIndex];
+            return selectedItemIndex;
         }
         else
         {
             selectedItemIndex = 0;
-            return InventoryItems[selectedItemIndex];
+            return selectedItemIndex;
         }
     }
 
-    public Product PreviousItem()
+    public int PreviousItem()
     {
         if (selectedItemIndex > 0)
         {
             selectedItemIndex -= 1;
-            return InventoryItems[selectedItemIndex];
+            return selectedItemIndex;
         }
         else
         {
             selectedItemIndex = InventorySize - 1;
-            return InventoryItems[selectedItemIndex];
+            return selectedItemIndex;
         }
     }
 

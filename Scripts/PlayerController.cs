@@ -8,13 +8,15 @@ public partial class PlayerController : CharacterBody3D
     [Export] private Node3D ItemHand;
     [Export] private float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
-    const float Speed = 5.0f;
+    [Export] float WalkSpeed = 5.0f;
+    [Export] float RunMultiplier = 1.5f;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
     const float Sensitivity = 0.002f;
     const float Gravity = 9.8f;
     static readonly float MaxPitch = Mathf.DegToRad(85f);
+    bool IsRunning = false;
 
     Product _heldItem;
     Product _highlightedItem;
@@ -103,6 +105,15 @@ public partial class PlayerController : CharacterBody3D
 
     private void HandleMovement(double delta)
     {
+        if (Input.IsActionPressed("sprint"))
+        {
+            IsRunning = true;
+        }
+        else
+        {
+            IsRunning = false;
+        }
+
         if (IsOnFloor())
         {
             Velocity = new Vector3(Velocity.X, -Gravity, Velocity.Z);
@@ -120,7 +131,7 @@ public partial class PlayerController : CharacterBody3D
         Vector2 movementAxis = Input.GetVector("move_left", "move_right", "move_back", "move_forward");
         Vector3 direction = new Vector3(movementAxis.X, 0, -movementAxis.Y);
         Vector3 worldDir = Head.GlobalBasis * direction;
-        Vector3 target = worldDir * Speed;
+        Vector3 target = worldDir * WalkSpeed * (IsRunning ? RunMultiplier : 1);
         float newX = Mathf.MoveToward(Velocity.X, target.X, Accel * (float)delta);
         float newZ = Mathf.MoveToward(Velocity.Z, target.Z, Accel * (float)delta);
         if (movementAxis != Vector2.Zero)

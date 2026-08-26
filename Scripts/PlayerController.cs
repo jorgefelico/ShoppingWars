@@ -57,45 +57,20 @@ public partial class PlayerController : CharacterBody3D
                 Input.MouseMode = Input.MouseModeEnum.Captured;
             }
         }
-
-        if (Input.IsActionJustPressed("interact") && _heldItem != null)
-        {
-            _heldItem.Freeze = false;
-            _heldItem.Dropped();
-            _heldItem = null;
-        }
     }
 
     public override void _PhysicsProcess(double delta)
     {
         HandleThrow();
-        HandleItemInteractRaycast();
+        UpdateTargeting();
+        HandleInteract();
         HandleMovement(delta);
     }
 
-    private void HandleItemInteractRaycast()
+    private void UpdateTargeting()
     {
-        // Raycasting Stuff
         RayCast.ForceRaycastUpdate();
-
-        Product newHighlight = null;
-        if (RayCast.GetCollider() is Product product && product != _heldItem)
-        {
-            newHighlight = product;
-
-            // Pick Up
-            if (Input.IsActionJustPressed("interact") && _heldItem == null)
-            {
-                float distance = product.GlobalPosition.DistanceTo(GlobalPosition);
-                if (distance <= PickUpRange)
-                {
-                    _heldItem = product;
-                    _heldItem.Freeze = true;
-                    _heldItem.Reparent(ItemHand);
-                    _heldItem.Position = Vector3.Zero;
-                }
-            }
-        }
+        Product newHighlight = RayCast.GetCollider() is Product product && product != _heldItem ? product : null;
 
         if (newHighlight != _highlightedItem)
         {
@@ -105,9 +80,29 @@ public partial class PlayerController : CharacterBody3D
         }
     }
 
+    private void HandleInteract()
+    {
+        if (!Input.IsActionJustPressed("interact")) return;
+
+        if (_heldItem != null)
+        {
+            _heldItem.Reparent(GetTree().CurrentScene);
+            _heldItem.Freeze = false;
+            _heldItem = null;
+            return;
+        }
+
+        if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
+        {
+            _heldItem = product;
+            _heldItem.Freeze = true;
+            _heldItem.Reparent(ItemHand);
+            _heldItem.Position = Vector3.Zero;
+        }
+    }
+
     private void HandleMovement(double delta)
     {
-        // Movement
         if (IsOnFloor())
         {
             Velocity = new Vector3(Velocity.X, -Gravity, Velocity.Z);
@@ -149,8 +144,8 @@ public partial class PlayerController : CharacterBody3D
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
-            _heldItem.Freeze = false;
             _heldItem.Reparent(GetTree().CurrentScene);
+            _heldItem.Freeze = false;
             _heldItem.LinearVelocity = dir * ThrowVelocity;
             _heldItem = null;
         }

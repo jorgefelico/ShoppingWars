@@ -60,6 +60,7 @@ public partial class PlayerController : CharacterBody3D
 
         if (Input.IsActionJustPressed("interact") && _heldItem != null)
         {
+            _heldItem.Freeze = false;
             _heldItem.Dropped();
             _heldItem = null;
         }
@@ -89,8 +90,8 @@ public partial class PlayerController : CharacterBody3D
                 if (distance <= PickUpRange)
                 {
                     _heldItem = product;
-                    _heldItem.PickedUp();
-                    ItemHand.AddChild(_heldItem);
+                    _heldItem.Freeze = true;
+                    _heldItem.Reparent(ItemHand);
                     _heldItem.Position = Vector3.Zero;
                 }
             }
@@ -148,7 +149,8 @@ public partial class PlayerController : CharacterBody3D
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
-            _heldItem.Dropped();
+            _heldItem.Freeze = false;
+            _heldItem.Reparent(GetTree().CurrentScene);
             _heldItem.LinearVelocity = dir * ThrowVelocity;
             _heldItem = null;
         }

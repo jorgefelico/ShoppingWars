@@ -6,6 +6,7 @@ public partial class PlayerController : CharacterBody3D
     [Export] private Camera3D Camera;
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
+    [Export] private Inventory Inventory;
     [Export] private float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
@@ -66,6 +67,7 @@ public partial class PlayerController : CharacterBody3D
         HandleThrow();
         UpdateTargeting();
         HandleInteract();
+        HandleInventoryActions();
         HandleMovement(delta);
     }
 
@@ -91,15 +93,19 @@ public partial class PlayerController : CharacterBody3D
             _heldItem.Reparent(GetTree().CurrentScene);
             _heldItem.Freeze = false;
             _heldItem = null;
+            Inventory.RemoveCurrentSelectedItem();
             return;
         }
 
         if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
         {
+            if (Inventory.IsInventoryFull()) return;
+
             _heldItem = product;
             _heldItem.Freeze = true;
             _heldItem.Reparent(ItemHand);
             _heldItem.Position = Vector3.Zero;
+            Inventory.AddItem(_heldItem);
         }
     }
 
@@ -159,6 +165,40 @@ public partial class PlayerController : CharacterBody3D
             _heldItem.Freeze = false;
             _heldItem.LinearVelocity = dir * ThrowVelocity;
             _heldItem = null;
+            Inventory.RemoveCurrentSelectedItem();
         }
+    }
+
+    private void HandleInventoryActions()
+    {
+        if (Input.IsActionJustPressed("slot1"))
+        {
+            SwitchInventorySlot(0);
+        }
+        if (Input.IsActionJustPressed("slot2"))
+        {
+            SwitchInventorySlot(1);
+        }
+        if (Input.IsActionJustPressed("slot3"))
+        {
+            SwitchInventorySlot(2);
+        }
+        if (Input.IsActionJustPressed("slot4"))
+        {
+            SwitchInventorySlot(3);
+        }
+        if (Input.IsActionJustPressed("slot5"))
+        {
+            SwitchInventorySlot(4);
+        }
+    }
+
+    private void SwitchInventorySlot(int index)
+    {
+        if (_heldItem != null) _heldItem.Visible = false;
+        _heldItem = Inventory.getItem(index);
+        Inventory.SetCurrentSelectedItem(index);
+        if (_heldItem == null) return;
+        _heldItem.Visible = true;
     }
 }

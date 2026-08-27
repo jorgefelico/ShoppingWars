@@ -6,7 +6,7 @@
 size = Vector2(8, 4)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_y1t4u"]
-size = Vector3(8, 4, 0.01)
+size = Vector3(8, 4, 0.25)
 
 [node name="PrototypeWall" type="StaticBody3D" unique_id=924598980]
 

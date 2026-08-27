@@ -98,6 +98,8 @@ public partial class PlayerController : CharacterBody3D
 
             // Get New Item
             _heldItem = product;
+            _heldItem.CollisionLayer = 0;
+            _heldItem.CollisionMask = 0;
             _heldItem.Freeze = true;
             _heldItem.Reparent(ItemHand);
             _heldItem.Position = Vector3.Zero;
@@ -106,6 +108,8 @@ public partial class PlayerController : CharacterBody3D
         else if (_heldItem != null)
         {
             _heldItem.Reparent(GetTree().CurrentScene);
+            _heldItem.CollisionLayer = 1;
+            _heldItem.CollisionMask = 3;
             _heldItem.Freeze = false;
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
@@ -166,6 +170,8 @@ public partial class PlayerController : CharacterBody3D
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
             _heldItem.Reparent(GetTree().CurrentScene);
+            _heldItem.CollisionLayer = 1;
+            _heldItem.CollisionMask = 3;
             _heldItem.Freeze = false;
             _heldItem.LinearVelocity = dir * ThrowVelocity;
             _heldItem = null;

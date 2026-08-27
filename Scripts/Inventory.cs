@@ -4,7 +4,7 @@ public partial class Inventory : Node
 {
     [Export] int InventorySize = 5;
     private Product[] InventoryItems;
-    private int selectedItemIndex = 0;
+    public int selectedItemIndex = 0;
 
     public override void _Ready()
     {
@@ -81,4 +81,5 @@ public partial class Inventory : Node
     {
         selectedItemIndex = index;
     }
+
 }

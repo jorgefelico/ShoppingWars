@@ -6,6 +6,7 @@ public partial class Product : RigidBody3D
     [Export] public int Price;
     [Export] public int Damage;
     [Export] public bool ScaleVariation = false;
+    [Export] public Texture2D icon;
 
     MeshInstance3D _outline;
     public override void _Ready()

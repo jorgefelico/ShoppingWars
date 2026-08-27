@@ -88,24 +88,28 @@ public partial class PlayerController : CharacterBody3D
     {
         if (!Input.IsActionJustPressed("interact")) return;
 
-        if (_heldItem != null)
+        if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
+        {
+            if (Inventory.IsInventoryFull()) return;
+            if (_heldItem != null)
+            {
+                _heldItem.Visible = false;
+            }
+
+            // Get New Item
+            _heldItem = product;
+            _heldItem.Freeze = true;
+            _heldItem.Reparent(ItemHand);
+            _heldItem.Position = Vector3.Zero;
+            Inventory.AddItem(_heldItem);
+        }
+        else if (_heldItem != null)
         {
             _heldItem.Reparent(GetTree().CurrentScene);
             _heldItem.Freeze = false;
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
             return;
-        }
-
-        if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
-        {
-            if (Inventory.IsInventoryFull()) return;
-
-            _heldItem = product;
-            _heldItem.Freeze = true;
-            _heldItem.Reparent(ItemHand);
-            _heldItem.Position = Vector3.Zero;
-            Inventory.AddItem(_heldItem);
         }
     }
 
@@ -205,7 +209,7 @@ public partial class PlayerController : CharacterBody3D
     {
         if (_heldItem != null) _heldItem.Visible = false;
         _heldItem = Inventory.GetItem(index);
-        Inventory.SetCurrentSelectedItem(index);
+        Inventory.selectedItemIndex = index;
         if (_heldItem == null) return;
         _heldItem.Visible = true;
     }

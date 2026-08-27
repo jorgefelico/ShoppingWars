@@ -2,19 +2,21 @@
 
 [ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_ma4hh"]
 [ext_resource type="PackedScene" uid="uid://dtigmuwil0gip" path="res://Models/apple.blend" id="2_l77x7"]
+[ext_resource type="Texture2D" uid="uid://dtvh34hlalpvk" path="res://Icons/appleicon.png" id="2_ypfnt"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
 radius = 0.071981885
 
 [node name="Apple" type="RigidBody3D" unique_id=1412821752]
 collision_mask = 3
-continuous_cd = 2
 mass = 0.2
+continuous_cd = true
 script = ExtResource("1_ma4hh")
 DisplayName = &"Apple"
 Price = 3
 Damage = 5
 ScaleVariation = true
+Icon = ExtResource("2_ypfnt")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1420073300]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.002810806, 0.075, 0.0039351285)

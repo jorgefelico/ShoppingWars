@@ -3,6 +3,8 @@ using Godot;
 public partial class Inventory : Node
 {
     [Export] int InventorySize = 5;
+    [Export] InventoryBar InventoryBar;
+
     private Product[] InventoryItems;
     public int selectedItemIndex = 0;
 
@@ -27,11 +29,13 @@ public partial class Inventory : Node
                 break;
             }
         }
+        InventoryBar.Refresh(InventoryItems, selectedItemIndex);
     }
 
     public void RemoveCurrentSelectedItem()
     {
         InventoryItems[selectedItemIndex] = null;
+        InventoryBar.Refresh(InventoryItems, selectedItemIndex);
     }
 
     public bool IsInventoryFull()
@@ -53,12 +57,12 @@ public partial class Inventory : Node
     {
         if (selectedItemIndex < InventoryItems.Length - 1)
         {
-            selectedItemIndex += 1;
+            SetCurrentSelectedItem(selectedItemIndex + 1);
             return selectedItemIndex;
         }
         else
         {
-            selectedItemIndex = 0;
+            SetCurrentSelectedItem(0);
             return selectedItemIndex;
         }
     }
@@ -67,12 +71,12 @@ public partial class Inventory : Node
     {
         if (selectedItemIndex > 0)
         {
-            selectedItemIndex -= 1;
+            SetCurrentSelectedItem(selectedItemIndex - 1);
             return selectedItemIndex;
         }
         else
         {
-            selectedItemIndex = InventoryItems.Length - 1;
+            SetCurrentSelectedItem(InventoryItems.Length - 1);
             return selectedItemIndex;
         }
     }
@@ -80,6 +84,7 @@ public partial class Inventory : Node
     public void SetCurrentSelectedItem(int index)
     {
         selectedItemIndex = index;
+        InventoryBar.Refresh(InventoryItems, index);
     }
 
 }

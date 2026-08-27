@@ -209,7 +209,7 @@ public partial class PlayerController : CharacterBody3D
     {
         if (_heldItem != null) _heldItem.Visible = false;
         _heldItem = Inventory.GetItem(index);
-        Inventory.selectedItemIndex = index;
+        Inventory.SetCurrentSelectedItem(index);
         if (_heldItem == null) return;
         _heldItem.Visible = true;
     }

@@ -7,8 +7,7 @@ public partial class Product : RigidBody3D
     [Export] public int Damage;
     [Export] public bool ScaleVariation = false;
     [Export] public Texture2D Icon;
-
-    float MinDamageSpeed = 10f;
+    [Export] float MinDamageSpeed = 10f;
     MeshInstance3D _outline;
 
     public override void _Ready()

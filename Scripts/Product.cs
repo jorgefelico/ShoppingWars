@@ -8,9 +8,12 @@ public partial class Product : RigidBody3D
     [Export] public bool ScaleVariation = false;
     [Export] public Texture2D Icon;
 
+    float MinDamageSpeed = 10f;
     MeshInstance3D _outline;
+
     public override void _Ready()
     {
+        BodyEntered += OnBodyEntered;
         if (ScaleVariation)
         {
             RandomNumberGenerator rand = new RandomNumberGenerator();
@@ -59,5 +62,14 @@ public partial class Product : RigidBody3D
     public void OutlineOff()
     {
         _outline.Visible = false;
+    }
+
+    private void OnBodyEntered(Node body)
+    {
+        if (LinearVelocity.Length() < MinDamageSpeed) return;
+        if (body is PlayerController player)
+        {
+            player.Health.TakeDamage(Damage);
+        }
     }
 }

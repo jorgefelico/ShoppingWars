@@ -14,7 +14,7 @@ continuous_cd = true
 script = ExtResource("1_ma4hh")
 DisplayName = &"Apple"
 Price = 3
-Damage = 5
+Damage = 20
 ScaleVariation = true
 Icon = ExtResource("2_ypfnt")
 

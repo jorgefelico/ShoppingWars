@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://ocxx3jyjbxx5" path="res://Scripts/PlayerController.cs" id="1_v0iea"]
 [ext_resource type="Script" uid="uid://drnbt104ul2rr" path="res://Scripts/Inventory.cs" id="2_cvnsp"]
 [ext_resource type="Script" uid="uid://ddqcycumvno22" path="res://Scripts/InventoryBar.cs" id="3_6t5aa"]
+[ext_resource type="Script" uid="uid://cumv832epdtak" path="res://Scripts/HealthBar.cs" id="4_fkybt"]
+[ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="5_fkybt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
 
@@ -17,7 +19,9 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0, 0, 0, 1)
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory")]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ve40"]
+
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "Health")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
@@ -25,6 +29,7 @@ Camera = NodePath("Head/Camera")
 RayCast = NodePath("Head/Camera/RayCast3D")
 ItemHand = NodePath("Head/Camera/ItemHand")
 Inventory = NodePath("Inventory")
+Health = NodePath("Health")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")
@@ -168,3 +173,29 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
+
+[node name="HealthBar" type="CanvasLayer" parent="." unique_id=1082677140 node_paths=PackedStringArray("ColorRect")]
+script = ExtResource("4_fkybt")
+ColorRect = NodePath("PanelContainer/ColorRect")
+
+[node name="PanelContainer" type="PanelContainer" parent="HealthBar" unique_id=1009050244]
+custom_minimum_size = Vector2(300, 20)
+custom_maximum_size = Vector2(400, 20)
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_6ve40")
+
+[node name="ColorRect" type="ColorRect" parent="HealthBar/PanelContainer" unique_id=552832269]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+color = Color(1, 0, 0, 1)
+
+[node name="Health" type="Node" parent="." unique_id=1736100758 node_paths=PackedStringArray("HealthBar")]
+script = ExtResource("5_fkybt")
+HealthBar = NodePath("../HealthBar")

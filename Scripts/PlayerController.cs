@@ -7,6 +7,7 @@ public partial class PlayerController : CharacterBody3D
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
     [Export] private Inventory Inventory;
+    [Export] public Health Health;
     [Export] private float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
@@ -18,7 +19,6 @@ public partial class PlayerController : CharacterBody3D
     const float Gravity = 9.8f;
     static readonly float MaxPitch = Mathf.DegToRad(85f);
     bool IsRunning = false;
-
     Product _heldItem;
     Product _highlightedItem;
 

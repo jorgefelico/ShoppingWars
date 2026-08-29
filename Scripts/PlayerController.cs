@@ -123,7 +123,7 @@ public partial class PlayerController : CharacterBody3D
             {
                 if(!TryDeductMoney(product.Price))
                 {
-                    GD.Print("[Store] Cannot afford {product.DisplayName}! Costs ${product.Price}, you have ${Money}");
+                    GD.Print($"[Store] Cannot afford {product.DisplayName}! Costs ${product.Price}, you have ${Money}");
                     return;
                 }
             }
@@ -146,6 +146,7 @@ public partial class PlayerController : CharacterBody3D
         }
         else if (_heldItem != null)
         {
+            if(GameManager.Instance?.CurrentPhase == GamePhase.Shopping) _heldItem.IsForSale = true;
             _heldItem.Reparent(GetTree().CurrentScene);
             _heldItem.CollisionLayer = 1;
             _heldItem.CollisionMask = 3;

@@ -23,6 +23,7 @@ public partial class GamePhaseHUD : CanvasLayer
                 PhaseLabel.Modulate = Colors.Cyan;
                 MoneyLabel.Visible = true;
                 MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
+                MoneyLabel.Modulate = PlayerController.Instance?.Money != 0 ? Colors.Green : Colors.Red;
                 break;
             case GamePhase.BattleRoyale:
                 PhaseLabel.Text = "BATTLE ROYALE - FIGHT!";

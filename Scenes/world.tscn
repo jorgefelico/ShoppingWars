@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="5_fo5ed"]
 [ext_resource type="PackedScene" uid="uid://djnlccipkk3q8" path="res://Prefabs/TestShooter.tscn" id="6_5ukr8"]
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="7_o06y3"]
+[ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="8_k7acu"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
 albedo_texture = ExtResource("1_go701")
@@ -168,3 +169,5 @@ ShootFrequency = 0.5
 
 [node name="GameManager" type="Node" parent="." unique_id=222466870]
 script = ExtResource("7_o06y3")
+
+[node name="GamePhaseHud" parent="." unique_id=920991269 instance=ExtResource("8_k7acu")]

@@ -59,6 +59,7 @@ public partial class NetworkManager : Node
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             SpawnPlayer(id);
+            GameManager.Instance?.SyncStateToPlayer(id);
         }
     }
 

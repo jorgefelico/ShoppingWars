@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Godot;
 
-public partial class PlayerController : CharacterBody3D
+public partial class PlayerController : CharacterBody3D, IDamageable
 {
     static public PlayerController Instance {get; private set;}
     [Export] private Node3D Head;
@@ -267,5 +267,10 @@ public partial class PlayerController : CharacterBody3D
         Money -= amount;
         GD.Print($"[Store] Purchased item for ${amount}. Money remaining: ${Money}");
         return true;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        Health?.TakeDamage(amount);
     }
 }

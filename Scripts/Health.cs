@@ -10,7 +10,7 @@ public partial class Health : Node
     public override void _Ready()
     {
         CurrentHealth = MaxHealth;
-        HealthBar.Refresh(CurrentHealth, MaxHealth);
+        HealthBar?.Refresh(CurrentHealth, MaxHealth);
     }
 
     public void TakeDamage(int amount)
@@ -18,6 +18,6 @@ public partial class Health : Node
         GD.Print("Take damage");
         CurrentHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
         if (CurrentHealth == 0) IsDead = true;
-        HealthBar.Refresh(CurrentHealth, MaxHealth);
+        HealthBar?.Refresh(CurrentHealth, MaxHealth);
     }
 }

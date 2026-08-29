@@ -76,9 +76,6 @@ public partial class Product : RigidBody3D
         
         if(GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
 
-        if (body is PlayerController player)
-        {
-            player.Health.TakeDamage(Damage);
-        }
+        if (body is IDamageable target) target.TakeDamage(Damage);
     }
 }

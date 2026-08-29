@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bcnew7ehcdneo"]
+
+[ext_resource type="Script" uid="uid://c13d1y1afvdnb" path="res://Scripts/Groomba.cs" id="1_1nlae"]
+[ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="2_dka28"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_y1t4u"]
+height = 0.2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
+height = 0.2
+
+[node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("NavAgent", "Health")]
+script = ExtResource("1_1nlae")
+NavAgent = NodePath("NavigationAgent3D")
+Health = NodePath("Health")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=417780725]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1221022583]
+shape = SubResource("CylinderShape3D_y1t4u")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1570236374]
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="Health" type="Node" parent="." unique_id=1619880876]
+script = ExtResource("2_dka28")

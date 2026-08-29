@@ -63,6 +63,9 @@ public partial class SteamManager : Node
     {
         if (!IsSteamInitialized) return;
         GD.Print("[Steam] Creating Steam Friends-Only Lobby...");
+        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
+        peer.CreateServer(7000,4);
+        Multiplayer.MultiplayerPeer = peer;
         SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, 4);
     }
 
@@ -84,7 +87,7 @@ public partial class SteamManager : Node
             GD.Print($"[Steam] Lobby Created Successfully! ID: {lobbyId}");
 
             // Load into World Scene
-            GetTree().ChangeSceneToFile("res://Scenes/world.tscn");
+            NetworkManager.Instance?.LoadLevel("res://Scenes/world.tscn");
         }
 
         private void OnLobbyJoinRequested(GameLobbyJoinRequested_t param)

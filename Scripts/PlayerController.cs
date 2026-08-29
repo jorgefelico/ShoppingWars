@@ -28,19 +28,28 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     Product _highlightedItem;
     bool InputDisabled = false;
 
-    public override void _Ready()
+     public override void _Ready()
     {
-        Instance = this;
-        if (Head == null)
+        // If the node name is a numeric peer ID, assign authority automatically!
+        if (int.TryParse(Name, out int peerId))
         {
-            Head = GetNode<Node3D>("Head");
-        }
-        if (Camera == null)
-        {
-            Camera = GetNode<Camera3D>("Camera");
+            SetMultiplayerAuthority(peerId);
         }
 
-        Input.MouseMode = Input.MouseModeEnum.Captured;
+        if (Head == null) Head = GetNode<Node3D>("Head");
+        if (Camera == null) Camera = GetNode<Camera3D>("Camera");
+
+        if (IsMultiplayerAuthority())
+        {
+            Instance = this;
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            if (Camera != null) Camera.MakeCurrent();
+        }
+        else
+        {
+            if (Camera != null) Camera.Current = false;
+        }
+
         Money = StartingMoney;
     }
 
@@ -62,6 +71,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if(!IsMultiplayerAuthority()) return;
         if (@event.IsActionPressed("ui_cancel"))
         {
             if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
@@ -89,6 +99,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _PhysicsProcess(double delta)
     {
+        if(!IsMultiplayerAuthority()) return;
         if(InputDisabled) return;
         HandleThrow();
         UpdateTargeting();
@@ -211,11 +222,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
             float speed = ThrowVelocity * _heldItem.ThrowMultiplier;
-            _heldItem.Reparent(GetTree().CurrentScene);
-            _heldItem.CollisionLayer = 1;
-            _heldItem.CollisionMask = 3;
-            _heldItem.Freeze = false;
-            _heldItem.LinearVelocity = dir * speed;
+            NodePath itemPath = _heldItem.GetPath();
+            Rpc(nameof(RpcThrowItem), itemPath, dir * speed);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcThrowItem(NodePath itemPath, Vector3 launchVelocity)
+    {
+        Product item = GetNodeOrNull<Product>(itemPath);
+        if(item == null) return;
+        item.Reparent(GetTree().CurrentScene);
+        item.CollisionLayer = 1;
+        item.CollisionMask = 3;
+        item.Freeze = false;
+        item.LinearVelocity = launchVelocity;
+
+        if (IsMultiplayerAuthority())
+        {
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
         }

@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://l188u5sqw25o"]
 
 [ext_resource type="Material" uid="uid://g3q6l4ir3ope" path="res://Materials/floor_prototype.tres" id="1_5a7ea"]
-[ext_resource type="PackedScene" uid="uid://dfdug5q5p77vk" path="res://Prefabs/player.tscn" id="1_a02cp"]
 [ext_resource type="Texture2D" uid="uid://8rv8rkmuej3d" path="res://Textures/prototype_512x512_Blue.png" id="1_go701"]
 [ext_resource type="PackedScene" uid="uid://dltuejiiomdlx" path="res://Prefabs/prototype_wall.tscn" id="5_5ukr8"]
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="5_fo5ed"]
@@ -31,9 +30,6 @@ size = Vector3(80, 0, 80)
 transform = Transform3D(1, 0, 0, 0, 0.49999997, 0.86602545, 0, -0.86602545, 0.49999997, 0, 0, 0)
 light_color = Color(1, 1, 0.9098039, 1)
 shadow_enabled = true
-
-[node name="Player" parent="." unique_id=1723693451 instance=ExtResource("1_a02cp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 
 [node name="TestShooter" parent="." unique_id=1128667975 instance=ExtResource("6_5ukr8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.125, 0, 6.564)
@@ -190,3 +186,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5318661, 0.7964616, -1.1716
 
 [node name="Watermelon2" parent="." unique_id=1479525429 instance=ExtResource("10_0fj1v")]
 transform = Transform3D(0.7322302, 0, 0.6810572, 0, 1, 0, -0.6810572, 0, 0.7322302, 1.05492, 0.7964616, -1.1716454)
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=340474803]
+_spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
+spawn_path = NodePath("..")
+
+[node name="SpawnPoints" type="Node3D" parent="." unique_id=1178358120]
+
+[node name="SpawnPoint1" type="Marker3D" parent="SpawnPoints" unique_id=599482344]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.864672, 0.7687416, -29.900166)
+
+[node name="SpawnPoint2" type="Marker3D" parent="SpawnPoints" unique_id=1653011018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.492092, 1.4366875, -37.76606)
+
+[node name="SpawnPoint3" type="Marker3D" parent="SpawnPoints" unique_id=1803205962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.869183, 0.8930963, 36.92776)
+
+[node name="SpawnPoint4" type="Marker3D" parent="SpawnPoints" unique_id=2024909688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.67864, 0.6515336, 36.39016)

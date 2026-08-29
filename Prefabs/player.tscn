@@ -22,6 +22,17 @@ border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ve40"]
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hck1p"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("Head:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Head/Camera:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
 [node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "Health", "DeathOverlay")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
@@ -203,3 +214,6 @@ script = ExtResource("5_fkybt")
 HealthBar = NodePath("../HealthBar")
 
 [node name="Death" parent="." unique_id=2103118093 instance=ExtResource("6_x3wgy")]
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=2102287189]
+replication_config = SubResource("SceneReplicationConfig_hck1p")

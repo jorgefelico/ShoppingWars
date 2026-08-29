@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://d42rdkb7q33t" path="res://Scripts/MainMenu.cs" id="1_853f1"]
 [ext_resource type="Texture2D" uid="uid://b2t037etmbow8" path="res://Textures/mainmenubg.png" id="1_tt5f1"]
 
-[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SoloButton", "StatusLabel")]
+[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SoloButton", "JoinLocalButton", "StatusLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,6 +14,7 @@ script = ExtResource("1_853f1")
 HostButton = NodePath("VBoxContainer/Host")
 JoinButton = NodePath("VBoxContainer/Join")
 SoloButton = NodePath("VBoxContainer/Solo")
+JoinLocalButton = NodePath("VBoxContainer/JoinLocal")
 StatusLabel = NodePath("StatusLabel")
 
 [node name="Background" type="TextureRect" parent="." unique_id=670803233]
@@ -47,6 +48,10 @@ text = "Host Steam Lobby"
 [node name="Join" type="Button" parent="VBoxContainer" unique_id=2121950271]
 layout_mode = 2
 text = "Join Lobby"
+
+[node name="JoinLocal" type="Button" parent="VBoxContainer" unique_id=1613549525]
+layout_mode = 2
+text = "Join Local"
 
 [node name="Solo" type="Button" parent="VBoxContainer" unique_id=1756857548]
 layout_mode = 2

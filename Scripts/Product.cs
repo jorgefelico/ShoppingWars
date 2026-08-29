@@ -8,6 +8,7 @@ public partial class Product : RigidBody3D
     [Export] public bool ScaleVariation = false;
     [Export] public Texture2D Icon;
     [Export] float MinDamageSpeed = 12f;
+    [Export] public bool IsForSale = true;
     MeshInstance3D _outline;
     Vector3 _lastVelocity;
 

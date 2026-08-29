@@ -3,6 +3,7 @@ using Godot;
 
 public partial class PlayerController : CharacterBody3D
 {
+    static public PlayerController Instance {get; private set;}
     [Export] private Node3D Head;
     [Export] private Camera3D Camera;
     [Export] private RayCast3D RayCast;
@@ -14,7 +15,8 @@ public partial class PlayerController : CharacterBody3D
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
-    [Export] float StartingCash = 50.0f;
+    [Export] int StartingMoney = 100;
+    public int Money {get; private set;}
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -28,6 +30,7 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _Ready()
     {
+        Instance = this;
         if (Head == null)
         {
             Head = GetNode<Node3D>("Head");
@@ -38,6 +41,7 @@ public partial class PlayerController : CharacterBody3D
         }
 
         Input.MouseMode = Input.MouseModeEnum.Captured;
+        Money = StartingMoney;
     }
 
     public override void _Process(double delta)
@@ -114,6 +118,18 @@ public partial class PlayerController : CharacterBody3D
         if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
         {
             if (Inventory.IsInventoryFull()) return;
+            
+            if(product.IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
+            {
+                if(!TryDeductMoney(product.Price))
+                {
+                    GD.Print("[Store] Cannot afford {product.DisplayName}! Costs ${product.Price}, you have ${Money}");
+                    return;
+                }
+            }
+
+            product.IsForSale = false;
+
             if (_heldItem != null)
             {
                 _heldItem.Visible = false;
@@ -242,5 +258,13 @@ public partial class PlayerController : CharacterBody3D
         Inventory.SetCurrentSelectedItem(index);
         if (_heldItem == null) return;
         _heldItem.Visible = true;
+    }
+
+    private bool TryDeductMoney(int amount)
+    {
+        if(Money < amount) return false;
+        Money -= amount;
+        GD.Print($"[Store] Purchased item for ${amount}. Money remaining: ${Money}");
+        return true;
     }
 }

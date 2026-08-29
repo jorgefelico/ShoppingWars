@@ -9,6 +9,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
     [Export] private Inventory Inventory;
+    [Export] private InventoryBar InventoryBar;
+    [Export] private CanvasLayer CrossHair;
+    [Export] private HealthBar HealthBar;
     [Export] public Health Health;
     [Export] private CanvasLayer DeathOverlay;
     [Export] private float PickUpRange = 2.0f;
@@ -48,6 +51,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         else
         {
             if (Camera != null) Camera.Current = false;
+
+            // Hide UI elements on remote player clones.
+            if(InventoryBar != null) InventoryBar.Visible = false;
+            if(HealthBar != null) HealthBar.Visible = false;
+            if(CrossHair != null) CrossHair.Visible = false;
         }
 
         Money = StartingMoney;

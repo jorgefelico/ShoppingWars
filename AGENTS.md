@@ -2,54 +2,59 @@
 
 ## Project Overview
 
-**Shopping Wars** is a first-person game built with **Godot 4.7** and **C#** (Godot.NET.Sdk 4.7.1, .NET 8). It is currently a single-scene prototype of the core mechanics: the player is in an enclosed arena containing a produce table full of apples; they can look around, pick up products (E), switch between 5 inventory slots (1–5 / mouse wheel), and throw them (LMB). No save system, no enemies, no HUD beyond a crosshair and a 5-slot inventory hotbar, no scene transitions.
+**Shopping Wars** is a first-person game built with **Godot 4.7** and **C#** (Godot.NET.Sdk 4.7.1, .NET 8). It is a functional single-scene prototype of the core gameplay loop: players run around an enclosed store arena during a **Shopping phase**, buy products using cash, and fight in a **Battle Royale phase** using thrown store products as weapons while dodging/fighting the **Groomba** store-vacuum hazard.
 
 - Engine: Godot 4.7, Forward Plus renderer, **Jolt Physics** (`project.godot`).
 - Main scene: `Scenes/world.tscn`.
 - Physics layers: 1 = `World`, 2 = `Player` (`[layer_names]`).
 
-## Game Design & Game Loop (Planned)
+## Game Design & Core Loop (Implemented)
 
-Shopping Wars is a **4-player** (you + 3 friends) store battle royale. Multiplayer is expected but **not yet implemented** — the current prototype is single-player and focused on building the core mechanics below.
+Shopping Wars is designed as a **4-player** store battle royale. Multiplayer is expected but **not yet implemented** — the current build is single-player with local AI/hazards.
 
-**Game loop — two phases:**
+**Game loop — three phases (`GameManager.cs`):**
 
-1. **Shopping phase (timer)** — each player starts in the store with a set amount of money. While the timer runs, players run around the store and buy items off the store shelves or produce tables.
-2. **Battle royale** — when the timer runs out, the scene turns into a battle royale: last man standing wins. The items bought during the shopping phase are used as weapons/projectiles (thrown like the current apple mechanic). Not only do you have to worry about other players killing you — you also have to worry about the environment killing you.
+1. **Lobby phase (`Lobby`)** — initial spawn/lobby state before match start.
+2. **Shopping phase (`Shopping`)** — timer runs (default 30s). Players start with `$100` and buy items off store shelves/tables (`E`). Purchasing deducts `Product.Price`. Thrown items deal **no damage** during this phase.
+3. **Battle Royale phase (`BattleRoyale`)** — when the shopping timer expires, combat turns on (`GamePhaseHUD` displays red warning). Items bought during shopping deal damage when thrown (`LMB`). The **Groomba** hazard activates and chases players.
 
-**Death & loot:** when a player is killed, they drop their items on the floor. Dropped items can be collected by other players for free.
+**Health, Death & Loot Drops:**
+- Player has 100 HP (`Health.cs`, `HealthBar.cs`).
+- When health reaches 0, input is disabled, a death overlay appears (`Death.tscn`), and all held inventory items drop onto the floor (`Inventory.DropLoot()`). Dropped floor items are marked `IsForSale = false` and can be picked up for free by any player.
 
-**PvE (planned):** the first PvE entity is a Roomba-like robot vacuum that patrols the isles; when it detects a player it chases and tries to kill them. More PvE entities will come later.
+**PvE Enemy (Groomba):**
+- Patrolling robot vacuum (`Groomba.cs`, `CharacterBody3D`, `IDamageable`).
+- Uses Godot 4 `NavigationAgent3D` and `NavigationRegion3D` to pathfind around store obstacles.
+- Patrols random floor points during Battle Royale; chases the player when within `DetectionRange` (8m).
+- Deals contact damage (15 HP) on bump collision.
+- Implements `IDamageable`: can be damaged and destroyed (`QueueFree()`) when hit by thrown products.
 
-**Not implemented yet:** money/purchasing, the shopping timer, health & death, death item drops, the Roomba, multiplayer.
+**Not implemented yet:** multiplayer, save system, scene transitions, multiple product types beyond Apple.
 
 ## Architecture & Data Flow
 
 No autoloads, no `[Signal]` declarations, no signal connections, no node groups. All wiring is done with **`[Export]` node paths** set in the scene files (`node_paths` in the `.tscn`). State lives on nodes; interaction is direct method calls.
 
-Four scripts in `Scripts/`:
+Nine scripts in `Scripts/`:
 
-- **`PlayerController.cs`** (`CharacterBody3D`, on `Scenes/player.tscn`) — all gameplay logic.
-  - Mouse look: `Head` (yaw) + `Camera` (pitch, clamped ±85°); mouse captured on `_Ready`, released on `ui_cancel` (Esc) — quits if already released. Mouse-motion events with `Relative.Length() > 500` are ignored (spike guard).
-  - Movement: `Input.GetVector("move_left","move_right","move_back","move_forward")` relative to `Head.GlobalBasis`; velocity approaches the target via `Mathf.MoveToward` (`Accel = 30`) and decays to zero with `Friction = 25` when no input is held; sprint (`sprint`) multiplies by `RunMultiplier`; jump (`jump` while `IsOnFloor()`) sets `Velocity.Y = JumpVelocity`; custom gravity integration; `MoveAndSlide()`. `WalkSpeed` (5.0) and `RunMultiplier` (1.5) are `[Export]`s with defaults; `Accel`, `Friction`, `JumpVelocity`, `Sensitivity`, `Gravity` are `const` at the top of the class.
-  - `_PhysicsProcess` order: `HandleThrow()` → `UpdateTargeting()` → `HandleInteract()` → `HandleInventoryActions()` → `HandleMovement(delta)`.
-  - `UpdateTargeting()`: forces the camera `RayCast3D` (2 m) and toggles `Product.OutlineOn/Off()` on the hit product (never the held one).
-  - Pickup (`interact`): if the raycast hit is a `Product` within `PickUpRange` (2 m) and inventory not full → pick up, **even while already holding** (the previously held item stays in the inventory, just hidden via `Visible = false`). The new item gets `CollisionLayer = 0` / `CollisionMask = 0` (held items must not collide with anything — a held apple colliding with the player pushed the player around), `Freeze = true`, `Reparent(ItemHand)`, `Position = Zero`, `Inventory.AddItem()`. If the raycast hit is not a pickable product, E drops the held item in place.
-  - Drop/throw: reparent to `GetTree().CurrentScene`, restore `CollisionLayer = 1` / `CollisionMask = 3`, `Freeze = false`. Throw (`fire`) additionally sets `LinearVelocity = dir * ThrowVelocity` (50) toward a point 10 m in front of the camera.
-  - Slot switching: `slot1`–`slot5` and `scroll_up`/`scroll_down` → `SwitchInventorySlot()`, which hides the old held item and shows the new one (an empty slot clears `_heldItem`).
-- **`Inventory.cs`** (`Node`, child of the player) — item-slot logic + the hotbar sync hook. Fixed `Product[]` (default 5, `[Export] InventorySize`), `selectedItemIndex` (public field), `AddItem` (first free slot, auto-selects it) / `GetItem` / `SelectNextItem` / `SelectPreviousItem` / `SetCurrentSelectedItem` / `RemoveCurrentSelectedItem` / `IsInventoryFull` / `FreeSlots`. Holds `[Export] InventoryBar`; **every mutator calls `InventoryBar.Refresh(InventoryItems, selectedItemIndex)`**, so the bar stays in sync no matter who mutates the inventory. **No signals.**
-- **`Product.cs`** (`RigidBody3D`) — any throwable item. `[Export]` `DisplayName`, `Price`, `Damage`, `ScaleVariation` (bool, default `false`; when true, random scale 1.0–1.15 in `_Ready` — `Apple` sets it `true`), `Icon` (hotbar texture; `Apple`: `Icons/appleicon.png`). `_Ready` clones the first `MeshInstance3D` in the subtree (recursive search) into a hidden child `_outline` whose surfaces override with `Shaders/outline.gdshader`; `OutlineOn()/OutlineOff()` toggle it.
-- **`InventoryBar.cs`** (`CanvasLayer`, child of the player) — bottom hotbar UI. `Refresh(Product[] products, int currentSelectedItem)` duplicates the shared `StyleBoxFlat` per slot panel and sets only `BorderColor` (gold on the selected slot, black on the rest; border width comes from the scene's subresource), then fills each slot's `Label`/`TextureRect` (`Icon` if set, else `DisplayName`; slot number when empty). All slots share one `StyleBoxFlat` subresource in the scene — `Refresh` duplicates it per panel, so never mutate the result of `GetThemeStylebox("panel")` in place.
+- **`PlayerController.cs`** (`CharacterBody3D`, on `Prefabs/player.tscn`) — movement, targeting, purchasing (`TryDeductMoney`), throwing, static `Instance` reference, implements `IDamageable`.
+- **`Product.cs`** (`RigidBody3D`) — throwable items. Contact monitor enabled, tracks pre-impact speed `_lastVelocity`, phase-gated damage check against any `IDamageable` body.
+- **`GameManager.cs`** (`Node`, child of `world.tscn`) — match state & timer singleton (`Instance`). Transitions between `Lobby`, `Shopping`, and `BattleRoyale`.
+- **`GamePhaseHUD.cs`** (`CanvasLayer`) — top-screen UI displaying phase status, countdown timer (`mm:ss`), and player money.
+- **`Groomba.cs`** (`CharacterBody3D`, implements `IDamageable`) — vacuum robot enemy AI using `NavigationAgent3D`. Chases player during `BattleRoyale` phase and deals contact damage.
+- **`IDamageable.cs`** (`interface`) — standard contract (`void TakeDamage(int amount)`).
+- **`Inventory.cs`** & **`InventoryBar.cs`** — 5-slot inventory logic + hotbar UI; includes `DropLoot()` on death.
+- **`Health.cs`** & **`HealthBar.cs`** — health management & top-right HP bar UI.
 
-**Item data flow:** apples (`Prefabs/Products/Apple.tscn`, Jolt rigid bodies: mass 0.2, sphere collider, CCD, `collision_mask = 3`) sit on `Prefabs/produce_table.tscn` → raycast highlights them → pickup zeroes the collision layer/mask (held items can't push the player or collide with anything), freezes + reparents under `Head/Camera/ItemHand` and stores the reference in `Inventory` → slot switching only toggles `Visible` (**all held items remain parented under `ItemHand`, stacked at the same position**) → throw/drop reparents to the current scene, restores the collision layer/mask, unfreezes, resumes simulation; pickable again. Every mutation (pickup, drop, throw, slot switch) also refreshes the hotbar via `InventoryBar.Refresh`.
+**Item data flow:** apples (`Prefabs/Products/Apple.tscn`, Jolt rigid bodies: mass 0.2, sphere collider, CCD, `collision_mask = 3`) sit on `Prefabs/produce_table.tscn` → raycast highlights them → pickup/buy zeroes the collision layer/mask (held items can't push the player or collide with anything), freezes + reparents under `Head/Camera/ItemHand` and stores the reference in `Inventory` → slot switching only toggles `Visible` (**all held items remain parented under `ItemHand`, stacked at the same position**) → throw/drop reparents to the current scene, restores the collision layer/mask, unfreezes, resumes simulation; pickable again. Every mutation (pickup, drop, throw, slot switch) also refreshes the hotbar via `InventoryBar.Refresh`.
 
-**Scene graph** (`Scenes/world.tscn`): `World` → light, `Floor` (80×80 plane), `Player` (instance of `player.tscn` at the origin), `ProduceTable` (table + ~68 `Apple` instances), `Exterior Walls` (40 `PrototypeWall` instances forming an 80 m perimeter). `player.tscn` root `Player` → `CollisionShape3D`, `Head` → `Camera` → `RayCast3D` + `ItemHand`, `CrossHair` (3×3 px `ColorRect`), `Inventory`, `InventoryBar` (CanvasLayer → `HBoxContainer` bottom-center → `Slot1`–`Slot5`, 40×40 `PanelContainer`s each with a `Label` + `TextureRect`, `mouse_filter = 2` throughout).
+**Scene graph** (`Scenes/world.tscn`): `World` → light, `Floor` (80×80 plane), `NavigationRegion3D`, `Player` (instance of `player.tscn` at the origin), `ProduceTable` (table + ~68 `Apple` instances), `Exterior Walls` (40 `PrototypeWall` instances forming an 80 m perimeter), `GameManager`, `GamePhaseHUD`. `player.tscn` root `Player` → `CollisionShape3D`, `Head` → `Camera` → `RayCast3D` + `ItemHand`, `CrossHair`, `Inventory`, `InventoryBar`, `Health`, `HealthBar`, `Death`.
 
 ## Key Directories
 
 |Path|Purpose|
 |---|---|
-|`Scripts/`|All C# gameplay code (4 files)|
+|`Scripts/`|All C# gameplay code (9 files)|
 |`Scenes/`|`world.tscn` (main scene), `player.tscn` (player prefab, instanced into world)|
 |`Prefabs/`|Reusable scenes: `prototype_wall.tscn`, `produce_table.tscn`, `Products/Apple.tscn`|
 |`Models/`|Blender `.blend` sources imported natively by Godot (`importer="scene"`); `.import` sidecars control material remaps (e.g. `apple.blend.import` remaps Blender material `M_apple` → `Materials/apple_material.tres`) and generated physics|

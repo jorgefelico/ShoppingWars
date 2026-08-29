@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Godot;
 
 public partial class PlayerController : CharacterBody3D
@@ -13,6 +14,7 @@ public partial class PlayerController : CharacterBody3D
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
+    [Export] float StartingCash = 50.0f;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -22,6 +24,7 @@ public partial class PlayerController : CharacterBody3D
     bool IsRunning = false;
     Product _heldItem;
     Product _highlightedItem;
+    bool InputDisabled = false;
 
     public override void _Ready()
     {
@@ -39,10 +42,16 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _Process(double delta)
     {
-        if(Health.IsDead && DeathOverlay.Visible == false)
+
+        if (Health.IsDead)
         {
-            DeathOverlay.Visible = true;
-            Inventory.DropLoot();
+            if(InputDisabled == false) InputDisabled = true;
+            if (DeathOverlay.Visible == false)
+            {
+                DeathOverlay.Visible = true;
+                Inventory.DropLoot();
+                _heldItem = null;
+            }
         }
     }
 
@@ -57,6 +66,7 @@ public partial class PlayerController : CharacterBody3D
 
         if (@event is InputEventMouseMotion motion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
+            if(InputDisabled) return;
             if (motion.Relative.Length() > 500f) return;
             Head.RotateY(-motion.Relative.X * Sensitivity);
             float pitch = Camera.Rotation.X - motion.Relative.Y * Sensitivity;
@@ -75,6 +85,7 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        if(InputDisabled) return;
         HandleThrow();
         UpdateTargeting();
         HandleInteract();
@@ -97,6 +108,7 @@ public partial class PlayerController : CharacterBody3D
 
     private void HandleInteract()
     {
+        if(InputDisabled) return;
         if (!Input.IsActionJustPressed("interact")) return;
 
         if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
@@ -130,6 +142,7 @@ public partial class PlayerController : CharacterBody3D
 
     private void HandleMovement(double delta)
     {
+        if(InputDisabled) return;
         if (Input.IsActionPressed("sprint"))
         {
             IsRunning = true;

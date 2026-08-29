@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://ddqcycumvno22" path="res://Scripts/InventoryBar.cs" id="3_6t5aa"]
 [ext_resource type="Script" uid="uid://cumv832epdtak" path="res://Scripts/HealthBar.cs" id="4_fkybt"]
 [ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="5_fkybt"]
-[ext_resource type="PackedScene" uid="uid://b0t48eul7ppob" path="res://Scenes/Death.tscn" id="6_x3wgy"]
+[ext_resource type="PackedScene" uid="uid://b0t48eul7ppob" path="res://Prefabs/Death.tscn" id="6_x3wgy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
 
@@ -203,4 +203,3 @@ script = ExtResource("5_fkybt")
 HealthBar = NodePath("../HealthBar")
 
 [node name="Death" parent="." unique_id=2103118093 instance=ExtResource("6_x3wgy")]
-visible = false

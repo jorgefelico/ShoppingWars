@@ -91,6 +91,7 @@ public partial class Inventory : Node
     {
         foreach (Product item in InventoryItems)
         {
+            if(item == null) continue;
             item.Reparent(GetTree().CurrentScene, true);
             item.Freeze = false;
             item.CollisionLayer = 1;

@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://l188u5sqw25o"]
 
 [ext_resource type="Material" uid="uid://g3q6l4ir3ope" path="res://Materials/floor_prototype.tres" id="1_5a7ea"]
-[ext_resource type="PackedScene" uid="uid://dfdug5q5p77vk" path="res://Scenes/player.tscn" id="1_a02cp"]
+[ext_resource type="PackedScene" uid="uid://dfdug5q5p77vk" path="res://Prefabs/player.tscn" id="1_a02cp"]
 [ext_resource type="Texture2D" uid="uid://8rv8rkmuej3d" path="res://Textures/prototype_512x512_Blue.png" id="1_go701"]
 [ext_resource type="PackedScene" uid="uid://dltuejiiomdlx" path="res://Prefabs/prototype_wall.tscn" id="5_5ukr8"]
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="5_fo5ed"]
 [ext_resource type="PackedScene" uid="uid://djnlccipkk3q8" path="res://Prefabs/TestShooter.tscn" id="6_5ukr8"]
+[ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="7_o06y3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
 albedo_texture = ExtResource("1_go701")
@@ -163,4 +164,7 @@ transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -3
 
 [node name="TestShooter" parent="." unique_id=1128667975 instance=ExtResource("6_5ukr8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.125, 0, 6.564)
-ShootFrequency = 2.0
+ShootFrequency = 0.5
+
+[node name="GameManager" type="Node" parent="." unique_id=222466870]
+script = ExtResource("7_o06y3")

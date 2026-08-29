@@ -72,6 +72,9 @@ public partial class Product : RigidBody3D
     private void OnBodyEntered(Node body)
     {
         if (_lastVelocity.Length() < MinDamageSpeed) return;
+        
+        if(GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
+
         if (body is PlayerController player)
         {
             player.Health.TakeDamage(Damage);

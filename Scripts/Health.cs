@@ -15,6 +15,7 @@ public partial class Health : Node
 
     public void TakeDamage(int amount)
     {
+        GD.Print("Take damage");
         CurrentHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
         if (CurrentHealth == 0) IsDead = true;
         HealthBar.Refresh(CurrentHealth, MaxHealth);

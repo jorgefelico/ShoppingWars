@@ -7,8 +7,9 @@ public partial class Product : RigidBody3D
     [Export] public int Damage;
     [Export] public bool ScaleVariation = false;
     [Export] public Texture2D Icon;
-    [Export] float MinDamageSpeed = 10f;
+    [Export] float MinDamageSpeed = 12f;
     MeshInstance3D _outline;
+    Vector3 _lastVelocity;
 
     public override void _Ready()
     {
@@ -40,6 +41,11 @@ public partial class Product : RigidBody3D
 
     }
 
+    public override void _PhysicsProcess(double delta)
+    {
+        _lastVelocity = LinearVelocity;
+    }
+
     static MeshInstance3D FindMeshInstance(Node node)
     {
         if (node is MeshInstance3D mi)
@@ -65,7 +71,7 @@ public partial class Product : RigidBody3D
 
     private void OnBodyEntered(Node body)
     {
-        if (LinearVelocity.Length() < MinDamageSpeed) return;
+        if (_lastVelocity.Length() < MinDamageSpeed) return;
         if (body is PlayerController player)
         {
             player.Health.TakeDamage(Damage);

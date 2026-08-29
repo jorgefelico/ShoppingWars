@@ -87,4 +87,18 @@ public partial class Inventory : Node
         InventoryBar.Refresh(InventoryItems, index);
     }
 
+    public void DropLoot()
+    {
+        foreach (Product item in InventoryItems)
+        {
+            item.Reparent(GetTree().CurrentScene, true);
+            item.Freeze = false;
+            item.CollisionLayer = 1;
+            item.CollisionMask = 3;
+            item.Visible = true;
+        }
+        InventoryItems = new Product[InventorySize];
+        InventoryBar.Refresh(InventoryItems, 0);
+    }
+
 }

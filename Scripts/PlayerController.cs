@@ -8,6 +8,7 @@ public partial class PlayerController : CharacterBody3D
     [Export] private Node3D ItemHand;
     [Export] private Inventory Inventory;
     [Export] public Health Health;
+    [Export] private CanvasLayer DeathOverlay;
     [Export] private float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
@@ -35,6 +36,16 @@ public partial class PlayerController : CharacterBody3D
 
         Input.MouseMode = Input.MouseModeEnum.Captured;
     }
+
+    public override void _Process(double delta)
+    {
+        if(Health.IsDead && DeathOverlay.Visible == false)
+        {
+            DeathOverlay.Visible = true;
+            Inventory.DropLoot();
+        }
+    }
+
 
     public override void _UnhandledInput(InputEvent @event)
     {

@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://djnlccipkk3q8"]
+
+[ext_resource type="Script" uid="uid://dav0fsu5nr04d" path="res://Scripts/TestShooter.cs" id="1_w6fv0"]
+[ext_resource type="PackedScene" uid="uid://c47mufmp5i703" path="res://Prefabs/Products/Apple.tscn" id="2_iictk"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
+size = Vector3(1, 2, 1)
+
+[node name="TestShooter" type="Node3D" unique_id=1128667975]
+script = ExtResource("1_w6fv0")
+Product = ExtResource("2_iictk")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=637358269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("BoxMesh_y1t4u")

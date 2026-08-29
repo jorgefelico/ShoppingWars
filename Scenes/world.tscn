@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://8rv8rkmuej3d" path="res://Textures/prototype_512x512_Blue.png" id="1_go701"]
 [ext_resource type="PackedScene" uid="uid://dltuejiiomdlx" path="res://Prefabs/prototype_wall.tscn" id="5_5ukr8"]
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="5_fo5ed"]
+[ext_resource type="PackedScene" uid="uid://djnlccipkk3q8" path="res://Prefabs/TestShooter.tscn" id="6_5ukr8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
 albedo_texture = ExtResource("1_go701")
@@ -14,7 +15,7 @@ material = SubResource("StandardMaterial3D_a02cp")
 size = Vector2(80, 80)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_y1t4u"]
-size = Vector3(80, 0.1, 80)
+size = Vector3(80, 0, 80)
 
 [node name="World" type="Node3D" unique_id=881447114]
 
@@ -159,3 +160,7 @@ transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -3
 
 [node name="PrototypeWall40" parent="Exterior Walls" unique_id=688127515 instance=ExtResource("5_5ukr8")]
 transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -39.94325, 2.0095782, 36.013306)
+
+[node name="TestShooter" parent="." unique_id=1128667975 instance=ExtResource("6_5ukr8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.125, 0, 6.564)
+ShootFrequency = 2.0

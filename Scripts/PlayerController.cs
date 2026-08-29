@@ -210,11 +210,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
+            float speed = ThrowVelocity * _heldItem.ThrowMultiplier;
             _heldItem.Reparent(GetTree().CurrentScene);
             _heldItem.CollisionLayer = 1;
             _heldItem.CollisionMask = 3;
             _heldItem.Freeze = false;
-            _heldItem.LinearVelocity = dir * ThrowVelocity;
+            _heldItem.LinearVelocity = dir * speed;
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
         }

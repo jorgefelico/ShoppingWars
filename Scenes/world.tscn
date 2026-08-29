@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="7_o06y3"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="8_k7acu"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_5v1tr"]
+[ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="10_0fj1v"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_y1t4u"]
 vertices = PackedVector3Array(-0.06826401, 0.5, -2.0654945, 1.431736, 0.5, -2.0654945, 1.431736, 0.5, -39.065495, -0.318264, 0.5, -0.81549454, -39.068264, 0.5, -39.065495, -39.068264, 0.5, -0.81549454, 2.931736, 0.5, -2.0654945, 3.181736, 0.5, -0.81549454, 39.181736, 0.5, -0.81549454, 39.181736, 0.5, -39.065495, 1.431736, 0.5, 38.934505, 1.431736, 0.5, 0.18450546, -0.06826401, 0.5, 0.18450546, -39.068264, 0.5, 38.934505, 2.931736, 0.5, 0.18450546, 39.181736, 0.5, 38.934505)
@@ -183,3 +184,6 @@ transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -3
 
 [node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("9_5v1tr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.689939, 0.11569905, -27.878895)
+
+[node name="Watermelon" parent="." unique_id=1412821752 instance=ExtResource("10_0fj1v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9697814, 2.3841858e-07, -1.1716454)

@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://34h8fibcrltq"]
+
+[ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_x3oc0"]
+[ext_resource type="Texture2D" uid="uid://be3s121lywh0w" path="res://Icons/watermelon.png" id="2_x3oc0"]
+[ext_resource type="PackedScene" uid="uid://ci0p6pidrn4b8" path="res://Models/watermelon.blend" id="3_x3oc0"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ikia7"]
+radius = 0.28808594
+height = 0.7680969
+
+[node name="Watermelon" type="RigidBody3D" unique_id=1412821752]
+collision_mask = 3
+mass = 0.2
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 4
+script = ExtResource("1_x3oc0")
+DisplayName = &"Apple"
+Price = 3
+Damage = 50
+ScaleVariation = true
+Icon = ExtResource("2_x3oc0")
+ThrowMultiplier = 0.4
+
+[node name="watermelon" parent="." unique_id=1948351124 instance=ExtResource("3_x3oc0")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1420073300]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.32906592, -0.0007171631)
+shape = SubResource("CapsuleShape3D_ikia7")

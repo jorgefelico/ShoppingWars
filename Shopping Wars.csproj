@@ -5,4 +5,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>ShoppingWars</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Steamworks.NET.AnyCPU" Version="2026.164.3" />
+  </ItemGroup>
 </Project>

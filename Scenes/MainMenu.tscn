@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://jb0i3ii5gkwf"]
+
+[ext_resource type="Script" uid="uid://d42rdkb7q33t" path="res://Scripts/MainMenu.cs" id="1_853f1"]
+[ext_resource type="Texture2D" uid="uid://b2t037etmbow8" path="res://Textures/mainmenubg.png" id="1_tt5f1"]
+
+[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SoloButton", "StatusLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_853f1")
+HostButton = NodePath("VBoxContainer/Host")
+JoinButton = NodePath("VBoxContainer/Join")
+SoloButton = NodePath("VBoxContainer/Solo")
+StatusLabel = NodePath("StatusLabel")
+
+[node name="Background" type="TextureRect" parent="." unique_id=670803233]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_tt5f1")
+expand_mode = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=650274826]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Host" type="Button" parent="VBoxContainer" unique_id=1198731858]
+layout_mode = 2
+text = "Host Steam Lobby"
+
+[node name="Join" type="Button" parent="VBoxContainer" unique_id=2121950271]
+layout_mode = 2
+text = "Join Lobby"
+
+[node name="Solo" type="Button" parent="VBoxContainer" unique_id=1756857548]
+layout_mode = 2
+text = "Single Player (Practice)"
+
+[node name="StatusLabel" type="Label" parent="." unique_id=2135534249]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -23.0
+offset_right = 20.0
+offset_bottom = -209.0
+grow_horizontal = 2
+grow_vertical = 0

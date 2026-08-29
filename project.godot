@@ -11,9 +11,14 @@ config_version=5
 [application]
 
 config/name="Shopping Wars"
-run/main_scene="uid://l188u5sqw25o"
+run/main_scene="uid://jb0i3ii5gkwf"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SteamManager="*uid://bqn5aepc768hl"
+NetworkManager="*uid://bj851bcregmf4"
 
 [display]
 

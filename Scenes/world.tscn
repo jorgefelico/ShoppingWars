@@ -186,4 +186,7 @@ transform = Transform3D(-2.1855693e-07, 0, 1, 0, 1, 0, -1, 0, -2.1855693e-07, -3
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.689939, 0.11569905, -27.878895)
 
 [node name="Watermelon" parent="." unique_id=1412821752 instance=ExtResource("10_0fj1v")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9697814, 2.3841858e-07, -1.1716454)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5318661, 0.7964616, -1.1716454)
+
+[node name="Watermelon2" parent="." unique_id=1479525429 instance=ExtResource("10_0fj1v")]
+transform = Transform3D(0.7322302, 0, 0.6810572, 0, 1, 0, -0.6810572, 0, 0.7322302, 1.05492, 0.7964616, -1.1716454)

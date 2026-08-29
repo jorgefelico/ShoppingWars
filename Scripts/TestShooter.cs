@@ -6,9 +6,9 @@ public partial class TestShooter : Node3D
     [Export] PackedScene Product;
     [Export] float ShootFrequency = 4f;
     float timer = 0f;
-
     public override void _Process(double delta)
     {
+        if(!Multiplayer.IsServer()) return;
         if(timer >= ShootFrequency)
         {
             Shoot();
@@ -22,6 +22,7 @@ public partial class TestShooter : Node3D
     private void Shoot()
     {
         RigidBody3D instance = (RigidBody3D)Product.Instantiate();
+        instance.Name = $"ShotApple_{Guid.NewGuid()}";
         instance.Transform = Transform;
         instance.Position = instance.Position + new Vector3(0,1f,0);
         GetTree().CurrentScene.AddChild(instance);

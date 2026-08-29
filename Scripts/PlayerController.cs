@@ -3,7 +3,7 @@ using Godot;
 
 public partial class PlayerController : CharacterBody3D, IDamageable
 {
-    static public PlayerController Instance {get; private set;}
+    static public PlayerController Instance { get; private set; }
     [Export] private Node3D Head;
     [Export] private Camera3D Camera;
     [Export] private RayCast3D RayCast;
@@ -16,7 +16,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
     [Export] int StartingMoney = 100;
-    public int Money {get; private set;}
+    public int Money { get; private set; }
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -28,7 +28,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     Product _highlightedItem;
     bool InputDisabled = false;
 
-     public override void _Ready()
+    public override void _Ready()
     {
         // If the node name is a numeric peer ID, assign authority automatically!
         if (int.TryParse(Name, out int peerId))
@@ -58,7 +58,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (Health.IsDead)
         {
-            if(InputDisabled == false) InputDisabled = true;
+            if (InputDisabled == false) InputDisabled = true;
             if (DeathOverlay.Visible == false)
             {
                 DeathOverlay.Visible = true;
@@ -71,7 +71,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if(!IsMultiplayerAuthority()) return;
+        if (!IsMultiplayerAuthority()) return;
         if (@event.IsActionPressed("ui_cancel"))
         {
             if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
@@ -80,7 +80,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (@event is InputEventMouseMotion motion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
-            if(InputDisabled) return;
+            if (InputDisabled) return;
             if (motion.Relative.Length() > 500f) return;
             Head.RotateY(-motion.Relative.X * Sensitivity);
             float pitch = Camera.Rotation.X - motion.Relative.Y * Sensitivity;
@@ -99,8 +99,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _PhysicsProcess(double delta)
     {
-        if(!IsMultiplayerAuthority()) return;
-        if(InputDisabled) return;
+        if (!IsMultiplayerAuthority()) return;
+        if (InputDisabled) return;
         HandleThrow();
         UpdateTargeting();
         HandleInteract();
@@ -123,16 +123,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void HandleInteract()
     {
-        if(InputDisabled) return;
+        if (InputDisabled) return;
         if (!Input.IsActionJustPressed("interact")) return;
 
         if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
         {
             if (Inventory.IsInventoryFull()) return;
-            
-            if(product.IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
+
+            if (product.IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
             {
-                if(!TryDeductMoney(product.Price))
+                if (!TryDeductMoney(product.Price))
                 {
                     GD.Print($"[Store] Cannot afford {product.DisplayName}! Costs ${product.Price}, you have ${Money}");
                     return;
@@ -146,31 +146,56 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 _heldItem.Visible = false;
             }
 
-            // Get New Item
-            _heldItem = product;
-            _heldItem.CollisionLayer = 0;
-            _heldItem.CollisionMask = 0;
-            _heldItem.Freeze = true;
-            _heldItem.Reparent(ItemHand);
-            _heldItem.Position = Vector3.Zero;
-            Inventory.AddItem(_heldItem);
+            Rpc(nameof(RPCPickupItem), product.GetPath());
         }
         else if (_heldItem != null)
         {
-            if(GameManager.Instance?.CurrentPhase == GamePhase.Shopping) _heldItem.IsForSale = true;
-            _heldItem.Reparent(GetTree().CurrentScene);
-            _heldItem.CollisionLayer = 1;
-            _heldItem.CollisionMask = 3;
-            _heldItem.Freeze = false;
-            _heldItem = null;
-            Inventory.RemoveCurrentSelectedItem();
+            if (GameManager.Instance?.CurrentPhase == GamePhase.Shopping) _heldItem.IsForSale = true;
+            Rpc(nameof(RPCDropItem), _heldItem.GetPath());
             return;
         }
     }
 
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RPCPickupItem(NodePath nodePath)
+    {
+        Product item = GetNodeOrNull<Product>(nodePath);
+        if (item == null) return;
+
+        // Get New Item
+        item.CollisionLayer = 0;
+        item.CollisionMask = 0;
+        item.Freeze = true;
+        item.Reparent(ItemHand);
+        item.Position = Vector3.Zero;
+        if (IsMultiplayerAuthority())
+        {
+            _heldItem = item;
+            Inventory.AddItem(_heldItem);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RPCDropItem(NodePath nodePath)
+    {
+        Product item = GetNodeOrNull<Product>(nodePath);
+        if(item == null) return;
+        item.Reparent(GetTree().CurrentScene);
+        item.CollisionLayer = 1;
+        item.CollisionMask = 3;
+        item.Freeze = false;
+        if (IsMultiplayerAuthority())
+        {
+            _heldItem = null;
+            Inventory.RemoveCurrentSelectedItem();
+        }
+    }
+
+
+
     private void HandleMovement(double delta)
     {
-        if(InputDisabled) return;
+        if (InputDisabled) return;
         if (Input.IsActionPressed("sprint"))
         {
             IsRunning = true;
@@ -231,7 +256,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void RpcThrowItem(NodePath itemPath, Vector3 launchVelocity)
     {
         Product item = GetNodeOrNull<Product>(itemPath);
-        if(item == null) return;
+        if (item == null) return;
         item.Reparent(GetTree().CurrentScene);
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
@@ -288,7 +313,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private bool TryDeductMoney(int amount)
     {
-        if(Money < amount) return false;
+        if (Money < amount) return false;
         Money -= amount;
         GD.Print($"[Store] Purchased item for ${amount}. Money remaining: ${Money}");
         return true;

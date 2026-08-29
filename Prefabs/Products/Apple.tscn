@@ -7,6 +7,20 @@
 [sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
 radius = 0.07205643
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_l77x7"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:visible")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:scale")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
 [node name="Apple" type="RigidBody3D" unique_id=1412821752]
 collision_mask = 3
 mass = 0.2
@@ -26,3 +40,6 @@ shape = SubResource("SphereShape3D_y1t4u")
 
 [node name="apple" parent="." unique_id=1336027980 instance=ExtResource("2_l77x7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1008460709]
+replication_config = SubResource("SceneReplicationConfig_l77x7")

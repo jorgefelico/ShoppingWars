@@ -33,6 +33,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _Ready()
     {
+        AddToGroup("Players");
         // If the node name is a numeric peer ID, assign authority automatically!
         if (int.TryParse(Name, out int peerId))
         {

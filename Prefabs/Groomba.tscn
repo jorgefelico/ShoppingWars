@@ -9,6 +9,17 @@ height = 0.2
 [sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
 height = 0.2
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1nlae"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:scale")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
 [node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("NavAgent", "Health")]
 script = ExtResource("1_1nlae")
 NavAgent = NodePath("NavigationAgent3D")
@@ -24,3 +35,6 @@ mesh = SubResource("CylinderMesh_y1t4u")
 
 [node name="Health" type="Node" parent="." unique_id=1619880876]
 script = ExtResource("2_dka28")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1478216706]
+replication_config = SubResource("SceneReplicationConfig_1nlae")

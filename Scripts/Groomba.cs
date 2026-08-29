@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Net.NetworkInformation;
 using Godot;
 
 public partial class Groomba : CharacterBody3D, IDamageable
@@ -22,6 +24,7 @@ public partial class Groomba : CharacterBody3D, IDamageable
 
     public override void _PhysicsProcess(double delta)
     {
+        if(!Multiplayer.IsServer()) return;
         if(GameManager.Instance?.CurrentPhase != GamePhase.BattleRoyale) return;
         if(_attackCooldown > 0f) _attackCooldown -= (float)delta;
 
@@ -87,19 +90,20 @@ public partial class Groomba : CharacterBody3D, IDamageable
 
     private void DetectPlayer()
     {
-        if(PlayerController.Instance == null || PlayerController.Instance.Health.IsDead)
-        {
-            _targetPlayer = null;
-            return;
-        }
+        _targetPlayer = null;
+        float closestDistance = DetectionRange;
 
-        float dist = GlobalPosition.DistanceTo(PlayerController.Instance.GlobalPosition);
-        if(dist <= DetectionRange)
+        foreach (Node node in GetTree().GetNodesInGroup("Players"))
         {
-            _targetPlayer = PlayerController.Instance;
-        } else
-        {
-            _targetPlayer = null;
+            if (node is PlayerController player && !player.Health.IsDead)
+            {
+                float dist = GlobalPosition.DistanceTo(player.GlobalPosition);
+                if (dist <= closestDistance)
+                {
+                    closestDistance = dist;
+                    _targetPlayer = player;
+                }
+            }
         }
     }
 

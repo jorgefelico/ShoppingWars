@@ -2,12 +2,17 @@
 
 [ext_resource type="Script" uid="uid://ocxx3jyjbxx5" path="res://Scripts/PlayerController.cs" id="1_v0iea"]
 [ext_resource type="Script" uid="uid://drnbt104ul2rr" path="res://Scripts/Inventory.cs" id="2_cvnsp"]
+[ext_resource type="PackedScene" uid="uid://ucutmj61u6sh" path="res://Models/cart_fbx.fbx" id="2_juxdh"]
 [ext_resource type="Script" uid="uid://ddqcycumvno22" path="res://Scripts/InventoryBar.cs" id="3_6t5aa"]
 [ext_resource type="Script" uid="uid://cumv832epdtak" path="res://Scripts/HealthBar.cs" id="4_fkybt"]
 [ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="5_fkybt"]
 [ext_resource type="PackedScene" uid="uid://b0t48eul7ppob" path="res://Prefabs/Death.tscn" id="6_x3wgy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_y1t4u"]
+radius = 0.025
+height = 0.05
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cvnsp"]
 content_margin_left = 2.0
@@ -58,6 +63,19 @@ collide_with_areas = true
 
 [node name="ItemHand" type="Node3D" parent="Head/Camera" unique_id=1807680406]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4249195, -0.1646241, -0.92713153)
+
+[node name="Eyes" type="Node3D" parent="Head/Camera" unique_id=172909103]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Head/Camera/Eyes" unique_id=1675316912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14709547, 0.14333093, -0.7317384)
+mesh = SubResource("SphereMesh_y1t4u")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Head/Camera/Eyes" unique_id=140299976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1262412, 0.14333093, -0.7317384)
+mesh = SubResource("SphereMesh_y1t4u")
+
+[node name="cart_fbx" parent="Head" unique_id=1955561293 instance=ExtResource("2_juxdh")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, -1.2390192, 0)
 
 [node name="CrossHair" type="CanvasLayer" parent="." unique_id=239139730]
 

@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://djnlccipkk3q8" path="res://Prefabs/TestShooter.tscn" id="6_5ukr8"]
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="7_o06y3"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="8_k7acu"]
+[ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_5v1tr"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="10_0fj1v"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_y1t4u"]
@@ -200,3 +201,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.869183, 0.8930963, 36.9277
 
 [node name="SpawnPoint4" type="Marker3D" parent="SpawnPoints" unique_id=2024909688]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.67864, 0.6515336, 36.39016)
+
+[node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("9_5v1tr")]

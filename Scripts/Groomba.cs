@@ -11,6 +11,8 @@ public partial class Groomba : CharacterBody3D, IDamageable
     [Export] private int ContactDamage = 15;
     [Export] private float ArenaBounds = 35.0f;
     [Export] public Health Health;
+    [Export] public Vector3 SyncPosition = Vector3.Zero;
+    [Export] public Vector3 SyncRotation = Vector3.Zero;
 
     private PlayerController _targetPlayer;
     private float _attackCooldown = 0f;
@@ -20,6 +22,32 @@ public partial class Groomba : CharacterBody3D, IDamageable
     {
         // Wait for first physics frame so Navigation map is synched.
         Callable.From(SetRandomPatrolTarget).CallDeferred();
+    }
+
+    public override void _Process(double delta)
+    {
+        if (Multiplayer.IsServer()) return;
+
+        if (SyncPosition != Vector3.Zero)
+        {
+            float distance = GlobalPosition.DistanceTo(SyncPosition);
+            if (distance > 5.0f)
+            {
+                GlobalPosition = SyncPosition;
+            }
+            else
+            {
+                float lerpWeight = (float)Mathf.Clamp(delta * 20.0, 0.0, 1.0);
+                GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpWeight);
+            }
+        }
+
+        float rotLerpWeight = (float)Mathf.Clamp(delta * 20.0, 0.0, 1.0);
+        Rotation = new Vector3(
+            Mathf.LerpAngle(Rotation.X, SyncRotation.X, rotLerpWeight),
+            Mathf.LerpAngle(Rotation.Y, SyncRotation.Y, rotLerpWeight),
+            Mathf.LerpAngle(Rotation.Z, SyncRotation.Z, rotLerpWeight)
+        );
     }
 
     public override void _PhysicsProcess(double delta)
@@ -54,6 +82,9 @@ public partial class Groomba : CharacterBody3D, IDamageable
         Velocity = velocity;
         MoveAndSlide();
         HandleContactDamage();
+
+        SyncPosition = GlobalPosition;
+        SyncRotation = Rotation;
     }
 
     private void MoveAlongPath(float speed, ref Vector3 velocity)

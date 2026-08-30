@@ -11,6 +11,7 @@ public partial class Product : RigidBody3D
     [Export] float MinDamageSpeed = 12f;
     [Export] public float ThrowMultiplier = 1.0f;
     [Export] public bool IsForSale = true;
+    public Node3D Thrower;
     MeshInstance3D _outline;
     Vector3 _lastVelocity;
 
@@ -46,6 +47,15 @@ public partial class Product : RigidBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (!IsMultiplayerAuthority())
+        {
+            if (LinearVelocity.LengthSquared() > 0.1f)
+            {
+                Freeze = false;
+            }
+            return;
+        }
+
         _lastVelocity = LinearVelocity;
     }
 
@@ -76,7 +86,10 @@ public partial class Product : RigidBody3D
     {
         if (_lastVelocity.Length() < MinDamageSpeed) return;
         
-        if(GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
+        if (GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
+
+        // Ignore hitting the thrower!
+        if (body == Thrower) return;
 
         if (body is IDamageable target) target.TakeDamage(Damage);
     }

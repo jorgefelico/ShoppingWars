@@ -11,16 +11,19 @@ height = 0.7680969
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_x3oc0"]
 properties/0/path = NodePath(".:position")
 properties/0/spawn = true
-properties/0/replication_mode = 1
+properties/0/replication_mode = 2
 properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
-properties/1/replication_mode = 1
-properties/2/path = NodePath(".:scale")
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:linear_velocity")
 properties/2/spawn = true
-properties/2/replication_mode = 1
-properties/3/path = NodePath(".:visible")
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:scale")
 properties/3/spawn = true
-properties/3/replication_mode = 1
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:visible")
+properties/4/spawn = true
+properties/4/replication_mode = 2
 
 [node name="Watermelon" type="RigidBody3D" unique_id=1412821752]
 collision_mask = 3
@@ -43,4 +46,5 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0
 shape = SubResource("CapsuleShape3D_ikia7")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1616723304]
+delta_interval = 0.05
 replication_config = SubResource("SceneReplicationConfig_x3oc0")

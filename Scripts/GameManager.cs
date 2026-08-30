@@ -15,75 +15,117 @@ public partial class GameManager : Node
     public GamePhase CurrentPhase { get; private set; } = GamePhase.Shopping;
     public float TimeRemaining { get; private set; }
     private float _syncTimer = 0f;
-    private const float SyncInterval = 0.5f; // sync every sec
+    private const float SyncInterval = 0.25f; // Sync state 4 times per second
 
     public override void _Ready()
     {
         Instance = this;
-        StartShoppingPhase();
-    }
 
-    public override void _Process(double delta)
-    {
-        if(!Multiplayer.IsServer()) return;
-        if (CurrentPhase == GamePhase.Lobby) return;
-
-        TimeRemaining -= (float)delta;
-
-        _syncTimer += (float)delta;
-        if(_syncTimer >= SyncInterval)
+        if (Multiplayer.IsServer())
         {
-            _syncTimer = 0f;
-            Rpc(nameof(RpcSyncTime), TimeRemaining);
+            StartShoppingPhase();
         }
-
-        if (TimeRemaining <= 0f)
+        else
         {
-            TimeRemaining = 0f;
-
-            if (CurrentPhase == GamePhase.Shopping)
+            // Client requests current authoritative state from host immediately on load
+            if (Multiplayer.HasMultiplayerPeer())
             {
-                StartBattleRoyalePhase();
+                RpcId(1, nameof(RpcRequestSyncState));
             }
         }
     }
 
-    private void StartLobbyPhase()
+    public override void _Process(double delta)
     {
-        Rpc(nameof(RpcSyncPhase), (int)GamePhase.Lobby, TimeRemaining);
-        GD.Print("[GameManager] PHASE 0: LOBBY STARTED!");
+        if (CurrentPhase == GamePhase.Lobby) return;
+
+        if (Multiplayer.IsServer())
+        {
+            TimeRemaining -= (float)delta;
+
+            _syncTimer += (float)delta;
+            if (_syncTimer >= SyncInterval)
+            {
+                _syncTimer = 0f;
+                if (Multiplayer.HasMultiplayerPeer())
+                {
+                    Rpc(nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
+                }
+            }
+
+            if (TimeRemaining <= 0f)
+            {
+                TimeRemaining = 0f;
+
+                if (CurrentPhase == GamePhase.Shopping)
+                {
+                    StartBattleRoyalePhase();
+                }
+            }
+        }
+        else
+        {
+            // On clients, smoothly decrement local timer between server updates
+            if (TimeRemaining > 0f)
+            {
+                TimeRemaining = Mathf.Max(0f, TimeRemaining - (float)delta);
+            }
+        }
     }
 
-    private void StartShoppingPhase()
+    public void StartShoppingPhase()
     {
-        Rpc(nameof(RpcSyncPhase), (int)GamePhase.Shopping, ShoppingDuration);
+        if (!Multiplayer.IsServer()) return;
+
+        CurrentPhase = GamePhase.Shopping;
+        TimeRemaining = ShoppingDuration;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncState), (int)GamePhase.Shopping, ShoppingDuration);
+        }
         GD.Print("[GameManager] PHASE 1: SHOPPING STARTED!");
     }
 
-    private void StartBattleRoyalePhase()
+    public void StartBattleRoyalePhase()
     {
-        Rpc(nameof(RpcSyncPhase), (int)GamePhase.BattleRoyale, BattleDuration);
+        if (!Multiplayer.IsServer()) return;
+
+        CurrentPhase = GamePhase.BattleRoyale;
+        TimeRemaining = BattleDuration;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncState), (int)GamePhase.BattleRoyale, BattleDuration);
+        }
         GD.Print("[GameManager] PHASE 2: BATTLE ROYALE STARTED!");
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void RpcSyncPhase(int phaseIndex, float remainingTime)
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcRequestSyncState()
     {
-        CurrentPhase = (GamePhase)phaseIndex;
-        TimeRemaining = remainingTime;
-        GD.Print($"[GameManager] Phase synced to: {CurrentPhase}");
+        if (!Multiplayer.IsServer()) return;
+        long senderId = Multiplayer.GetRemoteSenderId();
+        RpcId(senderId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncState(int phaseIndex, float serverTimeRemaining)
+    {
+        GamePhase newPhase = (GamePhase)phaseIndex;
+        if (CurrentPhase != newPhase)
+        {
+            CurrentPhase = newPhase;
+            GD.Print($"[GameManager] Phase synced to: {CurrentPhase}");
+        }
+
+        TimeRemaining = serverTimeRemaining;
     }
 
     public void SyncStateToPlayer(long peerId)
     {
-        if(!Multiplayer.IsServer()) return;
+        if (!Multiplayer.IsServer()) return;
 
-        RpcId(peerId, nameof(RpcSyncPhase), (int)CurrentPhase, TimeRemaining);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    private void RpcSyncTime(float serverTimeRemaining)
-    {
-        TimeRemaining = serverTimeRemaining;
+        RpcId(peerId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
     }
 }

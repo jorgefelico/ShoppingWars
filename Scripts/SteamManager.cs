@@ -1,115 +1,164 @@
 using Godot;
-using Steamworks;
 
 public partial class SteamManager : Node
 {
     public static SteamManager Instance { get; private set; }
     public bool IsSteamInitialized { get; private set; }
 
-    protected Callback<LobbyCreated_t> _lobbyCreated;
-    protected Callback<GameLobbyJoinRequested_t> _lobbyJoinRequested;
-    protected Callback<LobbyEnter_t> _lobbyEntered;
+    public event System.Action<ulong, string> OnInviteReceived;
+
+    private GodotObject _steam;
 
     public override void _Ready()
     {
         Instance = this;
 
-        try
+        if (Engine.HasSingleton("Steam"))
         {
-            if (!Packsize.Test())
-            {
-                GD.PrintErr("[Steam] Packsize Test failed!");
-                return;
-            }
+            _steam = Engine.GetSingleton("Steam");
+            GD.Print("[Steam] Found GodotSteam Engine Singleton!");
 
-            if (!DllCheck.Test())
-            {
-                GD.PrintErr("[Steam] DllCheck Test failed!");
-                return;
-            }
+            Variant initRes = _steam.Call("steamInit");
+            GD.Print($"[Steam] steamInit result: {initRes}");
 
-            IsSteamInitialized = SteamAPI.Init();
+            // Connect GodotSteam signals
+            _steam.Connect("lobby_created", Callable.From<long, ulong>(OnLobbyCreated));
+            _steam.Connect("join_requested", Callable.From<ulong, ulong>(OnLobbyJoinRequested));
+            _steam.Connect("lobby_joined", Callable.From<ulong, long, bool, long>(OnLobbyJoined));
 
-            if (IsSteamInitialized)
-            {
-                string name = SteamFriends.GetPersonaName();
-                GD.Print($"[Steam] Initialized successfully! Logged in as: {name}");
-
-                // Register steam overlay & lobby callbacks
-                _lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
-                _lobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnLobbyJoinRequested);
-                _lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
-            }
-            else
-            {
-                GD.PrintErr("[Steam] SteamAPI_Init() failed! Is Steam running?");
-            }
+            string name = (string)_steam.Call("getPersonaName");
+            ulong steamId = (ulong)_steam.Call("getSteamID");
+            GD.Print($"[Steam] GodotSteam Initialized successfully! User: {name} (SteamID: {steamId})");
+            IsSteamInitialized = true;
         }
-        catch (System.Exception e)
+        else
         {
-            GD.PrintErr($"[Steam] Error initializing Steam: {e.Message}");
+            GD.PrintErr("[Steam] GodotSteam Engine Singleton 'Steam' not found! Make sure GDExtension plugin is enabled.");
         }
     }
 
     public override void _Process(double delta)
     {
-        if (IsSteamInitialized)
+        if (IsSteamInitialized && _steam != null)
         {
-            SteamAPI.RunCallbacks();
+            _steam.Call("run_callbacks");
         }
     }
 
     public void HostLobby()
     {
-        if (!IsSteamInitialized) return;
+        if (!IsSteamInitialized || _steam == null)
+        {
+            GD.PrintErr("[Steam] Cannot host lobby: Steam not initialized.");
+            return;
+        }
+
         GD.Print("[Steam] Creating Steam Friends-Only Lobby...");
-        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
-        peer.CreateServer(7000,4);
-        Multiplayer.MultiplayerPeer = peer;
-        SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, 4);
+
+        if (ClassDB.ClassExists("SteamMultiplayerPeer"))
+        {
+            MultiplayerPeer peer = (MultiplayerPeer)ClassDB.Instantiate("SteamMultiplayerPeer");
+            Error err = (Error)(int)peer.Call("create_host", 0);
+            if (err == Error.Ok)
+            {
+                Multiplayer.MultiplayerPeer = peer;
+                GD.Print("[Steam] Native GodotSteam SteamMultiplayerPeer server assigned to Multiplayer.MultiplayerPeer.");
+            }
+            else
+            {
+                GD.PrintErr($"[Steam] SteamMultiplayerPeer create_host failed with error: {err}");
+                return;
+            }
+        }
+        else
+        {
+            GD.PrintErr("[Steam] SteamMultiplayerPeer class not found in ClassDB!");
+            return;
+        }
+
+        // 1 = LOBBY_TYPE_FRIENDS_ONLY
+        _steam.Call("createLobby", 1, 4);
     }
 
     public void OpenFriendsInviteOverlay()
     {
-        if (!IsSteamInitialized) return;
-        SteamFriends.ActivateGameOverlay("friends");
+        if (!IsSteamInitialized || _steam == null) return;
+        _steam.Call("activateGameOverlay", "friends");
     }
 
-    private void OnLobbyCreated(LobbyCreated_t param)
+    public void JoinLobbyById(ulong lobbyId)
+    {
+        if (!IsSteamInitialized || _steam == null) return;
+        GD.Print($"[Steam] Joining Lobby directly: {lobbyId}");
+        _steam.Call("joinLobby", lobbyId);
+    }
+
+    private void OnLobbyCreated(long status, ulong lobbyId)
+    {
+        if (status != 1) // 1 = k_EResultOK in Steamworks / GodotSteam
         {
-            if (param.m_eResult != EResult.k_EResultOK)
+            GD.PrintErr($"[Steam] Lobby creation failed with status: {status}");
+            return;
+        }
+
+        GD.Print($"[Steam] Lobby Created Successfully! ID: {lobbyId}");
+
+        ulong mySteamId = (ulong)_steam.Call("getSteamID");
+        _steam.Call("setLobbyData", lobbyId, "HostSteamID", mySteamId.ToString());
+
+        NetworkManager.Instance?.LoadLevel("res://Scenes/world.tscn");
+    }
+
+    private void OnLobbyJoinRequested(ulong lobbyId, ulong friendSteamId)
+    {
+        string friendName = (string)_steam.Call("getFriendPersonaName", friendSteamId);
+        GD.Print($"[Steam] Invite received from {friendName} ({friendSteamId}) for Lobby: {lobbyId}");
+
+        OnInviteReceived?.Invoke(lobbyId, friendName);
+    }
+
+    private void OnLobbyJoined(ulong lobbyId, long permissions, bool locked, long response)
+    {
+        ulong mySteamId = (ulong)_steam.Call("getSteamID");
+        ulong hostSteamId = (ulong)_steam.Call("getLobbyOwner", lobbyId);
+
+        GD.Print($"[Steam] Entered Lobby: {lobbyId}. Host Steam ID: {hostSteamId}");
+
+        if (mySteamId != hostSteamId)
+        {
+            GD.Print($"[Steam] Client joined Steam Lobby! Connecting P2P to Host Steam ID: {hostSteamId}...");
+
+            if (ClassDB.ClassExists("SteamMultiplayerPeer"))
             {
-                GD.PrintErr("[Steam] Lobby creation failed: ", param.m_eResult);
-                return;
-            }
-
-            CSteamID lobbyId = new CSteamID(param.m_ulSteamIDLobby);
-            GD.Print($"[Steam] Lobby Created Successfully! ID: {lobbyId}");
-
-            // Load into World Scene
-            NetworkManager.Instance?.LoadLevel("res://Scenes/world.tscn");
-        }
-
-        private void OnLobbyJoinRequested(GameLobbyJoinRequested_t param)
-        {
-            GD.Print($"[Steam] Accepting invite to Lobby: {param.m_steamIDLobby}");
-            SteamMatchmaking.JoinLobby(param.m_steamIDLobby);
-        }
-
-         private void OnLobbyEntered(LobbyEnter_t param)
-        {
-            GD.Print($"[Steam] Entered Lobby: {param.m_ulSteamIDLobby}");
-            GetTree().ChangeSceneToFile("res://Scenes/world.tscn");
-        }
-
-        public override void _Notification(int what)
-        {
-            if (what == NotificationWMCloseRequest)
-            {
-                if (IsSteamInitialized)
+                MultiplayerPeer peer = (MultiplayerPeer)ClassDB.Instantiate("SteamMultiplayerPeer");
+                Error err = (Error)(int)peer.Call("create_client", hostSteamId, 0);
+                if (err == Error.Ok)
                 {
-                    SteamAPI.Shutdown();
+                    Multiplayer.MultiplayerPeer = peer;
+                    GD.Print("[Steam] Native GodotSteam SteamMultiplayerPeer client assigned to Multiplayer.MultiplayerPeer.");
+                }
+                else
+                {
+                    GD.PrintErr($"[Steam] SteamMultiplayerPeer create_client failed with error: {err}");
+                    return;
                 }
             }
+            else
+            {
+                GD.PrintErr("[Steam] SteamMultiplayerPeer class not found in ClassDB!");
+                return;
+            }
         }
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMCloseRequest)
+        {
+            if (IsSteamInitialized && _steam != null)
+            {
+                _steam.Call("steamShutdown");
+            }
+        }
+    }
 }

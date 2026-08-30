@@ -33,11 +33,10 @@ shadow_enabled = true
 
 [node name="TestShooter" parent="." unique_id=1128667975 instance=ExtResource("6_5ukr8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.125, 0, 6.564)
-ShootFrequency = 0.5
+ShootFrequency = 3.0
 
 [node name="GameManager" type="Node" parent="." unique_id=222466870]
 script = ExtResource("7_o06y3")
-ShoppingDuration = 5.0
 
 [node name="GamePhaseHud" parent="." unique_id=920991269 instance=ExtResource("8_k7acu")]
 

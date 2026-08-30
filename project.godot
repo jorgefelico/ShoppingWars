@@ -29,6 +29,10 @@ window/stretch/aspect="expand"
 
 project/assembly_name="Shopping Wars"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg")
+
 [input]
 
 move_forward={

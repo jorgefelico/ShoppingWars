@@ -20,6 +20,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] float RunMultiplier = 1.5f;
     [Export] int StartingMoney = 100;
     public int Money { get; private set; }
+    [Export] public Vector3 SyncPosition = Vector3.Zero;
+    [Export] public Vector3 SyncHeadRotation = Vector3.Zero;
+    [Export] public Vector3 SyncCameraRotation = Vector3.Zero;
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -34,45 +37,106 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public override void _Ready()
     {
         AddToGroup("Players");
-        // If the node name is a numeric peer ID, assign authority automatically!
-        if (int.TryParse(Name, out int peerId))
-        {
-            SetMultiplayerAuthority(peerId);
-        }
 
         if (Head == null) Head = GetNode<Node3D>("Head");
         if (Camera == null) Camera = GetNode<Camera3D>("Camera");
+
+        if (int.TryParse(Name, out int peerId))
+        {
+            SetMultiplayerAuthority(peerId);
+            GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer")?.SetMultiplayerAuthority(peerId);
+        }
+
+        GD.Print($"[PlayerController] _Ready on node '{Name}' | Authority: {GetMultiplayerAuthority()} | MyUniqueId: {Multiplayer.GetUniqueId()} | IsLocalAuth: {IsMultiplayerAuthority()}");
 
         if (IsMultiplayerAuthority())
         {
             Instance = this;
             Input.MouseMode = Input.MouseModeEnum.Captured;
-            if (Camera != null) Camera.MakeCurrent();
+            if (Camera != null)
+            {
+                Camera.MakeCurrent();
+                GD.Print($"[PlayerController] Activated Camera for Local Authority Player '{Name}'");
+            }
         }
         else
         {
             if (Camera != null) Camera.Current = false;
 
-            // Hide UI elements on remote player clones.
-            if(InventoryBar != null) InventoryBar.Visible = false;
-            if(HealthBar != null) HealthBar.Visible = false;
-            if(CrossHair != null) CrossHair.Visible = false;
+            // Delete UI elements on remote player clones so their UI never renders locally!
+            foreach (Node child in GetChildren())
+            {
+                if (child is CanvasLayer canvasLayer)
+                {
+                    canvasLayer.QueueFree();
+                }
+            }
         }
 
         Money = StartingMoney;
     }
 
+    public override void _EnterTree()
+    {
+        if (int.TryParse(Name, out int peerId))
+        {
+            SetMultiplayerAuthority(peerId);
+            GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer")?.SetMultiplayerAuthority(peerId);
+        }
+    }
+
     public override void _Process(double delta)
     {
-
-        if (Health.IsDead)
+        if (IsMultiplayerAuthority())
         {
-            if (InputDisabled == false) InputDisabled = true;
-            if (DeathOverlay.Visible == false)
+            if (Health == null) return;
+
+            if (Health.IsDead)
             {
-                DeathOverlay.Visible = true;
-                Inventory.DropLoot();
-                _heldItem = null;
+                if (!InputDisabled) InputDisabled = true;
+                if (DeathOverlay != null && !DeathOverlay.Visible) DeathOverlay.Visible = true;
+
+                if (Multiplayer.IsServer() && _heldItem != null)
+                {
+                    Inventory.DropLoot();
+                    _heldItem = null;
+                }
+            }
+        }
+        else
+        {
+            // Smooth framerate-independent network interpolation for remote player clones
+            if (SyncPosition != Vector3.Zero)
+            {
+                float distance = GlobalPosition.DistanceTo(SyncPosition);
+                if (distance > 6.0f)
+                {
+                    GlobalPosition = SyncPosition;
+                }
+                else
+                {
+                    float lerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
+                    GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpFactor);
+                }
+            }
+
+            float rotLerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
+            if (Head != null)
+            {
+                Head.Rotation = new Vector3(
+                    Mathf.LerpAngle(Head.Rotation.X, SyncHeadRotation.X, rotLerpFactor),
+                    Mathf.LerpAngle(Head.Rotation.Y, SyncHeadRotation.Y, rotLerpFactor),
+                    Mathf.LerpAngle(Head.Rotation.Z, SyncHeadRotation.Z, rotLerpFactor)
+                );
+            }
+
+            if (Camera != null)
+            {
+                Camera.Rotation = new Vector3(
+                    Mathf.LerpAngle(Camera.Rotation.X, SyncCameraRotation.X, rotLerpFactor),
+                    Mathf.LerpAngle(Camera.Rotation.Y, SyncCameraRotation.Y, rotLerpFactor),
+                    Mathf.LerpAngle(Camera.Rotation.Z, SyncCameraRotation.Z, rotLerpFactor)
+                );
             }
         }
     }
@@ -115,6 +179,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         HandleInteract();
         HandleInventoryActions();
         HandleMovement(delta);
+
+        SyncPosition = GlobalPosition;
+        SyncHeadRotation = Head != null ? Head.Rotation : Vector3.Zero;
+        SyncCameraRotation = Camera != null ? Camera.Rotation : Vector3.Zero;
     }
 
     private void UpdateTargeting()
@@ -171,16 +239,28 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         Product item = GetNodeOrNull<Product>(nodePath);
         if (item == null) return;
 
-        // Get New Item
+        // Hide any previously held items on all clients
+        if (ItemHand != null)
+        {
+            foreach (Node child in ItemHand.GetChildren())
+            {
+                if (child is Product p) p.Visible = false;
+            }
+        }
+
+        // Parent new item to hand and make only it visible
         item.CollisionLayer = 0;
         item.CollisionMask = 0;
         item.Freeze = true;
         item.Reparent(ItemHand);
         item.Position = Vector3.Zero;
+        item.Visible = true;
+
         if (IsMultiplayerAuthority())
         {
             _heldItem = item;
             Inventory.AddItem(_heldItem);
+            Rpc(nameof(RpcSyncActiveHeldItem), _heldItem.GetPath());
         }
     }
 
@@ -188,15 +268,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void RPCDropItem(NodePath nodePath)
     {
         Product item = GetNodeOrNull<Product>(nodePath);
-        if(item == null) return;
+        if (item == null) return;
         item.Reparent(GetTree().CurrentScene);
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
         item.Freeze = false;
+        item.Visible = true;
+
         if (IsMultiplayerAuthority())
         {
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
+            Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
         }
     }
 
@@ -266,16 +349,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     {
         Product item = GetNodeOrNull<Product>(itemPath);
         if (item == null) return;
+
+        item.Thrower = this;
         item.Reparent(GetTree().CurrentScene);
+        item.GlobalPosition = Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f);
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
         item.Freeze = false;
+        item.Visible = true;
         item.LinearVelocity = launchVelocity;
 
         if (IsMultiplayerAuthority())
         {
             _heldItem = null;
             Inventory.RemoveCurrentSelectedItem();
+            Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
         }
     }
 
@@ -316,8 +404,26 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (_heldItem != null) _heldItem.Visible = false;
         _heldItem = Inventory.GetItem(index);
         Inventory.SetCurrentSelectedItem(index);
-        if (_heldItem == null) return;
-        _heldItem.Visible = true;
+        if (_heldItem != null)
+        {
+            _heldItem.Visible = true;
+        }
+
+        NodePath activeItemPath = _heldItem != null ? _heldItem.GetPath() : new NodePath();
+        Rpc(nameof(RpcSyncActiveHeldItem), activeItemPath);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcSyncActiveHeldItem(NodePath activeItemPath)
+    {
+        if (ItemHand == null) return;
+        foreach (Node child in ItemHand.GetChildren())
+        {
+            if (child is Product p)
+            {
+                p.Visible = !activeItemPath.IsEmpty && p.GetPath() == activeItemPath;
+            }
+        }
     }
 
     private bool TryDeductMoney(int amount)

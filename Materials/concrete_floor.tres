@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c4rhiv0v0ec8k"]
+
+[ext_resource type="Texture2D" uid="uid://c56jqq7xh2d4w" path="res://Textures/smooth_concrete_floor_diff_2k.jpg" id="1_yrvg8"]
+[ext_resource type="Texture2D" uid="uid://bncxrndu3bn1g" path="res://Textures/smooth_concrete_floor_disp_2k.png" id="2_k0kyh"]
+[ext_resource type="Texture2D" uid="uid://cf44e30envvou" path="res://Textures/smooth_concrete_floor_nor_gl_2k.png" id="3_adchf"]
+[ext_resource type="Texture2D" uid="uid://hvut1qg4ang8" path="res://Textures/smooth_concrete_floor_rough_2k.png" id="4_go13x"]
+
+[resource]
+albedo_texture = ExtResource("1_yrvg8")
+roughness = 0.6
+roughness_texture = ExtResource("4_go13x")
+normal_enabled = true
+normal_texture = ExtResource("3_adchf")
+clearcoat_roughness = 0.0
+heightmap_enabled = true
+heightmap_texture = ExtResource("2_k0kyh")
+uv1_scale = Vector3(80, 80, 1)

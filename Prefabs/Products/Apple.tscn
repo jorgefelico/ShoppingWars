@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://c47mufmp5i703"]
 
 [ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_ma4hh"]
-[ext_resource type="PackedScene" uid="uid://dtigmuwil0gip" path="res://Models/apple.blend" id="2_l77x7"]
 [ext_resource type="Texture2D" uid="uid://dtvh34hlalpvk" path="res://Icons/appleicon.png" id="2_ypfnt"]
+[ext_resource type="PackedScene" uid="uid://dn5xcn8e0ngbd" path="res://Models/apple.tscn" id="3_l77x7"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
 radius = 0.07205643
@@ -41,9 +41,9 @@ Icon = ExtResource("2_ypfnt")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.002810806, 0.075, 0.0039351285)
 shape = SubResource("SphereShape3D_y1t4u")
 
-[node name="apple" parent="." unique_id=1336027980 instance=ExtResource("2_l77x7")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)
-
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1008460709]
 delta_interval = 0.05
 replication_config = SubResource("SceneReplicationConfig_l77x7")
+
+[node name="apple2" parent="." unique_id=47326708 instance=ExtResource("3_l77x7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05853039, 0)

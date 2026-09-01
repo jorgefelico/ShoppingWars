@@ -161,4 +161,13 @@ public partial class SteamManager : Node
             }
         }
     }
+    
+    public string GetPersonaName()
+    {
+        if(IsSteamInitialized && _steam != null)
+        {
+            return (string)_steam.Call("getPersonaName");
+        }
+        return "Player";
+    }
 }

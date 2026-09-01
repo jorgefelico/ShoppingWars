@@ -7,6 +7,8 @@
 height = 0.2
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
+lightmap_size_hint = Vector2i(17, 10)
+add_uv2 = true
 height = 0.2
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1nlae"]
@@ -31,6 +33,7 @@ Health = NodePath("Health")
 shape = SubResource("CylinderShape3D_y1t4u")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1570236374]
+gi_mode = 2
 mesh = SubResource("CylinderMesh_y1t4u")
 
 [node name="Health" type="Node" parent="." unique_id=1619880876]

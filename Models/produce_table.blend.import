@@ -40,6 +40,17 @@ materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
 _subresources={
+"meshes": {
+"produce_table_Cube": {
+"generate/lightmap_uv": 1,
+"generate/lods": 0,
+"generate/shadow_meshes": 1,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": false,
+"save_to_file/fallback_path": "",
+"save_to_file/path": ""
+}
+},
 "nodes": {
 "PATH:Cube": {
 "generate/physics": true

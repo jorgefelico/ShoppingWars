@@ -12,7 +12,7 @@ public partial class GameManager : Node
     public static GameManager Instance { get; private set; }
     [Export] public float ShoppingDuration = 30.0f;
     [Export] public float BattleDuration = 60.0f;
-    public GamePhase CurrentPhase { get; private set; } = GamePhase.Shopping;
+    public GamePhase CurrentPhase { get; private set; } = GamePhase.Lobby;
     public float TimeRemaining { get; private set; }
     private float _syncTimer = 0f;
     private const float SyncInterval = 0.25f; // Sync state 4 times per second
@@ -21,11 +21,7 @@ public partial class GameManager : Node
     {
         Instance = this;
 
-        if (Multiplayer.IsServer())
-        {
-            StartShoppingPhase();
-        }
-        else
+        if (!Multiplayer.IsServer())
         {
             // Client requests current authoritative state from host immediately on load
             if (Multiplayer.HasMultiplayerPeer())

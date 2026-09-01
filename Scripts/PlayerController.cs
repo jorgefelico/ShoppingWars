@@ -14,6 +14,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private HealthBar HealthBar;
     [Export] public Health Health;
     [Export] private CanvasLayer DeathOverlay;
+    [Export] private Label3D NameCard;
     [Export] private float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
@@ -23,6 +24,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public Vector3 SyncPosition = Vector3.Zero;
     [Export] public Vector3 SyncHeadRotation = Vector3.Zero;
     [Export] public Vector3 SyncCameraRotation = Vector3.Zero;
+    [Export] public string PlayerName = "";
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -52,12 +54,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (IsMultiplayerAuthority())
         {
             Instance = this;
+            if (NameCard != null) NameCard.Visible = false;
+            PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
+            if(NameCard != null) NameCard.Text = PlayerName;
             Input.MouseMode = Input.MouseModeEnum.Captured;
             if (Camera != null)
             {
                 Camera.MakeCurrent();
                 GD.Print($"[PlayerController] Activated Camera for Local Authority Player '{Name}'");
             }
+            Rpc(nameof(SyncPlayerName), SteamManager.Instance.GetPersonaName() ?? $"Player {Name}");
         }
         else
         {
@@ -105,6 +111,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
         else
         {
+            if(NameCard != null && !string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+            {
+                NameCard.Text = PlayerName;
+            }
             // Smooth framerate-independent network interpolation for remote player clones
             if (SyncPosition != Vector3.Zero)
             {
@@ -437,5 +447,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public void TakeDamage(int amount)
     {
         Health?.TakeDamage(amount);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void SyncPlayerName(string name)
+    {
+        if(NameCard == null) return;
+        NameCard.Text = name;
     }
 }

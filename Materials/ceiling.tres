@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://crjn34m3d6v40"]
+
+[ext_resource type="Texture2D" uid="uid://bohymhvwjwvnf" path="res://Textures/ceiling_interior_diff_2k.jpg" id="1_tjv6j"]
+[ext_resource type="Texture2D" uid="uid://b884jondsb650" path="res://Textures/ceiling_interior_disp_2k.png" id="2_sqymj"]
+[ext_resource type="Texture2D" uid="uid://d2cikj6y6r5o" path="res://Textures/ceiling_interior_nor_gl_2k.png" id="3_fsyfa"]
+[ext_resource type="Texture2D" uid="uid://bmn0ipkhnugce" path="res://Textures/ceiling_interior_rough_2k.png" id="4_1swjj"]
+
+[resource]
+albedo_color = Color(1.353256, 1.353256, 1.353256, 1)
+albedo_texture = ExtResource("1_tjv6j")
+roughness_texture = ExtResource("4_1swjj")
+normal_enabled = true
+normal_texture = ExtResource("3_fsyfa")
+heightmap_enabled = true
+heightmap_texture = ExtResource("2_sqymj")
+uv1_scale = Vector3(80, 80, 80)

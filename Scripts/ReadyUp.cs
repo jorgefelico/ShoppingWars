@@ -31,6 +31,15 @@ public partial class ReadyUp : StaticBody3D, IInteractable
 
     public void Interact(PlayerController player)
     {
-        GD.Print("Button pressed");
+        if (Multiplayer.IsServer() && GameManager.Instance?.CurrentPhase == GamePhase.Lobby)
+        {
+            GameManager.Instance?.StartShoppingPhase();
+            if (ButtonMesh.GetActiveMaterial(0) is StandardMaterial3D material)
+            {
+                // 3. Set the Albedo color (Red in this example)
+                material.AlbedoColor = new Color(1, 0, 0);
+                material.Emission = new Color(1, 0, 0);
+            }
+        }
     }
 }

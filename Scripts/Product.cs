@@ -73,7 +73,7 @@ public partial class Product : RigidBody3D, IInteractable
 
     public void Interact(PlayerController player)
     {
-        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange)
+        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange && GameManager.Instance.CurrentPhase != GamePhase.Lobby)
         {
             if (player.Inventory.IsInventoryFull()) return;
 

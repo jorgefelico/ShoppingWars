@@ -333,7 +333,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void HandleThrow()
     {
         // Throwing
-        if (Input.IsActionJustPressed("fire") && HeldItem != null)
+        if (Input.IsActionJustPressed("fire") && HeldItem != null && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
         {
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;

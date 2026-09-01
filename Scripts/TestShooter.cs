@@ -25,7 +25,8 @@ public partial class TestShooter : Node3D
         instance.Name = $"ShotApple_{Guid.NewGuid()}";
         instance.Transform = Transform;
         instance.Position = instance.Position + new Vector3(0, 1f, 0);
-        GetTree().CurrentScene.AddChild(instance);
+        Node targetContainer = GetTree().CurrentScene.GetNodeOrNull("SpawnedProjectiles") ?? GetTree().CurrentScene;
+        targetContainer.AddChild(instance);
         instance.LinearVelocity = Vector3.Forward * 40;
 
         // Auto-cleanup test projectile after 4 seconds to prevent unbounded network object accumulation

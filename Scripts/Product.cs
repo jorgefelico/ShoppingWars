@@ -1,7 +1,6 @@
-using System;
 using Godot;
 
-public partial class Product : RigidBody3D
+public partial class Product : RigidBody3D, IInteractable
 {
     [Export] public StringName DisplayName;
     [Export] public int Price;
@@ -12,7 +11,8 @@ public partial class Product : RigidBody3D
     [Export] public float ThrowMultiplier = 1.0f;
     [Export] public bool IsForSale = true;
     public Node3D Thrower;
-    MeshInstance3D _outline;
+    public string HoverText {get; set;} = "Buy";
+    public MeshInstance3D Outline{get; set;}
     Vector3 _lastVelocity;
 
     public override void _Ready()
@@ -24,10 +24,10 @@ public partial class Product : RigidBody3D
             Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
         }
 
-        MeshInstance3D mesh = FindMeshInstance(this);
+        MeshInstance3D mesh = Utils.FindMeshInstance(this);
         if (mesh != null)
         {
-            _outline = new MeshInstance3D
+            Outline = new MeshInstance3D
             {
                 Mesh = mesh.Mesh,
                 Visible = false,
@@ -38,9 +38,9 @@ public partial class Product : RigidBody3D
             };
             for (int i = 0; i < mesh.GetSurfaceOverrideMaterialCount(); i++)
             {
-                _outline.SetSurfaceOverrideMaterial(i, outlineMaterial);
+                Outline.SetSurfaceOverrideMaterial(i, outlineMaterial);
             }
-            mesh.AddChild(_outline);
+            mesh.AddChild(Outline);
         }
 
     }
@@ -59,29 +59,6 @@ public partial class Product : RigidBody3D
         _lastVelocity = LinearVelocity;
     }
 
-    static MeshInstance3D FindMeshInstance(Node node)
-    {
-        if (node is MeshInstance3D mi)
-            return mi;
-        foreach (Node child in node.GetChildren())
-        {
-            MeshInstance3D found = FindMeshInstance(child);
-            if (found != null)
-                return found;
-        }
-        return null;
-    }
-
-    public void OutlineOn()
-    {
-        _outline.Visible = true;
-    }
-
-    public void OutlineOff()
-    {
-        _outline.Visible = false;
-    }
-
     private void OnBodyEntered(Node body)
     {
         if (_lastVelocity.Length() < MinDamageSpeed) return;
@@ -92,5 +69,31 @@ public partial class Product : RigidBody3D
         if (body == Thrower) return;
 
         if (body is IDamageable target) target.TakeDamage(Damage);
+    }
+
+    public void Interact(PlayerController player)
+    {
+        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange)
+        {
+            if (player.Inventory.IsInventoryFull()) return;
+
+            if (IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
+            {
+                if (!player.TryDeductMoney(Price))
+                {
+                    GD.Print($"[Store] Cannot afford {DisplayName}! Costs ${Price}, you have ${player.Money}");
+                    return;
+                }
+            }
+
+            IsForSale = false;
+
+            if (player.HeldItem != null)
+            {
+                player.HeldItem.Visible = false;
+            }
+
+            player.Rpc(nameof(player.RPCPickupItem), GetPath());
+        }
     }
 }

@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://coc5xu30lpr0k"]
 
+[ext_resource type="Script" uid="uid://d1d6es82cshl1" path="res://Scripts/ReadyUp.cs" id="1_3u7wa"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
 lightmap_size_hint = Vector2i(5, 9)
 add_uv2 = true
@@ -19,7 +21,13 @@ top_radius = 0.05
 bottom_radius = 0.05
 height = 0.05
 
-[node name="ReadyUp" type="Node3D" unique_id=672375689]
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_l8b7g"]
+height = 0.05
+radius = 0.05
+
+[node name="ReadyUp" type="StaticBody3D" unique_id=1398623995 node_paths=PackedStringArray("ButtonMesh")]
+script = ExtResource("1_3u7wa")
+ButtonMesh = NodePath("MeshInstance3D/MeshInstance3D2")
 
 [node name="Label3D" type="Label3D" parent="." unique_id=161865216]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23466733, 0.05)
@@ -36,3 +44,7 @@ mesh = SubResource("BoxMesh_y1t4u")
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D" unique_id=1433211322]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.063809685)
 mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1919972621]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.16474468)
+shape = SubResource("CylinderShape3D_l8b7g")

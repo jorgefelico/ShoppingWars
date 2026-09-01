@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Godot;
 
 public partial class PlayerController : CharacterBody3D, IDamageable
@@ -8,14 +7,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private Camera3D Camera;
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
-    [Export] private Inventory Inventory;
+    [Export] public Inventory Inventory;
     [Export] private InventoryBar InventoryBar;
     [Export] private CanvasLayer CrossHair;
     [Export] private HealthBar HealthBar;
     [Export] public Health Health;
     [Export] private CanvasLayer DeathOverlay;
     [Export] private Label3D NameCard;
-    [Export] private float PickUpRange = 2.0f;
+    [Export] public float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
@@ -32,8 +31,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     const float Gravity = 9.8f;
     static readonly float MaxPitch = Mathf.DegToRad(85f);
     bool IsRunning = false;
-    Product _heldItem;
-    Product _highlightedItem;
+    public Product HeldItem { get; private set; }
+    IInteractable _highlightedItem;
     bool InputDisabled = false;
 
     public override void _Ready()
@@ -56,7 +55,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Instance = this;
             if (NameCard != null) NameCard.Visible = false;
             PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
-            if(NameCard != null) NameCard.Text = PlayerName;
+            if (NameCard != null) NameCard.Text = PlayerName;
             Input.MouseMode = Input.MouseModeEnum.Captured;
             if (Camera != null)
             {
@@ -102,16 +101,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 if (!InputDisabled) InputDisabled = true;
                 if (DeathOverlay != null && !DeathOverlay.Visible) DeathOverlay.Visible = true;
 
-                if (Multiplayer.IsServer() && _heldItem != null)
+                if (Multiplayer.IsServer() && HeldItem != null)
                 {
                     Inventory.DropLoot();
-                    _heldItem = null;
+                    HeldItem = null;
                 }
             }
         }
         else
         {
-            if(NameCard != null && !string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+            if (NameCard != null && !string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
             {
                 NameCard.Text = PlayerName;
             }
@@ -198,13 +197,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void UpdateTargeting()
     {
         RayCast.ForceRaycastUpdate();
-        Product newHighlight = RayCast.GetCollider() is Product product && product != _heldItem ? product : null;
-
-        if (newHighlight != _highlightedItem)
+        if (RayCast.GetCollider() is IInteractable interactable)
         {
-            _highlightedItem?.OutlineOff();
-            _highlightedItem = newHighlight;
-            _highlightedItem?.OutlineOn();
+            if (interactable is Product p && p == HeldItem) return;
+
+            if (interactable != _highlightedItem)
+            {
+                _highlightedItem?.OutlineOff();
+                _highlightedItem = interactable;
+                _highlightedItem.OutlineOn();
+            }
+        }
+        else if (_highlightedItem != null)
+        {
+            _highlightedItem.OutlineOff();
+            _highlightedItem = null;
         }
     }
 
@@ -213,38 +220,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (InputDisabled) return;
         if (!Input.IsActionJustPressed("interact")) return;
 
-        if (RayCast.GetCollider() is Product product && product.GlobalPosition.DistanceTo(GlobalPosition) <= PickUpRange)
+        if (RayCast.GetCollider() is IInteractable interactable)
         {
-            if (Inventory.IsInventoryFull()) return;
-
-            if (product.IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
-            {
-                if (!TryDeductMoney(product.Price))
-                {
-                    GD.Print($"[Store] Cannot afford {product.DisplayName}! Costs ${product.Price}, you have ${Money}");
-                    return;
-                }
-            }
-
-            product.IsForSale = false;
-
-            if (_heldItem != null)
-            {
-                _heldItem.Visible = false;
-            }
-
-            Rpc(nameof(RPCPickupItem), product.GetPath());
+            interactable.Interact(this);
         }
-        else if (_heldItem != null)
+        else if (HeldItem != null)
         {
-            if (GameManager.Instance?.CurrentPhase == GamePhase.Shopping) _heldItem.IsForSale = true;
-            Rpc(nameof(RPCDropItem), _heldItem.GetPath());
+            if (GameManager.Instance?.CurrentPhase == GamePhase.Shopping) HeldItem.IsForSale = true;
+            Rpc(nameof(RPCDropItem), HeldItem.GetPath());
             return;
+
         }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void RPCPickupItem(NodePath nodePath)
+    public void RPCPickupItem(NodePath nodePath)
     {
         Product item = GetNodeOrNull<Product>(nodePath);
         if (item == null) return;
@@ -268,14 +258,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
-            _heldItem = item;
-            Inventory.AddItem(_heldItem);
-            Rpc(nameof(RpcSyncActiveHeldItem), _heldItem.GetPath());
+            HeldItem = item;
+            Inventory.AddItem(HeldItem);
+            Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
         }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void RPCDropItem(NodePath nodePath)
+    public void RPCDropItem(NodePath nodePath)
     {
         Product item = GetNodeOrNull<Product>(nodePath);
         if (item == null) return;
@@ -287,7 +277,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
-            _heldItem = null;
+            HeldItem = null;
             Inventory.RemoveCurrentSelectedItem();
             Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
         }
@@ -343,13 +333,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void HandleThrow()
     {
         // Throwing
-        if (Input.IsActionJustPressed("fire") && _heldItem != null)
+        if (Input.IsActionJustPressed("fire") && HeldItem != null)
         {
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
-            Vector3 dir = (aimPoint - _heldItem.GlobalPosition).Normalized();
-            float speed = ThrowVelocity * _heldItem.ThrowMultiplier;
-            NodePath itemPath = _heldItem.GetPath();
+            Vector3 dir = (aimPoint - HeldItem.GlobalPosition).Normalized();
+            float speed = ThrowVelocity * HeldItem.ThrowMultiplier;
+            NodePath itemPath = HeldItem.GetPath();
             Rpc(nameof(RpcThrowItem), itemPath, dir * speed);
         }
     }
@@ -371,7 +361,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
-            _heldItem = null;
+            HeldItem = null;
             Inventory.RemoveCurrentSelectedItem();
             Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
         }
@@ -411,15 +401,15 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void SwitchInventorySlot(int index)
     {
-        if (_heldItem != null) _heldItem.Visible = false;
-        _heldItem = Inventory.GetItem(index);
+        if (HeldItem != null) HeldItem.Visible = false;
+        HeldItem = Inventory.GetItem(index);
         Inventory.SetCurrentSelectedItem(index);
-        if (_heldItem != null)
+        if (HeldItem != null)
         {
-            _heldItem.Visible = true;
+            HeldItem.Visible = true;
         }
 
-        NodePath activeItemPath = _heldItem != null ? _heldItem.GetPath() : new NodePath();
+        NodePath activeItemPath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
         Rpc(nameof(RpcSyncActiveHeldItem), activeItemPath);
     }
 
@@ -436,7 +426,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
-    private bool TryDeductMoney(int amount)
+    public bool TryDeductMoney(int amount)
     {
         if (Money < amount) return false;
         Money -= amount;
@@ -452,7 +442,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void SyncPlayerName(string name)
     {
-        if(NameCard == null) return;
+        if (NameCard == null) return;
         NameCard.Text = name;
     }
 }

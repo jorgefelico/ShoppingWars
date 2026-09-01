@@ -733,8 +733,14 @@ mesh = SubResource("BoxMesh_l8b7g")
 shape = SubResource("BoxShape3D_l8b7g")
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=340474803]
-_spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk", "uid://c47mufmp5i703", "uid://34h8fibcrltq")
+_spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
 spawn_path = NodePath("..")
+
+[node name="SpawnedProjectiles" type="Node3D" parent="." unique_id=987654321]
+
+[node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=987654322]
+_spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq")
+spawn_path = NodePath("../SpawnedProjectiles")
 
 [node name="SpawnPoints" type="Node3D" parent="." unique_id=1178358120]
 

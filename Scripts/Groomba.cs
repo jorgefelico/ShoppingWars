@@ -163,7 +163,14 @@ public partial class Groomba : CharacterBody3D, IDamageable
 
     private void Die()
     {
+        if(!Multiplayer.IsServer()) return;
         GD.Print("[Groomba] Destroyed!");
+        Rpc(nameof(RpcDestroyGroomba));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer,CallLocal = true)]
+    public void RpcDestroyGroomba()
+    {
         QueueFree();
     }
 }

@@ -62,8 +62,10 @@ public partial class MainMenu : Control
 
     private void OnHostPressed()
     {
+
+        GD.Print( SteamManager.Instance.IsOnline());
         StatusLabel.Text = "Creating Steam Lobby...";
-        if (!SteamManager.Instance.IsSteamInitialized) return;
+        if (!SteamManager.Instance.IsSteamInitialized || !SteamManager.Instance.IsOnline()) return;
         SteamManager.Instance.HostLobby();
     }
 

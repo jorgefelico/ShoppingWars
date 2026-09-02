@@ -170,4 +170,13 @@ public partial class SteamManager : Node
         }
         return "Player";
     }
+
+    public bool IsOnline()
+    {
+        if(IsSteamInitialized && _steam != null)
+        {
+            return (bool)_steam.Call("getSteamID");
+        }
+        return false;
+    }
 }

@@ -117,7 +117,7 @@ _surfaces = [{
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5yygc"]
 emission_enabled = true
 emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 5.0
+emission_energy_multiplier = 1.2
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
 material = SubResource("StandardMaterial3D_5yygc")

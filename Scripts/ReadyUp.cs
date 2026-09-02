@@ -2,10 +2,11 @@ using Godot;
 
 public partial class ReadyUp : StaticBody3D, IInteractable
 {
-    public string HoverText { get; set; } = "Press E";
+    public string HoverText { get; set; } = "[E]";
     [Export] private MeshInstance3D ButtonMesh;
 
     public MeshInstance3D Outline { get; set; }
+    public Label3D HoverLabel { get; set; }
 
     public override void _Ready()
     {
@@ -26,6 +27,9 @@ public partial class ReadyUp : StaticBody3D, IInteractable
             }
             ButtonMesh.AddChild(Outline);
         }
+
+        HoverLabel = Utils.CreateHoverLabel(HoverText);
+        AddChild(HoverLabel);
     }
 
 

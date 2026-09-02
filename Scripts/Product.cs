@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 public partial class Product : RigidBody3D, IInteractable
@@ -10,21 +11,32 @@ public partial class Product : RigidBody3D, IInteractable
     [Export] float MinDamageSpeed = 12f;
     [Export] public float ThrowMultiplier = 1.0f;
     [Export] public bool IsForSale = true;
+    public string HoverText { get; set; } = "Buy";
     public Node3D Thrower;
-    public string HoverText {get; set;} = "Buy";
-    public MeshInstance3D Outline{get; set;}
+    public MeshInstance3D Outline { get; set; }
     Vector3 _lastVelocity;
+    public Label3D HoverLabel { get; set; }
+    private MeshInstance3D mesh;
 
     public override void _Ready()
     {
         BodyEntered += OnBodyEntered;
+
         if (ScaleVariation)
         {
             RandomNumberGenerator rand = new RandomNumberGenerator();
             Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
         }
 
-        MeshInstance3D mesh = Utils.FindMeshInstance(this);
+        HoverText = $"{HoverText} ${Price}";
+
+       
+
+        mesh = Utils.FindMeshInstance(this);
+        
+        HoverLabel = Utils.CreateHoverLabel(HoverText);
+        AddChild(HoverLabel);
+
         if (mesh != null)
         {
             Outline = new MeshInstance3D
@@ -62,7 +74,7 @@ public partial class Product : RigidBody3D, IInteractable
     private void OnBodyEntered(Node body)
     {
         if (_lastVelocity.Length() < MinDamageSpeed) return;
-        
+
         if (GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
 
         // Ignore hitting the thrower!
@@ -92,6 +104,8 @@ public partial class Product : RigidBody3D, IInteractable
             {
                 player.HeldItem.Visible = false;
             }
+
+            HoverLabel.Visible = false;
 
             player.Rpc(nameof(player.RPCPickupItem), GetPath());
         }

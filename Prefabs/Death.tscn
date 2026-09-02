@@ -21,3 +21,7 @@ theme_override_font_sizes/font_size = 100
 text = "DEATH!"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Button" type="Button" parent="PanelContainer" unique_id=1719181343]
+layout_mode = 2
+text = "Respawn"

@@ -73,12 +73,12 @@ public partial class GameManager : Node
     {
         if (!Multiplayer.IsServer()) return;
 
-        CurrentPhase = GamePhase.Shopping;
-        TimeRemaining = ShoppingDuration;
-
         if (Multiplayer.HasMultiplayerPeer())
         {
             Rpc(nameof(RpcSyncState), (int)GamePhase.Shopping, ShoppingDuration);
+        } else
+        {
+            RpcSyncState((int)GamePhase.Shopping, ShoppingDuration);
         }
         GD.Print("[GameManager] PHASE 1: SHOPPING STARTED!");
     }
@@ -87,12 +87,12 @@ public partial class GameManager : Node
     {
         if (!Multiplayer.IsServer()) return;
 
-        CurrentPhase = GamePhase.BattleRoyale;
-        TimeRemaining = BattleDuration;
-
         if (Multiplayer.HasMultiplayerPeer())
         {
             Rpc(nameof(RpcSyncState), (int)GamePhase.BattleRoyale, BattleDuration);
+        } else
+        {
+            RpcSyncState((int)GamePhase.BattleRoyale, BattleDuration);
         }
         GD.Print("[GameManager] PHASE 2: BATTLE ROYALE STARTED!");
     }
@@ -112,6 +112,7 @@ public partial class GameManager : Node
         if (CurrentPhase != newPhase)
         {
             CurrentPhase = newPhase;
+            EmitSignal(SignalName.GamePhaseChanged);
             GD.Print($"[GameManager] Phase synced to: {CurrentPhase}");
         }
 
@@ -124,4 +125,7 @@ public partial class GameManager : Node
 
         RpcId(peerId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
     }
+
+    [Signal]
+    public delegate void GamePhaseChangedEventHandler();
 }

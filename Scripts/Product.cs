@@ -1,4 +1,3 @@
-using System;
 using Godot;
 
 public partial class Product : RigidBody3D, IInteractable
@@ -11,6 +10,8 @@ public partial class Product : RigidBody3D, IInteractable
     [Export] float MinDamageSpeed = 12f;
     [Export] public float ThrowMultiplier = 1.0f;
     [Export] public bool IsForSale = true;
+    public bool CanBePickedUp = true;
+    public bool WasBought = false;
     public string HoverText { get; set; } = "Buy";
     public Node3D Thrower;
     public MeshInstance3D Outline { get; set; }
@@ -21,6 +22,7 @@ public partial class Product : RigidBody3D, IInteractable
     public override void _Ready()
     {
         BodyEntered += OnBodyEntered;
+        GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
 
         if (ScaleVariation)
         {
@@ -88,7 +90,7 @@ public partial class Product : RigidBody3D, IInteractable
         if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange && GameManager.Instance.CurrentPhase != GamePhase.Lobby)
         {
             if (player.Inventory.IsInventoryFull()) return;
-
+            if(GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale && !CanBePickedUp) return;
             if (IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
             {
                 if (!player.TryDeductMoney(Price))
@@ -99,15 +101,38 @@ public partial class Product : RigidBody3D, IInteractable
             }
 
             IsForSale = false;
+            WasBought = true;
 
             if (player.HeldItem != null)
             {
                 player.HeldItem.Visible = false;
             }
-
-            HoverLabel.Visible = false;
+            
+            if(HoverLabel != null) HoverLabel.Visible = false;
 
             player.Rpc(nameof(player.RPCPickupItem), GetPath());
         }
     }
+
+    private void OnGamePhaseChanged()
+    {
+       if(GameManager.Instance?.CurrentPhase != GamePhase.BattleRoyale) return;
+        if(!WasBought) {
+            CanBePickedUp = false;
+            Outline?.QueueFree();
+            Outline = null;
+        }
+        
+        HoverLabel?.QueueFree();
+        HoverLabel = null;
+    }
+
+    public override void _ExitTree()
+    {
+        if(GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
+        }
+    }
+
 }

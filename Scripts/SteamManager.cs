@@ -23,7 +23,7 @@ public partial class SteamManager : Node
 
             // Connect GodotSteam signals
             _steam.Connect("lobby_created", Callable.From<long, ulong>(OnLobbyCreated));
-            _steam.Connect("join_requested", Callable.From<ulong, ulong>(OnLobbyJoinRequested));
+            _steam.Connect("lobby_invite", Callable.From<ulong, ulong, ulong>(OnLobbyInviteReceived));
             _steam.Connect("lobby_joined", Callable.From<ulong, long, bool, long>(OnLobbyJoined));
 
             string name = (string)_steam.Call("getPersonaName");
@@ -109,10 +109,15 @@ public partial class SteamManager : Node
         NetworkManager.Instance?.LoadLevel("res://Scenes/world.tscn");
     }
 
-    private void OnLobbyJoinRequested(ulong lobbyId, ulong friendSteamId)
+    // Emitted from Steamworks' LobbyInvite_t: "Someone has invited you to join a Lobby."
+    private void OnLobbyInviteReceived(ulong inviterSteamId, ulong lobbyId, ulong gameId)
     {
-        string friendName = (string)_steam.Call("getFriendPersonaName", friendSteamId);
-        GD.Print($"[Steam] Invite received from {friendName} ({friendSteamId}) for Lobby: {lobbyId}");
+        string friendName = (string)_steam.Call("getFriendPersonaName", inviterSteamId);
+        if (string.IsNullOrEmpty(friendName))
+        {
+            friendName = "A Friend";
+        }
+        GD.Print($"[Steam] Lobby invite received from {friendName} ({inviterSteamId}) for Lobby: {lobbyId}");
 
         OnInviteReceived?.Invoke(lobbyId, friendName);
     }

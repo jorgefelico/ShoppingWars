@@ -11,6 +11,19 @@ lightmap_size_hint = Vector2i(17, 10)
 add_uv2 = true
 height = 0.2
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1nlae"]
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(2.454227, 2.454227, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dka28"]
+material = SubResource("StandardMaterial3D_1nlae")
+top_radius = 0.505
+bottom_radius = 0.505
+height = 0.025
+cap_top = false
+cap_bottom = false
+
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1nlae"]
 properties/0/path = NodePath(".:SyncPosition")
 properties/0/spawn = true
@@ -22,8 +35,9 @@ properties/2/path = NodePath(".:scale")
 properties/2/spawn = true
 properties/2/replication_mode = 2
 
-[node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("NavAgent", "Health")]
+[node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("RingMesh", "NavAgent", "Health")]
 script = ExtResource("1_1nlae")
+RingMesh = NodePath("MeshInstance3D/RingMesh")
 NavAgent = NodePath("NavigationAgent3D")
 Health = NodePath("Health")
 
@@ -35,6 +49,9 @@ shape = SubResource("CylinderShape3D_y1t4u")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1570236374]
 gi_mode = 2
 mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="RingMesh" type="MeshInstance3D" parent="MeshInstance3D" unique_id=1725437175]
+mesh = SubResource("CylinderMesh_dka28")
 
 [node name="Health" type="Node" parent="." unique_id=1619880876]
 script = ExtResource("2_dka28")

@@ -71,7 +71,7 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
 
     public abstract void Die();
 
-    public void TakeDamage(int amount, Node3D source = null)
+    public virtual void TakeDamage(int amount, Node3D source = null)
     {
         if(Health == null) return;
         Health.TakeDamage(amount);
@@ -80,6 +80,7 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
         {
             _targetPlayer = playerWhoHit;
             NavAgent.TargetPosition = _targetPlayer.GlobalPosition;
+            SetState(PatrolEntityState.Attack);
         }
 
         if(Health.IsDead)
@@ -87,4 +88,14 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
             Die();
         }
     }
+
+    public virtual void SetState(PatrolEntityState newState)
+    {
+        if (PatrolState == newState) return;
+        PatrolEntityState oldState = PatrolState;
+        PatrolState = newState;
+        OnStateChanged(oldState, newState);
+    }
+
+    protected virtual void OnStateChanged(PatrolEntityState from, PatrolEntityState to) { }
 }

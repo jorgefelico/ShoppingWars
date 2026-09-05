@@ -1,23 +1,8 @@
-using System.Linq;
-using System.Net.NetworkInformation;
+using System.Diagnostics;
 using Godot;
 
-public partial class Groomba : CharacterBody3D, IDamageable
+public partial class Groomba : PatrolEnemy
 {
-    [Export] private NavigationAgent3D NavAgent;
-    [Export] private float PatrolSpeed = 2.5f;
-    [Export] private float ChaseSpeed = 5.0f;
-    [Export] private float DetectionRange = 8.0f;
-    [Export] private int ContactDamage = 15;
-    [Export] private float ArenaBounds = 35.0f;
-    [Export] public Health Health;
-    [Export] public Vector3 SyncPosition = Vector3.Zero;
-    [Export] public Vector3 SyncRotation = Vector3.Zero;
-
-    private PlayerController _targetPlayer;
-    private float _attackCooldown = 0f;
-    private const float Gravity = 9.8f;
-
     public override void _Ready()
     {
         // Wait for first physics frame so Navigation map is synched.
@@ -87,57 +72,6 @@ public partial class Groomba : CharacterBody3D, IDamageable
         SyncRotation = Rotation;
     }
 
-    private void MoveAlongPath(float speed, ref Vector3 velocity)
-    {
-        if (NavAgent.IsNavigationFinished())
-        {
-            velocity.X = 0;
-            velocity.Z = 0;
-            return;
-        }
-
-        Vector3 nextPathPos = NavAgent.GetNextPathPosition();
-        Vector3 dir = nextPathPos - GlobalPosition;
-        dir.Y = 0;
-
-        if(dir.LengthSquared() > 0.01f)
-        {
-            LookAt(GlobalPosition + dir, Vector3.Up);
-            velocity.X = dir.Normalized().X * speed;
-            velocity.Z = dir.Normalized().Z * speed;
-        }
-    }
-
-    private void SetRandomPatrolTarget()
-    {
-        RandomNumberGenerator rng = new RandomNumberGenerator();
-        Vector3 randomTarget = new Vector3(
-            rng.RandfRange(-ArenaBounds, ArenaBounds),
-            GlobalPosition.Y,
-            rng.RandfRange(-ArenaBounds, ArenaBounds)
-        );
-        NavAgent.TargetPosition = randomTarget;
-    }
-
-    private void DetectPlayer()
-    {
-        _targetPlayer = null;
-        float closestDistance = DetectionRange;
-
-        foreach (Node node in GetTree().GetNodesInGroup("Players"))
-        {
-            if (node is PlayerController player && !player.Health.IsDead)
-            {
-                float dist = GlobalPosition.DistanceTo(player.GlobalPosition);
-                if (dist <= closestDistance)
-                {
-                    closestDistance = dist;
-                    _targetPlayer = player;
-                }
-            }
-        }
-    }
-
     private void HandleContactDamage()
     {
         for(int i = 0; i < GetSlideCollisionCount(); i++)
@@ -151,17 +85,7 @@ public partial class Groomba : CharacterBody3D, IDamageable
         }
     }
 
-    public void TakeDamage(int amount)
-    {
-        if(Health == null) return;
-        Health.TakeDamage(amount);
-        if(Health.IsDead)
-        {
-            Die();
-        }
-    }
-
-    private void Die()
+    public override void Die()
     {
         if(!Multiplayer.IsServer()) return;
         GD.Print("[Groomba] Destroyed!");

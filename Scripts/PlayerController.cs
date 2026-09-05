@@ -434,7 +434,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         return true;
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, Node3D source = null)
     {
         Health?.TakeDamage(amount);
     }

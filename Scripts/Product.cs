@@ -82,7 +82,7 @@ public partial class Product : RigidBody3D, IInteractable
         // Ignore hitting the thrower!
         if (body == Thrower) return;
 
-        if (body is IDamageable target) target.TakeDamage(Damage);
+        if (body is IDamageable target) target.TakeDamage(Damage, Thrower);
     }
 
     public void Interact(PlayerController player)

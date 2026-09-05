@@ -49,7 +49,7 @@ public partial class NetworkManager : Node
     private async void OnConnectedToServer()
     {
         GD.Print($"[NetworkManager] Connected to Host server! My Peer ID: {Multiplayer.GetUniqueId()}");
-        GetTree().ChangeSceneToFile("res://Scenes/world.tscn");
+        GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
         GD.Print("[NetworkManager] Client loaded world scene! Sending RpcClientReady to Host...");

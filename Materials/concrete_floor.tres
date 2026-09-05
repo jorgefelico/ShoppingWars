@@ -12,6 +12,6 @@ roughness_texture = ExtResource("4_go13x")
 normal_enabled = true
 normal_texture = ExtResource("3_adchf")
 clearcoat_roughness = 0.0
-heightmap_enabled = true
 heightmap_texture = ExtResource("2_k0kyh")
 uv1_scale = Vector3(80, 80, 1)
+texture_filter = 5

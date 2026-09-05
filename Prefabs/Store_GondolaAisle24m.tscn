@@ -1,0 +1,187 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
+[ext_resource type="Material" path="res://Materials/shelf_metal.tres" id="2_metal"]
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="3_blue"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Base"]
+material = ExtResource("1_dark")
+lightmap_size_hint = Vector2i(205, 194)
+add_uv2 = true
+size = Vector3(1.6, 0.25, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_CenterWall"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(193, 216)
+add_uv2 = true
+size = Vector3(0.12, 2.9, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Shelf"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(198, 193)
+add_uv2 = true
+size = Vector3(0.65, 0.04, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_TopCap"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(204, 193)
+add_uv2 = true
+size = Vector3(1.4, 0.05, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Endcap_Base"]
+material = ExtResource("1_dark")
+lightmap_size_hint = Vector2i(24, 16)
+add_uv2 = true
+size = Vector3(1.8, 0.25, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Endcap_Wall"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(16, 24)
+add_uv2 = true
+size = Vector3(1.8, 2.9, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Endcap_Shelf"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(17, 16)
+add_uv2 = true
+size = Vector3(1.6, 0.04, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Aisle_Sign"]
+material = ExtResource("3_blue")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+size = Vector3(1.5, 0.9, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Aisle"]
+size = Vector3(1.7, 2.9, 26.4)
+
+[node name="GondolaAisle24m" type="StaticBody3D"]
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Base")
+
+[node name="CenterWall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_CenterWall")
+
+[node name="TopCap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.875, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_TopCap")
+
+[node name="Shelf_L_1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.40, 0.40, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_R_1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.40, 0.40, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_L_2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.40, 1.00, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_R_2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.40, 1.00, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_L_3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.40, 1.60, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_R_3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.40, 1.60, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_L_4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.40, 2.20, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Shelf_R_4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.40, 2.20, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Shelf")
+
+[node name="Endcap_N_Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 12.60)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Base")
+
+[node name="Endcap_N_Wall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 12.05)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Wall")
+
+[node name="Endcap_N_Shelf1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.40, 12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_N_Shelf2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.00, 12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_N_Shelf3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.60, 12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_N_Shelf4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.20, 12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_S_Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, -12.60)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Base")
+
+[node name="Endcap_S_Wall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, -12.05)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Wall")
+
+[node name="Endcap_S_Shelf1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.40, -12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_S_Shelf2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.00, -12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_S_Shelf3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.60, -12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="Endcap_S_Shelf4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.20, -12.35)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Endcap_Shelf")
+
+[node name="AisleSign_S" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, -12.60)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Aisle_Sign")
+
+[node name="AisleSign_N" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 12.60)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Aisle_Sign")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+shape = SubResource("BoxShape_Aisle")

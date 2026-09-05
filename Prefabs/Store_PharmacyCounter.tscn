@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/pharmacy_teal.tres" id="1_teal"]
+[ext_resource type="Material" path="res://Materials/refrigerator_glass.tres" id="2_glass"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Pharm_Base"]
+material = ExtResource("1_teal")
+lightmap_size_hint = Vector2i(110, 24)
+add_uv2 = true
+size = Vector3(12.0, 1.2, 1.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Pharm_Glass"]
+material = ExtResource("2_glass")
+lightmap_size_hint = Vector2i(98, 16)
+add_uv2 = true
+size = Vector3(11.8, 0.9, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Pharm"]
+size = Vector3(12.0, 2.1, 1.5)
+
+[node name="PharmacyCounter" type="StaticBody3D"]
+
+[node name="CounterBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Pharm_Base")
+
+[node name="GlassPartition" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, -0.5)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Pharm_Glass")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+shape = SubResource("BoxShape_Pharm")

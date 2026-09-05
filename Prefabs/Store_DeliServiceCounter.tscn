@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_metal.tres" id="1_metal"]
+[ext_resource type="Material" path="res://Materials/refrigerator_glass.tres" id="2_glass"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Deli_Base"]
+material = ExtResource("1_metal")
+lightmap_size_hint = Vector2i(94, 24)
+add_uv2 = true
+size = Vector3(10.0, 1.15, 1.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Deli_Glass"]
+material = ExtResource("2_glass")
+lightmap_size_hint = Vector2i(90, 18)
+add_uv2 = true
+size = Vector3(9.8, 0.7, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Deli"]
+size = Vector3(10.0, 1.85, 1.4)
+
+[node name="DeliServiceCounter" type="StaticBody3D"]
+
+[node name="CounterBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.575, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Deli_Base")
+
+[node name="GlassDisplay" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.50, 0.15)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Deli_Glass")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.925, 0)
+shape = SubResource("BoxShape_Deli")

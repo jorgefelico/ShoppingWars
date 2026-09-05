@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/checkout_blue.tres" id="1_blue"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="3_navy"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_CustServ_Base"]
+material = ExtResource("1_blue")
+lightmap_size_hint = Vector2i(110, 24)
+add_uv2 = true
+size = Vector3(12.0, 1.1, 1.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_CustServ_Countertop"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(114, 18)
+add_uv2 = true
+size = Vector3(12.3, 0.1, 1.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_CustServ_Backwall"]
+material = ExtResource("3_navy")
+lightmap_size_hint = Vector2i(105, 26)
+add_uv2 = true
+size = Vector3(11.8, 2.2, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_CustServ"]
+size = Vector3(12.3, 2.2, 2.4)
+
+[node name="CustomerServiceDesk" type="StaticBody3D"]
+
+[node name="CounterBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_CustServ_Base")
+
+[node name="CounterTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_CustServ_Countertop")
+
+[node name="BackWall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -1.2)
+gi_mode = 1
+mesh = SubResource("BoxMesh_CustServ_Backwall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -0.6)
+shape = SubResource("BoxShape_CustServ")

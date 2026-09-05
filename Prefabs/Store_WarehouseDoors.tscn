@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
+[ext_resource type="Material" path="res://Materials/shelf_metal.tres" id="2_metal"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Door_Leaf"]
+material = ExtResource("1_dark")
+lightmap_size_hint = Vector2i(20, 28)
+add_uv2 = true
+size = Vector3(1.8, 2.8, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Kickplate"]
+material = ExtResource("2_metal")
+lightmap_size_hint = Vector2i(18, 16)
+add_uv2 = true
+size = Vector3(1.8, 0.5, 0.12)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Doors"]
+size = Vector3(3.8, 2.8, 0.4)
+
+[node name="WarehouseDoors" type="StaticBody3D"]
+
+[node name="DoorLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 1.4, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Door_Leaf")
+
+[node name="KickplateLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, 0.3, 0.06)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Kickplate")
+
+[node name="DoorRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 1.4, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Door_Leaf")
+
+[node name="KickplateRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 0.3, 0.06)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Kickplate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("BoxShape_Doors")

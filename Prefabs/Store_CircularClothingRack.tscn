@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/clothing_rack_metal.tres" id="1_metal"]
+
+[sub_resource type="CylinderMesh" id="CylMesh_CenterPole"]
+material = ExtResource("1_metal")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+top_radius = 0.05
+bottom_radius = 0.05
+height = 1.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_Ring"]
+material = ExtResource("1_metal")
+lightmap_size_hint = Vector2i(32, 16)
+inner_radius = 0.95
+outer_radius = 1.1
+
+[sub_resource type="CylinderShape3D" id="CylShape_ClothRack"]
+height = 1.5
+radius = 1.1
+
+[node name="CircularClothingRack" type="StaticBody3D"]
+
+[node name="CenterPole" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+gi_mode = 1
+mesh = SubResource("CylMesh_CenterPole")
+
+[node name="Ring" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+gi_mode = 1
+mesh = SubResource("TorusMesh_Ring")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CylShape_ClothRack")

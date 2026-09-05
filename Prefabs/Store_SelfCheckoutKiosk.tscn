@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/checkout_blue.tres" id="1_blue"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_SCO_Pedestal"]
+material = ExtResource("1_blue")
+lightmap_size_hint = Vector2i(18, 18)
+add_uv2 = true
+size = Vector3(1.0, 0.9, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_SCO_Screen"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+size = Vector3(0.5, 0.45, 0.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_SCO"]
+size = Vector3(1.0, 1.5, 1.0)
+
+[node name="SelfCheckoutKiosk" type="StaticBody3D"]
+
+[node name="Pedestal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_SCO_Pedestal")
+
+[node name="Screen" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 1.15, -0.15)
+gi_mode = 1
+mesh = SubResource("BoxMesh_SCO_Screen")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("BoxShape_SCO")

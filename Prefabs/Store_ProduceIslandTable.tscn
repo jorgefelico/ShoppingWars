@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/wood_produce.tres" id="1_wood"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Produce_Base"]
+material = ExtResource("1_wood")
+lightmap_size_hint = Vector2i(54, 30)
+add_uv2 = true
+size = Vector3(3.8, 0.85, 2.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Produce_Top"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(48, 24)
+add_uv2 = true
+size = Vector3(3.5, 0.4, 2.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Produce"]
+size = Vector3(3.8, 1.25, 2.6)
+
+[node name="ProduceIslandTable" type="StaticBody3D"]
+
+[node name="BaseTable" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.425, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Produce_Base")
+
+[node name="TopTier" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Produce_Top")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.625, 0)
+shape = SubResource("BoxShape_Produce")

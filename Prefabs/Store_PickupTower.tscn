@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="1_navy"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Tower"]
+material = ExtResource("1_navy")
+lightmap_size_hint = Vector2i(76, 84)
+add_uv2 = true
+size = Vector3(4.5, 5.5, 4.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Tower"]
+size = Vector3(4.5, 5.5, 4.5)
+
+[node name="PickupTower" type="StaticBody3D"]
+
+[node name="TowerMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Tower")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
+shape = SubResource("BoxShape_Tower")

@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/clothing_rack_metal.tres" id="1_metal"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Corral_Rails"]
+material = ExtResource("1_metal")
+lightmap_size_hint = Vector2i(114, 90)
+add_uv2 = true
+size = Vector3(4.0, 1.0, 10.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Corral"]
+size = Vector3(4.0, 1.0, 10.0)
+
+[node name="CartCorral" type="StaticBody3D"]
+
+[node name="Rails" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Corral_Rails")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape_Corral")

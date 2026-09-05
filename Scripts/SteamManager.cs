@@ -106,7 +106,7 @@ public partial class SteamManager : Node
         ulong mySteamId = (ulong)_steam.Call("getSteamID");
         _steam.Call("setLobbyData", lobbyId, "HostSteamID", mySteamId.ToString());
 
-        NetworkManager.Instance?.LoadLevel("res://Scenes/world.tscn");
+        NetworkManager.Instance?.LoadLevel("res://Scenes/StoreInterior.tscn");
     }
 
     // Emitted from Steamworks' LobbyInvite_t: "Someone has invited you to join a Lobby."

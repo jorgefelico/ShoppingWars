@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/refrigerator_glass.tres" id="1_glass"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Elec_Lockup_Frame"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(50, 64)
+add_uv2 = true
+size = Vector3(0.85, 2.6, 5.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Elec_Lockup_Glass"]
+material = ExtResource("1_glass")
+lightmap_size_hint = Vector2i(47, 61)
+add_uv2 = true
+size = Vector3(0.8, 2.4, 4.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Elec_Lockup"]
+size = Vector3(0.85, 2.6, 5.05)
+
+[node name="ElectronicsLockupCase" type="StaticBody3D"]
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Elec_Lockup_Frame")
+
+[node name="GlassCase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Elec_Lockup_Glass")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("BoxShape_Elec_Lockup")

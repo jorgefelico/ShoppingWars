@@ -1,0 +1,1332 @@
+[gd_scene format=3 uid="uid://k4brvuwthhf0"]
+
+[ext_resource type="LightmapGIData" uid="uid://cpnf838vxyqkp" path="res://Bakes/StoreInterior.lmbake" id="1_7u461"]
+[ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="1_floor"]
+[ext_resource type="Material" uid="uid://crjn34m3d6v40" path="res://Materials/ceiling.tres" id="2_ceiling"]
+[ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
+[ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
+[ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="6_navy"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_WarehouseDoors.tscn" id="P_BOHDoors"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_CartCorral.tscn" id="P_CartCorral"]
+[ext_resource type="PackedScene" uid="uid://bwys1aavre0ue" path="res://Prefabs/Store_CheckoutLane.tscn" id="P_Checkout"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_CircularClothingRack.tscn" id="P_ClothRack"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_StructuralColumn.tscn" id="P_Column"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_PerimeterWallCooler.tscn" id="P_Cooler"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_CustomerServiceDesk.tscn" id="P_CustServ"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_DeliServiceCounter.tscn" id="P_Deli"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsLockupCase.tscn" id="P_ElecLockup"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsDisplayTable.tscn" id="P_ElecTable"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_FittingRoomDivider.tscn" id="P_Fitting"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight.tscn" id="P_FluorescentLight"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_FoldedApparelTable.tscn" id="P_FoldTable"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_FreezerBunker.tscn" id="P_Freezer"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_PalletCargoStack.tscn" id="P_Pallet"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_PharmacyCounter.tscn" id="P_Pharm"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_PickupTower.tscn" id="P_Pickup"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_ProduceIslandTable.tscn" id="P_Produce"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_SelfCheckoutKiosk.tscn" id="P_SCO"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0fj1v"]
+sky_top_color = Color(0.152941, 0.501961, 0.658824, 1)
+
+[sub_resource type="Sky" id="Sky_7oesd"]
+sky_material = SubResource("ProceduralSkyMaterial_0fj1v")
+
+[sub_resource type="Environment" id="Environment_510ba"]
+sky = SubResource("Sky_7oesd")
+tonemap_mode = 3
+tonemap_exposure = 1.5
+tonemap_white = 4.0
+ssr_enabled = true
+ssr_max_steps = 128
+ssao_enabled = true
+ssao_intensity = 1.5
+ssil_enabled = true
+sdfgi_use_occlusion = true
+sdfgi_read_sky_light = false
+sdfgi_cascades = 6
+sdfgi_min_cell_size = 0.5
+sdfgi_energy = 1.2
+sdfgi_normal_bias = 1.5
+glow_enabled = true
+glow_normalized = true
+
+[sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_p8oww"]
+auto_exposure_enabled = true
+auto_exposure_min_exposure_value = 0.5
+auto_exposure_max_exposure_value = 8.0
+
+[sub_resource type="Compositor" id="Compositor_06bnu"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_l8b7g"]
+agent_height = 1.8
+agent_max_climb = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_Floor"]
+lightmap_size_hint = Vector2i(1600, 700)
+material = ExtResource("1_floor")
+add_uv2 = true
+size = Vector3(180, 0.2, 140)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Floor"]
+size = Vector3(180, 0.2, 140)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Ceiling"]
+lightmap_size_hint = Vector2i(1600, 700)
+material = ExtResource("2_ceiling")
+add_uv2 = true
+size = Vector3(180, 0.2, 140)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Ceiling"]
+size = Vector3(180, 0.2, 140)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_180"]
+lightmap_size_hint = Vector2i(904, 50)
+material = ExtResource("3_wall")
+add_uv2 = true
+size = Vector3(180, 9, 0.8)
+subdivide_width = 180
+subdivide_height = 9
+subdivide_depth = 1
+
+[sub_resource type="BoxShape3D" id="BoxShape_Wall_180"]
+size = Vector3(180, 9, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_140"]
+material = ExtResource("3_wall")
+add_uv2 = true
+size = Vector3(0.8, 9, 140)
+subdivide_width = 1
+subdivide_height = 9
+subdivide_depth = 140
+
+[sub_resource type="BoxShape3D" id="BoxShape_Wall_140"]
+size = Vector3(0.8, 9, 140)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Side"]
+lightmap_size_hint = Vector2i(130, 50)
+material = ExtResource("3_wall")
+add_uv2 = true
+size = Vector3(25, 9, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Side"]
+size = Vector3(25, 9, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Center"]
+lightmap_size_hint = Vector2i(404, 50)
+material = ExtResource("3_wall")
+add_uv2 = true
+size = Vector3(80, 9, 0.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Center"]
+size = Vector3(80, 9, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_HVAC_Long"]
+lightmap_size_hint = Vector2i(660, 55)
+material = ExtResource("4_hvac")
+add_uv2 = true
+size = Vector3(1.8, 1, 130)
+
+[sub_resource type="BoxMesh" id="BoxMesh_HVAC_Cross"]
+lightmap_size_hint = Vector2i(860, 55)
+material = ExtResource("4_hvac")
+add_uv2 = true
+size = Vector3(170, 1, 1.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Truss"]
+lightmap_size_hint = Vector2i(890, 20)
+material = ExtResource("4_hvac")
+add_uv2 = true
+size = Vector3(178, 0.5, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Dept_Banner_Giant"]
+lightmap_size_hint = Vector2i(40, 16)
+material = ExtResource("6_navy")
+add_uv2 = true
+size = Vector3(7.5, 1.6, 0.15)
+
+[node name="StoreInterior" type="Node3D" unique_id=426756908]
+
+[node name="WorldStuff" type="Node3D" parent="." unique_id=1783903088]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="WorldStuff" unique_id=714158150]
+environment = SubResource("Environment_510ba")
+camera_attributes = SubResource("CameraAttributesPhysical_p8oww")
+compositor = SubResource("Compositor_06bnu")
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="WorldStuff" unique_id=2141133733]
+_spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
+spawn_path = NodePath("..")
+
+[node name="SpawnedProjectiles" type="Node3D" parent="WorldStuff" unique_id=577647498]
+
+[node name="ProjectileSpawner" type="MultiplayerSpawner" parent="WorldStuff" unique_id=1052041002]
+_spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq")
+spawn_path = NodePath("../SpawnedProjectiles")
+
+[node name="SpawnPoints" type="Node3D" parent="WorldStuff" unique_id=498755932]
+
+[node name="SpawnPoint1" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=1854250749]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, -55)
+
+[node name="SpawnPoint2" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=141841240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, -55)
+
+[node name="SpawnPoint3" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=2043293066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 55)
+
+[node name="SpawnPoint4" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=413023564]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 55)
+
+[node name="LightmapGI" type="LightmapGI" parent="." unique_id=1960108528]
+quality = 2
+bounces = 5
+interior = true
+light_data = ExtResource("1_7u461")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1799987798]
+navigation_mesh = SubResource("NavigationMesh_l8b7g")
+
+[node name="Interior" type="Node3D" parent="NavigationRegion3D" unique_id=1720147013]
+
+[node name="Architecture" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=366785778]
+
+[node name="Floor" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=842462984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/Floor" unique_id=1923234533]
+mesh = SubResource("BoxMesh_Floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/Floor" unique_id=1938655199]
+shape = SubResource("BoxShape_Floor")
+
+[node name="Ceiling" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=829036318]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/Ceiling" unique_id=960600315]
+mesh = SubResource("BoxMesh_Ceiling")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/Ceiling" unique_id=1355742860]
+shape = SubResource("BoxShape_Ceiling")
+
+[node name="PerimeterWalls" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=1708470134]
+
+[node name="BackWall" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=711233036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 70)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=1878322479]
+mesh = SubResource("BoxMesh_Wall_180")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=146658957]
+shape = SubResource("BoxShape_Wall_180")
+
+[node name="LeftWall" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=305345920]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 4.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1417861734]
+mesh = SubResource("BoxMesh_Wall_140")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1316458140]
+shape = SubResource("BoxShape_Wall_140")
+
+[node name="RightWall" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1471331183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 4.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2136919519]
+mesh = SubResource("BoxMesh_Wall_140")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2037900109]
+shape = SubResource("BoxShape_Wall_140")
+
+[node name="FrontWall_Left" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1122550015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.5, 4.5, -70)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1939176688]
+mesh = SubResource("BoxMesh_Wall_Front_Side")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1597177725]
+shape = SubResource("BoxShape_Wall_Front_Side")
+
+[node name="FrontWall_Center" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=2031074748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -70)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=1482988054]
+mesh = SubResource("BoxMesh_Wall_Front_Center")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=280894155]
+shape = SubResource("BoxShape_Wall_Front_Center")
+
+[node name="FrontWall_Right" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1970106656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 77.5, 4.5, -70)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=1168301548]
+mesh = SubResource("BoxMesh_Wall_Front_Side")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=181462042]
+shape = SubResource("BoxShape_Wall_Front_Side")
+
+[node name="Vestibule_Grocery_Header" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=39462352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.5, 7.5, -70)
+mesh = SubResource("BoxMesh_Wall_Front_Side")
+
+[node name="Vestibule_GM_Header" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=2145847303]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.5, 7.5, -70)
+mesh = SubResource("BoxMesh_Wall_Front_Side")
+
+[node name="Columns" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=742637480]
+
+[node name="Column_1" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1395019738 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, -45)
+
+[node name="Column_2" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1436899878 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, -22.5)
+
+[node name="Column_3" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1014521943 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 0)
+
+[node name="Column_4" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1657506177 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 22.5)
+
+[node name="Column_5" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=401857235 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 45)
+
+[node name="Column_6" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1397377296 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, -45)
+
+[node name="Column_7" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=226507889 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, -22.5)
+
+[node name="Column_8" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1156215668 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 0)
+
+[node name="Column_9" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=952456230 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 22.5)
+
+[node name="Column_10" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1660125609 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 45)
+
+[node name="Column_11" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=649458237 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, -45)
+
+[node name="Column_12" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1703809846 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, -22.5)
+
+[node name="Column_13" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=923995884 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 0)
+
+[node name="Column_14" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=284217774 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 22.5)
+
+[node name="Column_15" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=940701764 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 45)
+
+[node name="Column_16" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=2082943957 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, -45)
+
+[node name="Column_17" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=358718824 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, -22.5)
+
+[node name="Column_18" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1551712127 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, 0)
+
+[node name="Column_19" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1609511343 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, 22.5)
+
+[node name="Column_20" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1526810862 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, 45)
+
+[node name="Column_21" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=83133905 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, -45)
+
+[node name="Column_22" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=974169262 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, -22.5)
+
+[node name="Column_23" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1923799915 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 0)
+
+[node name="Column_24" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1552457934 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 22.5)
+
+[node name="Column_25" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=252827720 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 45)
+
+[node name="Column_26" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=50871351 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, -45)
+
+[node name="Column_27" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=578970527 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, -22.5)
+
+[node name="Column_28" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1818833464 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 0)
+
+[node name="Column_29" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=2015618060 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 22.5)
+
+[node name="Column_30" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1327267533 instance=ExtResource("P_Column")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 45)
+
+[node name="HVAC" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=1473811502]
+
+[node name="HVAC_Long_1" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=1667947251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 8.2, 0)
+mesh = SubResource("BoxMesh_HVAC_Long")
+
+[node name="HVAC_Long_2" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=381091738]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 8.2, 0)
+mesh = SubResource("BoxMesh_HVAC_Long")
+
+[node name="HVAC_Long_3" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=244704003]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.2, 0)
+mesh = SubResource("BoxMesh_HVAC_Long")
+
+[node name="HVAC_Long_4" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=210738754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 8.2, 0)
+mesh = SubResource("BoxMesh_HVAC_Long")
+
+[node name="HVAC_Long_5" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=1522904819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 8.2, 0)
+mesh = SubResource("BoxMesh_HVAC_Long")
+
+[node name="HVAC_Cross_1" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=968240675]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, -50)
+mesh = SubResource("BoxMesh_HVAC_Cross")
+
+[node name="HVAC_Cross_2" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=759361603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, -25)
+mesh = SubResource("BoxMesh_HVAC_Cross")
+
+[node name="HVAC_Cross_3" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=1788955483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 0)
+mesh = SubResource("BoxMesh_HVAC_Cross")
+
+[node name="HVAC_Cross_4" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=636196471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 25)
+mesh = SubResource("BoxMesh_HVAC_Cross")
+
+[node name="HVAC_Cross_5" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=1998276526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 50)
+mesh = SubResource("BoxMesh_HVAC_Cross")
+
+[node name="RoofTrusses" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=34011168]
+
+[node name="Truss_1" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1302135603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -55)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_2" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1944521456]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -44)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_3" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1011978564]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -33)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_4" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1008877838]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -22)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_5" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=272877365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -11)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_6" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1386801385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 0)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_7" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=22176224]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 11)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_8" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=700100922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 22)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_9" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1083159990]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 33)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_10" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1971633852]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 44)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="Truss_11" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=650940482]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 55)
+mesh = SubResource("BoxMesh_Truss")
+
+[node name="FrontStore_Checkout" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=846909977]
+
+[node name="CheckoutLanes" type="Node3D" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=389833040]
+
+[node name="CheckoutLane_1" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=184043551 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -56)
+
+[node name="CheckoutLane_2" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1340448759 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.8, 0, -56)
+
+[node name="CheckoutLane_3" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=2107847486 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -31.6, 0, -56)
+
+[node name="CheckoutLane_4" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1998309706 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.4, 0, -56)
+
+[node name="CheckoutLane_5" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1517122920 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.2, 0, -56)
+
+[node name="CheckoutLane_6" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=305011986 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0, -56)
+
+[node name="CheckoutLane_7" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1688401376 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.8, 0, -56)
+
+[node name="CheckoutLane_8" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1057417722 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.6, 0, -56)
+
+[node name="CheckoutLane_9" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1502846870 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 0, -56)
+
+[node name="CheckoutLane_10" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1599478475 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 0, -56)
+
+[node name="CheckoutLane_11" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=591497277 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -56)
+
+[node name="CheckoutLane_12" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1758631822 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 0, -56)
+
+[node name="CheckoutLane_13" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1275893939 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.4, 0, -56)
+
+[node name="CheckoutLane_14" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1538609839 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.6, 0, -56)
+
+[node name="CheckoutLane_15" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=375714592 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.8, 0, -56)
+
+[node name="CheckoutLane_16" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=410054105 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, -56)
+
+[node name="CheckoutLane_17" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1697393620 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.2, 0, -56)
+
+[node name="CheckoutLane_18" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=297540266 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.4, 0, -56)
+
+[node name="CheckoutLane_19" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1612997203 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.6, 0, -56)
+
+[node name="CheckoutLane_20" parent="NavigationRegion3D/Interior/FrontStore_Checkout/CheckoutLanes" unique_id=1015898638 instance=ExtResource("P_Checkout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.8, 0, -56)
+
+[node name="SelfCheckout_Bullpens" type="Node3D" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=1493763955]
+
+[node name="SCO_Grocery_1" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=821337829 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.2, 0, -58)
+
+[node name="SCO_Grocery_2" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=933024275 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.4, 0, -58)
+
+[node name="SCO_Grocery_3" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1605744371 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.6, 0, -58)
+
+[node name="SCO_Grocery_4" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1456072559 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, -54.5)
+
+[node name="SCO_Grocery_5" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1591329150 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.2, 0, -54.5)
+
+[node name="SCO_Grocery_6" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1433425930 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.4, 0, -54.5)
+
+[node name="SCO_Grocery_7" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1864173579 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.6, 0, -54.5)
+
+[node name="SCO_Grocery_8" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1037366914 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, -51)
+
+[node name="SCO_GM_1" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1384119163 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.8, 0, -58)
+
+[node name="SCO_GM_2" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1792341075 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 0, -58)
+
+[node name="SCO_GM_3" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1242518647 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.4, 0, -58)
+
+[node name="SCO_GM_4" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=878233845 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, -54.5)
+
+[node name="SCO_GM_5" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1986394481 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.8, 0, -54.5)
+
+[node name="SCO_GM_6" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=1882335955 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 0, -54.5)
+
+[node name="SCO_GM_7" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=999351411 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.4, 0, -54.5)
+
+[node name="SCO_GM_8" parent="NavigationRegion3D/Interior/FrontStore_Checkout/SelfCheckout_Bullpens" unique_id=841925363 instance=ExtResource("P_SCO")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, -51)
+
+[node name="CustomerService_MoneyCenter" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=612572437 instance=ExtResource("P_CustServ")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0, -58)
+
+[node name="PickupToday_Tower" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=188364340 instance=ExtResource("P_Pickup")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, -58)
+
+[node name="CartCorral_Grocery" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=97796781 instance=ExtResource("P_CartCorral")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.5, 0, -66)
+
+[node name="CartCorral_GM" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=622130044 instance=ExtResource("P_CartCorral")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.5, 0, -66)
+
+[node name="Grocery_Produce_Bakery" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=1944871492]
+
+[node name="Produce_Islands" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=1211174612]
+
+[node name="ProduceTable_1" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=277301914 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, -44)
+
+[node name="ProduceTable_2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=1808925030 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, -36)
+
+[node name="ProduceTable_3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=594510991 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, -28)
+
+[node name="ProduceTable_4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=144517771 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, -20)
+
+[node name="ProduceTable_5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=1570682519 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68, 0, -44)
+
+[node name="ProduceTable_6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=308771281 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68, 0, -36)
+
+[node name="ProduceTable_7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=376758801 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68, 0, -28)
+
+[node name="ProduceTable_8" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=195658780 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68, 0, -20)
+
+[node name="ProduceTable_9" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=60431714 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -44)
+
+[node name="ProduceTable_10" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=132446712 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -36)
+
+[node name="ProduceTable_11" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=1847658697 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -28)
+
+[node name="ProduceTable_12" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=361433042 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -20)
+
+[node name="ProduceTable_13" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=1603111226 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -44)
+
+[node name="ProduceTable_14" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=366993547 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -36)
+
+[node name="ProduceTable_15" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=1111159058 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -28)
+
+[node name="ProduceTable_16" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Produce_Islands" unique_id=2040953518 instance=ExtResource("P_Produce")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -20)
+
+[node name="Wall_Coolers" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=592899312]
+
+[node name="WallCooler_1" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=353505135 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -46)
+
+[node name="WallCooler_2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=239374671 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -38.5)
+
+[node name="WallCooler_3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1067419650 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -31)
+
+[node name="WallCooler_4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=232923887 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -23.5)
+
+[node name="WallCooler_5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1781617287 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -16)
+
+[node name="WallCooler_6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1580733770 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -8.5)
+
+[node name="WallCooler_7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1932520031 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -1)
+
+[node name="WallCooler_8" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1232287261 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 6.5)
+
+[node name="WallCooler_9" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1426687571 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 14)
+
+[node name="WallCooler_10" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=587690028 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 21.5)
+
+[node name="WallCooler_11" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1512844618 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 29)
+
+[node name="WallCooler_12" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1190511433 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 36.5)
+
+[node name="WallCooler_13" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1726359696 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 44)
+
+[node name="WallCooler_14" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=404864870 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 51.5)
+
+[node name="WallCooler_15" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=2084572497 instance=ExtResource("P_Cooler")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 59)
+
+[node name="Freezer_Bunkers" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=529746779]
+
+[node name="FreezerBunker_1" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=370891166 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, -10)
+
+[node name="FreezerBunker_2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=64008427 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, 0)
+
+[node name="FreezerBunker_3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1606601687 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, 10)
+
+[node name="FreezerBunker_4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=524377107 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, 20)
+
+[node name="FreezerBunker_5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1603785223 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, -10)
+
+[node name="FreezerBunker_6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1651596057 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, 0)
+
+[node name="FreezerBunker_7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1344420621 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, 10)
+
+[node name="FreezerBunker_8" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=290716827 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, 20)
+
+[node name="FreezerBunker_9" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1741198580 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, -10)
+
+[node name="FreezerBunker_10" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=812010561 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, 0)
+
+[node name="FreezerBunker_11" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=1402862850 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, 10)
+
+[node name="FreezerBunker_12" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Freezer_Bunkers" unique_id=217797298 instance=ExtResource("P_Freezer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, 20)
+
+[node name="Bakery_Deli_Counter" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=2093739379 instance=ExtResource("P_Deli")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66, 0, 62)
+
+[node name="Meat_Seafood_Counter" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=1044459654 instance=ExtResource("P_Deli")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, 62)
+
+[node name="Packaged_Grocery_Aisles" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=807860133]
+
+[node name="GroceryAisle_1" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=965803021 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, 42)
+
+[node name="GroceryAisle_2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=429625530 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.5, 0, 42)
+
+[node name="GroceryAisle_3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=1007562767 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69, 0, 42)
+
+[node name="GroceryAisle_4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=2075308344 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64.5, 0, 42)
+
+[node name="GroceryAisle_5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=262476957 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, 42)
+
+[node name="GroceryAisle_6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=999758138 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55.5, 0, 42)
+
+[node name="GroceryAisle_7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=1513488493 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -51, 0, 42)
+
+[node name="GroceryAisle_8" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Packaged_Grocery_Aisles" unique_id=1395429965 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.5, 0, 42)
+
+[node name="CenterStore_Aisles" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=740949817]
+
+[node name="GMAisle_1_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1338137989 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -22)
+
+[node name="GMAisle_1_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=717031515 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 22)
+
+[node name="GMAisle_2_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=817593334 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.8, 0, -22)
+
+[node name="GMAisle_2_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=833020245 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.8, 0, 22)
+
+[node name="GMAisle_3_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1225182968 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.6, 0, -22)
+
+[node name="GMAisle_3_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=773973352 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.6, 0, 22)
+
+[node name="GMAisle_4_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=610825462 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.4, 0, -22)
+
+[node name="GMAisle_4_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=246620828 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.4, 0, 22)
+
+[node name="GMAisle_5_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1102370809 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, 0, -22)
+
+[node name="GMAisle_5_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1379427420 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, 0, 22)
+
+[node name="GMAisle_6_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=2048977870 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -22)
+
+[node name="GMAisle_6_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=237397111 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 22)
+
+[node name="GMAisle_7_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=97885551 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -22)
+
+[node name="GMAisle_7_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1617442618 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 22)
+
+[node name="GMAisle_8_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1800390832 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.4, 0, -22)
+
+[node name="GMAisle_8_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=921775233 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.4, 0, 22)
+
+[node name="GMAisle_9_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=148580026 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6, 0, -22)
+
+[node name="GMAisle_9_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=270252742 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.6, 0, 22)
+
+[node name="GMAisle_10_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1386074167 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.8, 0, -22)
+
+[node name="GMAisle_10_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=178522576 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.8, 0, 22)
+
+[node name="GMAisle_11_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1567069834 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -22)
+
+[node name="GMAisle_11_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=287135964 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, 22)
+
+[node name="GMAisle_12_South" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=366136342 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.2, 0, -22)
+
+[node name="GMAisle_12_North" parent="NavigationRegion3D/Interior/CenterStore_Aisles" unique_id=1500944517 instance=ExtResource("P_Aisle24")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.2, 0, 22)
+
+[node name="Electronics_Department" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=1885343282]
+
+[node name="ElecTable_1" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=495065007 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -42)
+
+[node name="ElecTable_2" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1722673201 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -34)
+
+[node name="ElecTable_3" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1767119428 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -26)
+
+[node name="ElecTable_4" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=2029137199 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -42)
+
+[node name="ElecTable_5" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=171721918 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -34)
+
+[node name="ElecTable_6" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=473300088 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -26)
+
+[node name="ElecTable_7" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=206260862 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, -42)
+
+[node name="ElecTable_8" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1335769851 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, -34)
+
+[node name="ElecTable_9" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1309780657 instance=ExtResource("P_ElecTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, -26)
+
+[node name="LockupCase_1" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=846181251 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -44)
+
+[node name="LockupCase_2" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=917709637 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -39.5)
+
+[node name="LockupCase_3" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1438324167 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -35)
+
+[node name="LockupCase_4" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=2111562140 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -30.5)
+
+[node name="LockupCase_5" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=1869110949 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -26)
+
+[node name="LockupCase_6" parent="NavigationRegion3D/Interior/Electronics_Department" unique_id=736353188 instance=ExtResource("P_ElecLockup")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 88.5, 0, -21.5)
+
+[node name="Apparel_Department" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=1163279418]
+
+[node name="ClothingRack_1" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1503559768 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -10)
+
+[node name="ClothingRack_2" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=415483202 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 0)
+
+[node name="ClothingRack_3" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1720814815 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 10)
+
+[node name="ClothingRack_4" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1889960666 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, -10)
+
+[node name="ClothingRack_5" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=698180887 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0)
+
+[node name="ClothingRack_6" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1442904770 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 10)
+
+[node name="ClothingRack_7" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=2075031013 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, -10)
+
+[node name="ClothingRack_8" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=988647299 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, 0)
+
+[node name="ClothingRack_9" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=243213420 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, 10)
+
+[node name="ClothingRack_10" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1417471828 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0, -10)
+
+[node name="ClothingRack_11" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1334827853 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0, 0)
+
+[node name="ClothingRack_12" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=2040022037 instance=ExtResource("P_ClothRack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0, 10)
+
+[node name="FoldedTable_1" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=112028938 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, -5)
+
+[node name="FoldedTable_2" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=269268856 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 5)
+
+[node name="FoldedTable_3" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=378008715 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, -5)
+
+[node name="FoldedTable_4" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=765996512 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, 5)
+
+[node name="FoldedTable_5" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1879549261 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 0, -5)
+
+[node name="FoldedTable_6" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1151450180 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 0, 5)
+
+[node name="FoldedTable_7" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1375250481 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 0, -5)
+
+[node name="FoldedTable_8" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=64163670 instance=ExtResource("P_FoldTable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 0, 5)
+
+[node name="FittingRooms" type="Node3D" parent="NavigationRegion3D/Interior/Apparel_Department" unique_id=1644545422]
+
+[node name="DividerWall_1" parent="NavigationRegion3D/Interior/Apparel_Department/FittingRooms" unique_id=903566859 instance=ExtResource("P_Fitting")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 0, -10)
+
+[node name="DividerWall_2" parent="NavigationRegion3D/Interior/Apparel_Department/FittingRooms" unique_id=1316265483 instance=ExtResource("P_Fitting")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 0, -6.2)
+
+[node name="DividerWall_3" parent="NavigationRegion3D/Interior/Apparel_Department/FittingRooms" unique_id=1270993924 instance=ExtResource("P_Fitting")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 0, -2.4)
+
+[node name="DividerWall_4" parent="NavigationRegion3D/Interior/Apparel_Department/FittingRooms" unique_id=1184806697 instance=ExtResource("P_Fitting")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 0, 1.4)
+
+[node name="DividerWall_5" parent="NavigationRegion3D/Interior/Apparel_Department/FittingRooms" unique_id=745610542 instance=ExtResource("P_Fitting")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 86, 0, 5.2)
+
+[node name="Pharmacy_HealthBeauty" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=419782393]
+
+[node name="Pharmacy_Counter" parent="NavigationRegion3D/Interior/Pharmacy_HealthBeauty" unique_id=1766037320 instance=ExtResource("P_Pharm")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 84, 0, 48)
+
+[node name="HBAisle_1" parent="NavigationRegion3D/Interior/Pharmacy_HealthBeauty" unique_id=1688667478 instance=ExtResource("P_Aisle14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, 36)
+
+[node name="HBAisle_2" parent="NavigationRegion3D/Interior/Pharmacy_HealthBeauty" unique_id=1770374171 instance=ExtResource("P_Aisle14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 36)
+
+[node name="HBAisle_3" parent="NavigationRegion3D/Interior/Pharmacy_HealthBeauty" unique_id=1639114086 instance=ExtResource("P_Aisle14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 0, 36)
+
+[node name="HBAisle_4" parent="NavigationRegion3D/Interior/Pharmacy_HealthBeauty" unique_id=1465445207 instance=ExtResource("P_Aisle14")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57, 0, 36)
+
+[node name="BackOfHouse_Facilities" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=752824804]
+
+[node name="Warehouse_Doors" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=2068460111 instance=ExtResource("P_BOHDoors")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 69.2)
+
+[node name="PalletStack_1" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=1464164509 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 64)
+
+[node name="PalletStack_2" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=34049469 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, 64)
+
+[node name="PalletStack_3" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=1254130159 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 0, 64)
+
+[node name="PalletStack_4" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=979204137 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 64)
+
+[node name="PalletStack_5" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=1161318471 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47, 0, 64)
+
+[node name="PalletStack_6" parent="NavigationRegion3D/Interior/BackOfHouse_Facilities" unique_id=52807287 instance=ExtResource("P_Pallet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, 64)
+
+[node name="Lighting_And_Banners" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=1396681384]
+
+[node name="LightFixture_1" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2001104703 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, -54)
+
+[node name="LightFixture_2" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1061037580 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, -43)
+
+[node name="LightFixture_3" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=56933447 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, -32)
+
+[node name="LightFixture_4" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1540310378 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, -21)
+
+[node name="LightFixture_5" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1305630553 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, -10)
+
+[node name="LightFixture_6" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1213866052 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 1)
+
+[node name="LightFixture_7" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1354194786 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 12)
+
+[node name="LightFixture_8" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=17255596 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 23)
+
+[node name="LightFixture_9" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1467311609 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 34)
+
+[node name="LightFixture_10" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1254311620 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 45)
+
+[node name="LightFixture_11" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=861937370 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, -54)
+
+[node name="LightFixture_12" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1698592074 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, -43)
+
+[node name="LightFixture_13" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1424931017 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, -32)
+
+[node name="LightFixture_14" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=755740339 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, -21)
+
+[node name="LightFixture_15" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1696148182 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, -10)
+
+[node name="LightFixture_16" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1300080551 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 1)
+
+[node name="LightFixture_17" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1075671700 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 12)
+
+[node name="LightFixture_18" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1715258140 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 23)
+
+[node name="LightFixture_19" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1914150110 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 34)
+
+[node name="LightFixture_20" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2019202483 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 45)
+
+[node name="LightFixture_21" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=265717648 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, -54)
+
+[node name="LightFixture_22" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=197414746 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, -43)
+
+[node name="LightFixture_23" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=225315774 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, -32)
+
+[node name="LightFixture_24" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=934346381 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, -21)
+
+[node name="LightFixture_25" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1210760327 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, -10)
+
+[node name="LightFixture_26" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=759631711 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, 1)
+
+[node name="LightFixture_27" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=35251467 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, 12)
+
+[node name="LightFixture_28" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=390434383 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, 23)
+
+[node name="LightFixture_29" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=343862759 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, 34)
+
+[node name="LightFixture_30" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1617704759 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8.6, 45)
+
+[node name="LightFixture_31" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=184561121 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, -54)
+
+[node name="LightFixture_32" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=596133183 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, -43)
+
+[node name="LightFixture_33" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1350465794 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, -32)
+
+[node name="LightFixture_34" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2067805424 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, -21)
+
+[node name="LightFixture_35" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=584290001 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, -10)
+
+[node name="LightFixture_36" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1111721437 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, 1)
+
+[node name="LightFixture_37" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=730980587 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, 12)
+
+[node name="LightFixture_38" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=80674023 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, 23)
+
+[node name="LightFixture_39" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=702853854 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, 34)
+
+[node name="LightFixture_40" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2053079661 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 8.6, 45)
+
+[node name="LightFixture_41" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1274554959 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -54)
+
+[node name="LightFixture_42" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=800954499 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -43)
+
+[node name="LightFixture_43" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1293711349 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -32)
+
+[node name="LightFixture_44" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=593279491 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -21)
+
+[node name="LightFixture_45" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=388920435 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -10)
+
+[node name="LightFixture_46" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=16524886 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, 1)
+
+[node name="LightFixture_47" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1377968078 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, 12)
+
+[node name="LightFixture_48" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1542108819 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, 23)
+
+[node name="LightFixture_49" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1760691247 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, 34)
+
+[node name="LightFixture_50" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1956998567 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, 45)
+
+[node name="LightFixture_51" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1993921010 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, -54)
+
+[node name="LightFixture_52" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1078779380 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, -43)
+
+[node name="LightFixture_53" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1916179747 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, -32)
+
+[node name="LightFixture_54" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1799075468 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, -21)
+
+[node name="LightFixture_55" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=454724364 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, -10)
+
+[node name="LightFixture_56" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=821172650 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, 1)
+
+[node name="LightFixture_57" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=954482059 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, 12)
+
+[node name="LightFixture_58" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=161216360 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, 23)
+
+[node name="LightFixture_59" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=651996552 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, 34)
+
+[node name="LightFixture_60" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=356701002 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8.6, 45)
+
+[node name="LightFixture_61" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1875274293 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -54)
+
+[node name="LightFixture_62" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1496200946 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -43)
+
+[node name="LightFixture_63" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=26711891 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -32)
+
+[node name="LightFixture_64" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1399422589 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -21)
+
+[node name="LightFixture_65" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1374402294 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -10)
+
+[node name="LightFixture_66" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=596940053 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 1)
+
+[node name="LightFixture_67" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=937974308 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 12)
+
+[node name="LightFixture_68" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=376372584 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 23)
+
+[node name="LightFixture_69" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=94884458 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 34)
+
+[node name="LightFixture_70" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=645253295 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 45)
+
+[node name="LightFixture_71" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=197341808 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, -54)
+
+[node name="LightFixture_72" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=771747657 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, -43)
+
+[node name="LightFixture_73" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=850440128 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, -32)
+
+[node name="LightFixture_74" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1740966072 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, -21)
+
+[node name="LightFixture_75" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2113450342 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, -10)
+
+[node name="LightFixture_76" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=493362979 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, 1)
+
+[node name="LightFixture_77" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1840902831 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, 12)
+
+[node name="LightFixture_78" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=487310291 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, 23)
+
+[node name="LightFixture_79" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1815171020 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, 34)
+
+[node name="LightFixture_80" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1952024559 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 8.6, 45)
+
+[node name="LightFixture_81" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1804371908 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, -54)
+
+[node name="LightFixture_82" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1282964822 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, -43)
+
+[node name="LightFixture_83" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=949806781 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, -32)
+
+[node name="LightFixture_84" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1599741881 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, -21)
+
+[node name="LightFixture_85" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=343528131 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, -10)
+
+[node name="LightFixture_86" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1381241055 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, 1)
+
+[node name="LightFixture_87" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=504878708 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, 12)
+
+[node name="LightFixture_88" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1975632566 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, 23)
+
+[node name="LightFixture_89" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=75532705 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, 34)
+
+[node name="LightFixture_90" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=294689453 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 8.6, 45)
+
+[node name="LightFixture_91" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1122686363 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, -54)
+
+[node name="LightFixture_92" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1198253750 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, -43)
+
+[node name="LightFixture_93" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=956337995 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, -32)
+
+[node name="LightFixture_94" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1932734175 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, -21)
+
+[node name="LightFixture_95" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2106003509 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, -10)
+
+[node name="LightFixture_96" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1022288778 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 1)
+
+[node name="LightFixture_97" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=380492550 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 12)
+
+[node name="LightFixture_98" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1120208232 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 23)
+
+[node name="LightFixture_99" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1487700354 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 34)
+
+[node name="LightFixture_100" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=706229342 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 45)
+
+[node name="Banner_Grocery" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=553450411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, -60)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_Produce" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=336729680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, -46)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_DeliBakery" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1354851906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, 50)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_Electronics" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=669026432]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 6.8, -25)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_Apparel" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=527212117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 6.8, 15)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_Pharmacy" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1047856533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 6.8, 52)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_HomeLiving" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=286486122]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, 0)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Banner_Checkout" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1888298680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, -60)
+mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("3_uw6uw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.324036, 0.1, 27.550652)
+
+[node name="Groomba2" parent="." unique_id=358620972 instance=ExtResource("3_uw6uw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.27465, 0.1, -40.836502)

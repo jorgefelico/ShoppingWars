@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
+[ext_resource type="Material" path="res://Materials/refrigerator_glass.tres" id="2_glass"]
+[ext_resource type="Material" uid="uid://gfiufhmghujx" path="res://Materials/fluorescent_light.tres" id="3_light"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cooler_Housing"]
+material = ExtResource("1_dark")
+lightmap_size_hint = Vector2i(48, 62)
+add_uv2 = true
+size = Vector3(1.1, 3.2, 4.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cooler_GlassDoor"]
+material = ExtResource("2_glass")
+lightmap_size_hint = Vector2i(38, 52)
+add_uv2 = true
+size = Vector3(0.08, 2.8, 4.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cooler_Light"]
+material = ExtResource("3_light")
+lightmap_size_hint = Vector2i(16, 38)
+add_uv2 = true
+size = Vector3(0.06, 0.06, 4.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Cooler"]
+size = Vector3(1.1, 3.2, 4.5)
+
+[node name="PerimeterWallCooler" type="StaticBody3D"]
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cooler_Housing")
+
+[node name="GlassDoor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 1.6, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cooler_GlassDoor")
+
+[node name="LightStrip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 2.95, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cooler_Light")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+shape = SubResource("BoxShape_Cooler")

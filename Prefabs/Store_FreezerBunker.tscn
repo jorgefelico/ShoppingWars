@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_metal.tres" id="1_metal"]
+[ext_resource type="Material" path="res://Materials/refrigerator_glass.tres" id="2_glass"]
+[ext_resource type="Material" path="res://Materials/checkout_blue.tres" id="3_blue"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Freezer_Base"]
+material = ExtResource("1_metal")
+lightmap_size_hint = Vector2i(60, 50)
+add_uv2 = true
+size = Vector3(2.2, 0.9, 5.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Freezer_Glass"]
+material = ExtResource("2_glass")
+lightmap_size_hint = Vector2i(56, 42)
+add_uv2 = true
+size = Vector3(2.0, 0.08, 4.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Freezer_Bumper"]
+material = ExtResource("3_blue")
+lightmap_size_hint = Vector2i(62, 45)
+add_uv2 = true
+size = Vector3(2.35, 0.15, 5.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Freezer"]
+size = Vector3(2.35, 0.95, 5.15)
+
+[node name="FreezerBunker" type="StaticBody3D"]
+
+[node name="BunkerBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Freezer_Base")
+
+[node name="GlassLid" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Freezer_Glass")
+
+[node name="ProtectiveBumper" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Freezer_Bumper")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, 0)
+shape = SubResource("BoxShape_Freezer")

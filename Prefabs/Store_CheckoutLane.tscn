@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/checkout_blue.tres" id="1_blue"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+[ext_resource type="Material" path="res://Materials/clothing_rack_metal.tres" id="3_chrome"]
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="4_navy"]
+[ext_resource type="Material" uid="uid://gfiufhmghujx" path="res://Materials/fluorescent_light.tres" id="5_light"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Checkout_Base"]
+material = ExtResource("1_blue")
+lightmap_size_hint = Vector2i(48, 46)
+add_uv2 = true
+size = Vector3(1.2, 0.85, 4.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Checkout_Belt"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(32, 28)
+add_uv2 = true
+size = Vector3(0.75, 0.05, 3.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Register_Screen"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+size = Vector3(0.4, 0.35, 0.08)
+
+[sub_resource type="CylinderMesh" id="CylMesh_Register_Pole"]
+material = ExtResource("3_chrome")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+top_radius = 0.04
+bottom_radius = 0.04
+height = 1.1
+
+[sub_resource type="CylinderMesh" id="CylMesh_Bag_Carousel"]
+material = ExtResource("3_chrome")
+lightmap_size_hint = Vector2i(26, 16)
+add_uv2 = true
+top_radius = 0.45
+bottom_radius = 0.45
+height = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_Lane_Sign"]
+material = ExtResource("4_navy")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+size = Vector3(0.7, 0.55, 0.15)
+
+[sub_resource type="CylinderMesh" id="CylMesh_Lane_Light"]
+material = ExtResource("5_light")
+lightmap_size_hint = Vector2i(16, 16)
+add_uv2 = true
+top_radius = 0.09
+bottom_radius = 0.09
+height = 0.22
+
+[sub_resource type="BoxShape3D" id="BoxShape_Checkout"]
+size = Vector3(1.2, 1.8, 4.5)
+
+[node name="CheckoutLane" type="StaticBody3D"]
+
+[node name="CounterBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.425, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Checkout_Base")
+
+[node name="ConveyorBelt" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, -0.6)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Checkout_Belt")
+
+[node name="RegisterPole" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 1.4, 0.2)
+gi_mode = 1
+mesh = SubResource("CylMesh_Register_Pole")
+
+[node name="RegisterScreen" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, -0.35, 1.95, 0.2)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Register_Screen")
+
+[node name="BagCarousel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.775, 1.6)
+gi_mode = 1
+mesh = SubResource("CylMesh_Bag_Carousel")
+
+[node name="LaneSign" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Lane_Sign")
+
+[node name="LaneLight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("CylMesh_Lane_Light")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("BoxShape_Checkout")

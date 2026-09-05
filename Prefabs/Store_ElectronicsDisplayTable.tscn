@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
+[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="2_navy"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Elec_Base"]
+material = ExtResource("1_dark")
+lightmap_size_hint = Vector2i(54, 26)
+add_uv2 = true
+size = Vector3(4.5, 0.95, 2.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Elec_Sign"]
+material = ExtResource("2_navy")
+lightmap_size_hint = Vector2i(20, 16)
+add_uv2 = true
+size = Vector3(2.2, 1.25, 0.08)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Elec_Table"]
+size = Vector3(4.5, 2.2, 2.0)
+
+[node name="ElectronicsDisplayTable" type="StaticBody3D"]
+
+[node name="TableBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Elec_Base")
+
+[node name="SignBoard" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Elec_Sign")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_Elec_Table")

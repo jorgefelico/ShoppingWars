@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/wood_produce.tres" id="1_wood"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="2_dark"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Pallet_Wood"]
+material = ExtResource("1_wood")
+lightmap_size_hint = Vector2i(24, 16)
+add_uv2 = true
+size = Vector3(1.4, 0.18, 1.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cargo_Box"]
+material = ExtResource("2_dark")
+lightmap_size_hint = Vector2i(20, 18)
+add_uv2 = true
+size = Vector3(1.0, 0.9, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Pallet"]
+size = Vector3(1.8, 2.2, 1.8)
+
+[node name="PalletCargoStack" type="StaticBody3D"]
+
+[node name="PalletWood" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Pallet_Wood")
+
+[node name="Box1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.63, -0.25)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cargo_Box")
+
+[node name="Box2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 0.15, 1.53, 0.15)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cargo_Box")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape_Pallet")

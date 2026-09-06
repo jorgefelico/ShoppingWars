@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/milk_plastic.tres" id="1_milk"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cooler_Drinks"]
+material = ExtResource("1_milk")
+lightmap_size_hint = Vector2i(35, 35)
+add_uv2 = true
+size = Vector3(0.35, 0.30, 4.0)
+
+[node name="Stock_CoolerDrinks_4m" type="Node3D"]
+
+[node name="Drinks" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cooler_Drinks")

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/pill_amber.tres" id="1_pill"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Pill_Row"]
+material = ExtResource("1_pill")
+lightmap_size_hint = Vector2i(39, 38)
+add_uv2 = true
+size = Vector3(0.35, 0.18, 4.5)
+
+[node name="Stock_PharmacyVials_4m" type="Node3D"]
+
+[node name="Pills" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Pill_Row")

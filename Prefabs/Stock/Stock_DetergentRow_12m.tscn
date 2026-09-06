@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/detergent_orange.tres" id="1_det"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Detergent_Row"]
+material = ExtResource("1_det")
+lightmap_size_hint = Vector2i(98, 97)
+add_uv2 = true
+size = Vector3(0.45, 0.32, 11.8)
+
+[node name="Stock_DetergentRow_12m" type="Node3D"]
+
+[node name="Jugs" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Detergent_Row")

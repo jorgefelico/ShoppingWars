@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/apparel_folded_colors.tres" id="1_app"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Folded_Shirts"]
+material = ExtResource("1_app")
+lightmap_size_hint = Vector2i(30, 22)
+add_uv2 = true
+size = Vector3(1.2, 0.25, 2.5)
+
+[node name="Stock_ApparelStacks" type="Node3D"]
+
+[node name="FoldedShirts" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Folded_Shirts")

@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://Icons/rubberduck.png" id="2_icon"]
+[ext_resource type="PackedScene" path="res://Models/rubber_duck.glb" id="3_model"]
+
+[sub_resource type="BoxShape3D" id="ColShape_RubberDuck"]
+size = Vector3(0.12, 0.10, 0.10)
+
+[sub_resource type="SceneReplicationConfig" id="SyncConfig_RubberDuck"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:linear_velocity")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:visible")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:scale")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+
+[node name="RubberDuck" type="RigidBody3D"]
+collision_mask = 3
+mass = 0.12
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 4
+script = ExtResource("1_script")
+DisplayName = &"Rubber Duck"
+Price = 5
+Damage = 10
+ScaleVariation = true
+Icon = ExtResource("2_icon")
+ThrowMultiplier = 1.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("ColShape_RubberDuck")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+delta_interval = 0.05
+replication_config = SubResource("SyncConfig_RubberDuck")
+
+[node name="Model" parent="." instance=ExtResource("3_model")]

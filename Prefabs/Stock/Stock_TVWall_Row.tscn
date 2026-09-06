@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/tv_screen_lit.tres" id="1_tv"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_TV_Row"]
+material = ExtResource("1_tv")
+lightmap_size_hint = Vector2i(36, 38)
+add_uv2 = true
+size = Vector3(0.2, 0.55, 4.2)
+
+[node name="Stock_TVWall_Row" type="Node3D"]
+
+[node name="TVs" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_TV_Row")

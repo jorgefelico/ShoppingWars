@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/bread_golden.tres" id="1_bread"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Bakery_Trays"]
+material = ExtResource("1_bread")
+lightmap_size_hint = Vector2i(41, 38)
+add_uv2 = true
+size = Vector3(0.60, 0.25, 4.5)
+
+[node name="Stock_BakeryDisplay" type="Node3D"]
+
+[node name="Breads" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Bakery_Trays")

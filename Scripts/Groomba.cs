@@ -12,10 +12,11 @@ public partial class Groomba : PatrolEnemy
     {
         // Wait for first physics frame so Navigation map is synched.
         Callable.From(SetRandomPatrolTarget).CallDeferred();
-
+        
         if(RingMesh != null && RingMesh.GetActiveMaterial(0) is StandardMaterial3D material)
         {
-            RingMat = material;
+            RingMat = (StandardMaterial3D)material.Duplicate();
+            RingMesh.SetSurfaceOverrideMaterial(0, RingMat);
         }
     }
 

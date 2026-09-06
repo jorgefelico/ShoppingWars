@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/cereal_box_colorful.tres" id="1_red"]
+[ext_resource type="Material" path="res://Materials/cereal_box_blue.tres" id="2_blue"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cereal_RowA"]
+material = ExtResource("1_red")
+lightmap_size_hint = Vector2i(98, 97)
+add_uv2 = true
+size = Vector3(0.35, 0.28, 5.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Cereal_RowB"]
+material = ExtResource("2_blue")
+lightmap_size_hint = Vector2i(98, 97)
+add_uv2 = true
+size = Vector3(0.35, 0.28, 5.8)
+
+[node name="Stock_CerealShelf_12m" type="Node3D"]
+
+[node name="Boxes_Section1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, -3.0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cereal_RowA")
+
+[node name="Boxes_Section2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, 3.0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Cereal_RowB")

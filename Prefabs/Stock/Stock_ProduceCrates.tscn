@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://Materials/produce_orange.tres" id="1_orange"]
+[ext_resource type="Material" path="res://Materials/produce_green.tres" id="2_green"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Oranges"]
+material = ExtResource("1_orange")
+lightmap_size_hint = Vector2i(28, 19)
+add_uv2 = true
+size = Vector3(1.4, 0.30, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Greens"]
+material = ExtResource("2_green")
+lightmap_size_hint = Vector2i(28, 19)
+add_uv2 = true
+size = Vector3(1.4, 0.30, 1.0)
+
+[node name="Stock_ProduceCrates" type="Node3D"]
+
+[node name="OrangePile" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -0.55)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Oranges")
+
+[node name="GreenPile" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.55)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Greens")

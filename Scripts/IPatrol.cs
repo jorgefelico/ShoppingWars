@@ -11,7 +11,6 @@ public interface IPatrol
 {
     NavigationAgent3D NavAgent{get; set;}
     PatrolEntityState PatrolState { get; set; }
-    float ArenaBounds{get; set;}
 
     void MoveAlongPath(float speed, ref Vector3 velocity)
     {
@@ -35,16 +34,6 @@ public interface IPatrol
         }
     }
 
-    void SetRandomPatrolTarget()
-    {
-        if(this is not Node3D node) return;
-        RandomNumberGenerator rng = new RandomNumberGenerator();
-        Vector3 randomTarget = new Vector3(
-            rng.RandfRange(-ArenaBounds, ArenaBounds),
-            node.GlobalPosition.Y,
-            rng.RandfRange(-ArenaBounds, ArenaBounds)
-        );
-        NavAgent.TargetPosition = randomTarget;
-    }
+    void SetRandomPatrolTarget();
     void DetectPlayer();
 }

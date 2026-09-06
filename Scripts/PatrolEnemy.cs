@@ -3,7 +3,6 @@ using Godot;
 public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatrol
 {
     [Export] public NavigationAgent3D NavAgent { get; set; }
-    [Export] public float ArenaBounds { get; set; } = 35.0f;
     [Export] public Health Health;
     protected PlayerController _targetPlayer;
     protected float _attackCooldown = 0f;
@@ -11,7 +10,6 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
     [Export] protected float ChaseSpeed = 5.0f;
     [Export] protected float DetectionRange = 8.0f;
     [Export] protected int ContactDamage = 15;
-    
     [Export] public Vector3 SyncPosition = Vector3.Zero;
     [Export] public Vector3 SyncRotation = Vector3.Zero;
     
@@ -41,13 +39,9 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
 
     public virtual void SetRandomPatrolTarget()
     {
-        RandomNumberGenerator rng = new RandomNumberGenerator();
-        Vector3 randomTarget = new Vector3(
-            rng.RandfRange(-ArenaBounds, ArenaBounds),
-            GlobalPosition.Y,
-            rng.RandfRange(-ArenaBounds, ArenaBounds)
-        );
-        NavAgent.TargetPosition = randomTarget;
+        Rid map = NavAgent.GetNavigationMap();
+        Vector3 randomPoint = NavigationServer3D.MapGetRandomPoint(map, NavAgent.NavigationLayers, false);
+        NavAgent.TargetPosition = randomPoint;
     }
 
     public void DetectPlayer()

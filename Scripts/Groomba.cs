@@ -232,11 +232,8 @@ public partial class Groomba : PatrolEnemy
         float distance = rng.RandfRange(4.0f, 8.0f);
 
         Vector3 targetPos = GlobalPosition + searchDir * distance;
-        targetPos.X = Mathf.Clamp(targetPos.X, -ArenaBounds, ArenaBounds);
-        targetPos.Z = Mathf.Clamp(targetPos.Z, -ArenaBounds, ArenaBounds);
-        targetPos.Y = GlobalPosition.Y;
-
-        NavAgent.TargetPosition = targetPos;
+        Rid map = NavAgent.GetNavigationMap();
+        NavAgent.TargetPosition = NavigationServer3D.MapGetClosestPoint(map, targetPos);
     }
 
     protected override void OnStateChanged(PatrolEntityState from, PatrolEntityState to)
@@ -316,6 +313,7 @@ public partial class Groomba : PatrolEnemy
             KinematicCollision3D collision = GetSlideCollision(i);
             if(collision.GetCollider() is PlayerController player && _attackCooldown <= 0f)
             {
+                GD.Print("DAMAGE");
                 player.Health.TakeDamage(ContactDamage);
                 _attackCooldown = 1.0f;
             }

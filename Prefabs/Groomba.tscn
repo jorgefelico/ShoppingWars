@@ -29,6 +29,7 @@ cap_top = false
 cap_bottom = false
 
 [node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("RingMesh", "NavAgent", "Health")]
+collision_mask = 3
 script = ExtResource("1_1nlae")
 SearchDuration = 15.0
 RingMesh = NodePath("MeshInstance3D/RingMesh")

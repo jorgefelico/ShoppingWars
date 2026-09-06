@@ -80,7 +80,7 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
         {
             _targetPlayer = playerWhoHit;
             NavAgent.TargetPosition = _targetPlayer.GlobalPosition;
-            SetState(PatrolEntityState.Attack);
+            SetState(PatrolEntityState.Search);
         }
 
         if(Health.IsDead)
@@ -91,6 +91,21 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
 
     public virtual void SetState(PatrolEntityState newState)
     {
+        if (PatrolState == newState) return;
+        PatrolEntityState oldState = PatrolState;
+        PatrolState = newState;
+        OnStateChanged(oldState, newState);
+
+        if (Multiplayer.IsServer() && Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncPatrolState), (int)newState);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    public void RpcSyncPatrolState(int stateIndex)
+    {
+        PatrolEntityState newState = (PatrolEntityState)stateIndex;
         if (PatrolState == newState) return;
         PatrolEntityState oldState = PatrolState;
         PatrolState = newState;

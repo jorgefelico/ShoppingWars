@@ -72,7 +72,14 @@ public partial class MainMenu : Control
     private void OnSoloPressed()
     {
         StatusLabel.Text = "Starting Solo Game...";
-        GetTree().ChangeSceneToFile("res://Scenes/world.tscn");
+        if (NetworkManager.Instance != null)
+        {
+            NetworkManager.Instance.LoadLevel("res://Scenes/StoreInterior.tscn");
+        }
+        else
+        {
+            GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
+        }
     }
 
     private void OnJoinLocalPressed()

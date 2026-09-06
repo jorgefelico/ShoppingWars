@@ -6,17 +6,60 @@ public partial class Groomba : PatrolEnemy
     private float _searchTimer = 0f;
     private Vector3 _lastKnownPlayerPos = Vector3.Zero;
     [Export] MeshInstance3D RingMesh;
+    [Export] public AudioStream PatrolStateSound;
+    [Export] public AudioStream AttackStateSound;
+    [Export] public AudioStream SearchStateSound;
+    private AudioStreamPlayer3D _audioPlayer;
     StandardMaterial3D RingMat;
 
     public override void _Ready()
     {
         // Wait for first physics frame so Navigation map is synched.
-        Callable.From(SetRandomPatrolTarget).CallDeferred();
+        if (Multiplayer.IsServer())
+        {
+            Callable.From(SetRandomPatrolTarget).CallDeferred();
+        }
+
+        if(IsMultiplayerAuthority())
+        {
+            GetNode<AudioStreamPlayer3D>("AudioStreamPlayer3D").Play();
+        }
+
+        _audioPlayer = new AudioStreamPlayer3D();
+        _audioPlayer.UnitSize = 15.0f;
+        _audioPlayer.MaxDistance = 40.0f;
+        _audioPlayer.VolumeDb = -2.0f;
+        _audioPlayer.Bus = "Master";
+        AddChild(_audioPlayer);
         
-        if(RingMesh != null && RingMesh.GetActiveMaterial(0) is StandardMaterial3D material)
+        Material activeMat = RingMesh?.GetActiveMaterial(0) ?? (RingMesh?.Mesh is PrimitiveMesh pm ? pm.Material : null);
+        if (activeMat is StandardMaterial3D material)
         {
             RingMat = (StandardMaterial3D)material.Duplicate();
             RingMesh.SetSurfaceOverrideMaterial(0, RingMat);
+            RingMesh.MaterialOverride = RingMat;
+        }
+
+        UpdateRingEmission(PatrolState);
+
+        SyncPosition = GlobalPosition;
+        SyncRotation = Rotation;
+    }
+
+    public void UpdateRingEmission(PatrolEntityState state)
+    {
+        if (RingMat == null) return;
+        switch (state)
+        {
+            case PatrolEntityState.Patrol:
+                RingMat.Emission = Constants.PATROL_GREEN;
+                break;
+            case PatrolEntityState.Attack:
+                RingMat.Emission = Constants.PATROL_RED;
+                break;
+            case PatrolEntityState.Search:
+                RingMat.Emission = Constants.PATROL_YELLOW;
+                break;
         }
     }
 
@@ -24,18 +67,15 @@ public partial class Groomba : PatrolEnemy
     {
         if (Multiplayer.IsServer()) return;
 
-        if (SyncPosition != Vector3.Zero)
+        float distance = GlobalPosition.DistanceTo(SyncPosition);
+        if (distance > 5.0f)
         {
-            float distance = GlobalPosition.DistanceTo(SyncPosition);
-            if (distance > 5.0f)
-            {
-                GlobalPosition = SyncPosition;
-            }
-            else
-            {
-                float lerpWeight = (float)Mathf.Clamp(delta * 20.0, 0.0, 1.0);
-                GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpWeight);
-            }
+            GlobalPosition = SyncPosition;
+        }
+        else
+        {
+            float lerpWeight = (float)Mathf.Clamp(delta * 20.0, 0.0, 1.0);
+            GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpWeight);
         }
 
         float rotLerpWeight = (float)Mathf.Clamp(delta * 20.0, 0.0, 1.0);
@@ -79,6 +119,18 @@ public partial class Groomba : PatrolEnemy
 
         SyncPosition = GlobalPosition;
         SyncRotation = Rotation;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncTransform), SyncPosition, SyncRotation);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
+    private void RpcSyncTransform(Vector3 position, Vector3 rotation)
+    {
+        SyncPosition = position;
+        SyncRotation = rotation;
     }
 
     private void HandlePatrolState(ref Vector3 velocity)
@@ -121,6 +173,20 @@ public partial class Groomba : PatrolEnemy
         MoveAlongPath(ChaseSpeed, ref velocity);
     }
 
+    public override void TakeDamage(int amount, Node3D source = null)
+    {
+        if (source is PlayerController playerWhoHit && !playerWhoHit.Health.IsDead)
+        {
+            _lastKnownPlayerPos = playerWhoHit.GlobalPosition;
+            if (PatrolState == PatrolEntityState.Search)
+            {
+                NavAgent.TargetPosition = _lastKnownPlayerPos;
+                _searchTimer = SearchDuration;
+            }
+        }
+        base.TakeDamage(amount, source);
+    }
+
     private void HandleSearchState(double delta, ref Vector3 velocity)
     {
         _searchTimer -= (float)delta;
@@ -132,15 +198,13 @@ public partial class Groomba : PatrolEnemy
             return;
         }
 
-        if (!NavAgent.IsNavigationFinished())
+        if (NavAgent.IsNavigationFinished())
         {
-            MoveAlongPath(PatrolSpeed, ref velocity);
+            _lastKnownPlayerPos = Vector3.Zero;
+            SetForwardSearchTarget();
         }
-        else
-        {
-            velocity.X = 0;
-            velocity.Z = 0;
-        }
+
+        MoveAlongPath(PatrolSpeed, ref velocity);
 
         if (_searchTimer <= 0f)
         {
@@ -148,28 +212,98 @@ public partial class Groomba : PatrolEnemy
         }
     }
 
+    private void SetForwardSearchTarget()
+    {
+        RandomNumberGenerator rng = new RandomNumberGenerator();
+        Vector3 forward = -GlobalTransform.Basis.Z;
+        forward.Y = 0;
+        if (forward.LengthSquared() < 0.001f)
+        {
+            forward = Vector3.Forward;
+        }
+        else
+        {
+            forward = forward.Normalized();
+        }
+
+        // Fan out within an arc (-60 to +60 degrees) in the forward direction
+        float angle = rng.RandfRange(-Mathf.Pi / 3.0f, Mathf.Pi / 3.0f);
+        Vector3 searchDir = forward.Rotated(Vector3.Up, angle);
+        float distance = rng.RandfRange(4.0f, 8.0f);
+
+        Vector3 targetPos = GlobalPosition + searchDir * distance;
+        targetPos.X = Mathf.Clamp(targetPos.X, -ArenaBounds, ArenaBounds);
+        targetPos.Z = Mathf.Clamp(targetPos.Z, -ArenaBounds, ArenaBounds);
+        targetPos.Y = GlobalPosition.Y;
+
+        NavAgent.TargetPosition = targetPos;
+    }
+
     protected override void OnStateChanged(PatrolEntityState from, PatrolEntityState to)
     {
         base.OnStateChanged(from, to);
-        GD.Print($"[Groomba] State changed: {from} -> {to}");
+        GD.Print($"[Groomba] State changed on Peer {Multiplayer.GetUniqueId()}: {from} -> {to}");
 
-        switch (to)
+        UpdateRingEmission(to);
+        PlayStateSound(to);
+
+        if (Multiplayer.IsServer())
+        {
+            switch (to)
+            {
+                case PatrolEntityState.Patrol:
+                    _lastKnownPlayerPos = Vector3.Zero;
+                    SetRandomPatrolTarget();
+                    break;
+
+                case PatrolEntityState.Search:
+                    _searchTimer = SearchDuration;
+                    if (_lastKnownPlayerPos != Vector3.Zero)
+                    {
+                        NavAgent.TargetPosition = _lastKnownPlayerPos;
+                    }
+                    else
+                    {
+                        SetForwardSearchTarget();
+                    }
+                    break;
+
+                case PatrolEntityState.Attack:
+                    break;
+            }
+        }
+    }
+
+    private void PlayStateSound(PatrolEntityState state)
+    {
+        if (_audioPlayer == null) return;
+
+        switch (state)
         {
             case PatrolEntityState.Patrol:
-                SetRandomPatrolTarget();
-                RingMat.Emission = Constants.PATROL_GREEN;
-                break;
-
-            case PatrolEntityState.Attack:
-                RingMat.Emission = Constants.PATROL_RED;
+                if (PatrolStateSound != null)
+                {
+                    _audioPlayer.Stream = PatrolStateSound;
+                    _audioPlayer.VolumeDb = 0f;
+                    _audioPlayer.Play();
+                }
                 break;
 
             case PatrolEntityState.Search:
-                _searchTimer = SearchDuration;
-                if (_lastKnownPlayerPos != Vector3.Zero)
+                if (SearchStateSound != null)
                 {
-                    RingMat.Emission = Constants.PATROL_YELLOW;
-                    NavAgent.TargetPosition = _lastKnownPlayerPos;
+                    _audioPlayer.Stream = SearchStateSound;
+                    _audioPlayer.VolumeDb = 0f;
+                    _audioPlayer.Play();
+                }
+                break;
+
+            case PatrolEntityState.Attack:
+                if (AttackStateSound != null)
+                {
+                    _audioPlayer.Stream = AttackStateSound;
+                    _audioPlayer.VolumeDb = -10.0f;
+                    _audioPlayer.Play();
                 }
                 break;
         }

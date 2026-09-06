@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/EmergencyBeacon.cs" id="1_script"]
+[ext_resource type="Material" path="res://Materials/hvac_metal.tres" id="2_metal"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_Base"]
+material = ExtResource("2_metal")
+top_radius = 0.18
+bottom_radius = 0.22
+height = 0.1
+
+[sub_resource type="StandardMaterial3D" id="Mat_RedDome"]
+albedo_color = Color(0.8, 0.05, 0.05, 1)
+emission_enabled = false
+emission = Color(1, 0.08, 0.05, 1)
+emission_energy_multiplier = 0.0
+roughness = 0.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_Dome"]
+material = SubResource("Mat_RedDome")
+radius = 0.16
+height = 0.22
+
+[node name="Store_EmergencyBeacon" type="Node3D"]
+script = ExtResource("1_script")
+BaseEnergy = 3.2
+PulseSpeed = 2.8
+
+[node name="Base" type="MeshInstance3D" parent="."]
+gi_mode = 0
+mesh = SubResource("CylinderMesh_Base")
+
+[node name="Dome" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+gi_mode = 0
+mesh = SubResource("SphereMesh_Dome")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+visible = false
+light_color = Color(1, 0.08, 0.05, 1)
+light_energy = 3.0
+light_volumetric_fog_energy = 2.0
+light_bake_mode = 0
+omni_range = 16.0
+omni_attenuation = 1.1

@@ -12,6 +12,10 @@ public partial class GameManager : Node
     public static GameManager Instance { get; private set; }
     [Export] public float ShoppingDuration = 30.0f;
     [Export] public float BattleDuration = 60.0f;
+    [Export] private LightmapGI _lightmap;
+    [Export] private WorldEnvironment _worldEnvironment;
+    [Export] public AudioStream BattleRoyaleSound;
+    private AudioStreamPlayer _audioPlayer;
     public GamePhase CurrentPhase { get; private set; } = GamePhase.Lobby;
     public float TimeRemaining { get; private set; }
     private float _syncTimer = 0f;
@@ -20,6 +24,10 @@ public partial class GameManager : Node
     public override void _Ready()
     {
         Instance = this;
+
+        _audioPlayer = new AudioStreamPlayer();
+        _audioPlayer.Bus = "Master";
+        AddChild(_audioPlayer);
 
         if (!Multiplayer.IsServer())
         {
@@ -112,11 +120,50 @@ public partial class GameManager : Node
         if (CurrentPhase != newPhase)
         {
             CurrentPhase = newPhase;
+            ApplyPhaseLighting(newPhase);
+
+            if(newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
+            {
+                _audioPlayer.Stream = BattleRoyaleSound;
+                _audioPlayer.Play();
+            }
             EmitSignal(SignalName.GamePhaseChanged);
             GD.Print($"[GameManager] Phase synced to: {CurrentPhase}");
         }
 
         TimeRemaining = serverTimeRemaining;
+    }
+
+    private void ApplyPhaseLighting(GamePhase phase)
+    {
+        bool isBattleRoyale = (phase == GamePhase.BattleRoyale);
+
+        // Turn off physical light bulbs & emission across all store lights
+        GetTree().CallGroup("StoreLights", "SetPower", !isBattleRoyale);
+
+        // Find LightmapGI fallback if not exported
+        if (_lightmap == null)
+        {
+            _lightmap = GetTree().CurrentScene?.GetNodeOrNull<LightmapGI>("LightmapGI")
+                     ?? GetTree().CurrentScene?.FindChild("LightmapGI", true, false) as LightmapGI;
+        }
+
+        if (_lightmap != null)
+        {
+            _lightmap.Visible = !isBattleRoyale;
+        }
+
+        // Find WorldEnvironment fallback if not exported
+        if (_worldEnvironment == null)
+        {
+            _worldEnvironment = GetTree().CurrentScene?.GetNodeOrNull<WorldEnvironment>("WorldStuff/WorldEnvironment")
+                             ?? GetTree().CurrentScene?.FindChild("WorldEnvironment", true, false) as WorldEnvironment;
+        }
+
+        if (_worldEnvironment?.Environment != null)
+        {
+            _worldEnvironment.Environment.TonemapExposure = isBattleRoyale ? 1.0f : 1.5f;
+        }
     }
 
     public void SyncStateToPlayer(long peerId)

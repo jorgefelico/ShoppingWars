@@ -14,6 +14,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public Health Health;
     [Export] private CanvasLayer DeathOverlay;
     [Export] private Label3D NameCard;
+    [Export] public SpotLight3D Flashlight;
     [Export] public float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
@@ -23,7 +24,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public Vector3 SyncPosition = Vector3.Zero;
     [Export] public Vector3 SyncHeadRotation = Vector3.Zero;
     [Export] public Vector3 SyncCameraRotation = Vector3.Zero;
-    [Export] public string PlayerName = "";
+    private string _playerName = "";
+    [Export]
+    public string PlayerName
+    {
+        get => _playerName;
+        set
+        {
+            _playerName = value;
+            if (NameCard == null) NameCard = GetNodeOrNull<Label3D>("NameCard");
+            if (NameCard != null && !string.IsNullOrEmpty(value))
+            {
+                NameCard.Text = value;
+            }
+        }
+    }
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -45,28 +60,47 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (int.TryParse(Name, out int peerId))
         {
             SetMultiplayerAuthority(peerId);
-            GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer")?.SetMultiplayerAuthority(peerId);
         }
+
+        SyncPosition = GlobalPosition;
+        SyncHeadRotation = Head != null ? Head.Rotation : Vector3.Zero;
+        SyncCameraRotation = Camera != null ? Camera.Rotation : Vector3.Zero;
 
         GD.Print($"[PlayerController] _Ready on node '{Name}' | Authority: {GetMultiplayerAuthority()} | MyUniqueId: {Multiplayer.GetUniqueId()} | IsLocalAuth: {IsMultiplayerAuthority()}");
 
         if (IsMultiplayerAuthority())
         {
             Instance = this;
+            GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
+
             if (NameCard != null) NameCard.Visible = false;
-            PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
-            if (NameCard != null) NameCard.Text = PlayerName;
+            if (string.IsNullOrEmpty(PlayerName))
+            {
+                PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
+            }
             Input.MouseMode = Input.MouseModeEnum.Captured;
             if (Camera != null)
             {
                 Camera.MakeCurrent();
                 GD.Print($"[PlayerController] Activated Camera for Local Authority Player '{Name}'");
             }
-            Rpc(nameof(SyncPlayerName), SteamManager.Instance.GetPersonaName() ?? $"Player {Name}");
+            Rpc(nameof(SyncPlayerName), PlayerName);
         }
         else
         {
-            if (Camera != null) Camera.Current = false;
+            if (Camera != null)
+            {
+                Camera.Current = false;
+            }
+
+            if (NameCard != null)
+            {
+                NameCard.Visible = true;
+                if (!string.IsNullOrEmpty(PlayerName))
+                {
+                    NameCard.Text = PlayerName;
+                }
+            }
 
             // Delete UI elements on remote player clones so their UI never renders locally!
             foreach (Node child in GetChildren())
@@ -78,6 +112,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             }
         }
 
+        if (Flashlight == null) Flashlight = GetNodeOrNull<SpotLight3D>("Head/Camera/Flashlight");
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
+            OnGamePhaseChanged();
+        }
+
         Money = StartingMoney;
     }
 
@@ -86,7 +127,6 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (int.TryParse(Name, out int peerId))
         {
             SetMultiplayerAuthority(peerId);
-            GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer")?.SetMultiplayerAuthority(peerId);
         }
     }
 
@@ -110,23 +150,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
         else
         {
-            if (NameCard != null && !string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+            if (NameCard != null)
             {
-                NameCard.Text = PlayerName;
+                if (!NameCard.Visible) NameCard.Visible = true;
+                if (!string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+                {
+                    NameCard.Text = PlayerName;
+                }
             }
             // Smooth framerate-independent network interpolation for remote player clones
-            if (SyncPosition != Vector3.Zero)
+            float distance = GlobalPosition.DistanceTo(SyncPosition);
+            if (distance > 6.0f)
             {
-                float distance = GlobalPosition.DistanceTo(SyncPosition);
-                if (distance > 6.0f)
-                {
-                    GlobalPosition = SyncPosition;
-                }
-                else
-                {
-                    float lerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
-                    GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpFactor);
-                }
+                GlobalPosition = SyncPosition;
+            }
+            else
+            {
+                float lerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
+                GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpFactor);
             }
 
             float rotLerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
@@ -177,6 +218,56 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 Input.MouseMode = Input.MouseModeEnum.Captured;
             }
         }
+
+        if (@event is InputEventKey key && key.Pressed && key.Keycode == Key.F && !key.Echo)
+        {
+            ToggleFlashlight();
+        }
+    }
+
+    private void OnGamePhaseChanged()
+    {
+        if (Flashlight != null && GameManager.Instance != null)
+        {
+            SetFlashlight(GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale);
+        }
+    }
+
+    public void ToggleFlashlight()
+    {
+        if (Flashlight == null) return;
+        SetFlashlight(!Flashlight.Visible);
+    }
+
+    public void SetFlashlight(bool enabled)
+    {
+        if (Flashlight == null) return;
+        Flashlight.Visible = enabled;
+        if (Multiplayer.HasMultiplayerPeer() && IsMultiplayerAuthority())
+        {
+            Rpc(nameof(RpcSyncFlashlight), enabled);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcSyncFlashlight(bool visible)
+    {
+        if (Flashlight != null) Flashlight.Visible = visible;
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcSyncFlashlight), visible);
+                    }
+                }
+            }
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -192,6 +283,34 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         SyncPosition = GlobalPosition;
         SyncHeadRotation = Head != null ? Head.Rotation : Vector3.Zero;
         SyncCameraRotation = Camera != null ? Camera.Rotation : Vector3.Zero;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncTransform), SyncPosition, SyncHeadRotation, SyncCameraRotation);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
+    private void RpcSyncTransform(Vector3 position, Vector3 headRotation, Vector3 cameraRotation)
+    {
+        SyncPosition = position;
+        SyncHeadRotation = headRotation;
+        SyncCameraRotation = cameraRotation;
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcSyncTransform), position, headRotation, cameraRotation);
+                    }
+                }
+            }
+        }
     }
 
     private void UpdateTargeting()
@@ -262,6 +381,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Inventory.AddItem(HeldItem);
             Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
         }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RPCPickupItem), nodePath);
+                    }
+                }
+            }
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -280,6 +414,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             HeldItem = null;
             Inventory.RemoveCurrentSelectedItem();
             Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
+        }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RPCDropItem), nodePath);
+                    }
+                }
+            }
         }
     }
 
@@ -365,6 +514,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Inventory.RemoveCurrentSelectedItem();
             Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
         }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcThrowItem), itemPath, launchVelocity);
+                    }
+                }
+            }
+        }
     }
 
     private void HandleInventoryActions()
@@ -424,6 +588,21 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 p.Visible = !activeItemPath.IsEmpty && p.GetPath() == activeItemPath;
             }
         }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcSyncActiveHeldItem), activeItemPath);
+                    }
+                }
+            }
+        }
     }
 
     public bool TryDeductMoney(int amount)
@@ -439,10 +618,28 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         Health?.TakeDamage(amount);
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     public void SyncPlayerName(string name)
     {
-        if (NameCard == null) return;
-        NameCard.Text = name;
+        PlayerName = name;
+        if (NameCard != null)
+        {
+            NameCard.Text = name;
+        }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(SyncPlayerName), name);
+                    }
+                }
+            }
+        }
     }
 }

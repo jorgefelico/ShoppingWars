@@ -22,23 +22,14 @@ border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ve40"]
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hck1p"]
-properties/0/path = NodePath(".:SyncPosition")
-properties/0/spawn = true
-properties/0/replication_mode = 1
-properties/1/path = NodePath(".:SyncHeadRotation")
-properties/1/spawn = true
-properties/1/replication_mode = 1
-properties/2/path = NodePath(".:SyncCameraRotation")
-properties/2/spawn = true
-properties/2/replication_mode = 1
-properties/3/path = NodePath(".:PlayerName")
-properties/3/spawn = true
-properties/3/replication_mode = 2
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_player"]
+albedo_color = Color(0.2, 0.55, 0.95, 1)
+roughness = 0.5
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_y1t4u"]
+material = SubResource("StandardMaterial3D_player")
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "NameCard")]
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "NameCard", "Flashlight")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
@@ -52,11 +43,14 @@ HealthBar = NodePath("HealthBar")
 Health = NodePath("Health")
 DeathOverlay = NodePath("Death")
 NameCard = NodePath("NameCard")
+Flashlight = NodePath("Head/Camera/Flashlight")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")
 
 [node name="Head" type="Node3D" parent="." unique_id=950570255]
+
+[node name="AudioListener3D" type="AudioListener3D" parent="Head" unique_id=1446680800]
 
 [node name="Camera" type="Camera3D" parent="Head" unique_id=1745667712]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
@@ -67,6 +61,17 @@ collide_with_areas = true
 
 [node name="ItemHand" type="Node3D" parent="Head/Camera" unique_id=1807680406]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4249195, -0.1646241, -0.92713153)
+
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera" unique_id=987654321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.15, -0.2)
+visible = false
+light_color = Color(0.96, 0.98, 1, 1)
+light_energy = 3.5
+light_volumetric_fog_energy = 1.5
+shadow_enabled = true
+spot_range = 28.0
+spot_attenuation = 1.1
+spot_angle = 36.0
 
 [node name="CrossHair" type="CanvasLayer" parent="." unique_id=239139730]
 
@@ -224,14 +229,12 @@ HealthBar = NodePath("../HealthBar")
 
 [node name="Death" parent="." unique_id=2103118093 instance=ExtResource("6_x3wgy")]
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=2102287189]
-replication_config = SubResource("SceneReplicationConfig_hck1p")
-
 [node name="NameCard" type="Label3D" parent="." unique_id=1022302234]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 billboard = 1
 text = "Player"
-outline_size = 8
+font_size = 36
+outline_size = 10
 uppercase = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=577659693]

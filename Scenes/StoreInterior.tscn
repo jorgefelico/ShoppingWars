@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="1_510ba"]
 [ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="1_floor"]
 [ext_resource type="Material" uid="uid://crjn34m3d6v40" path="res://Materials/ceiling.tres" id="2_ceiling"]
+[ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
 [ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
@@ -12,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
+[ext_resource type="PackedScene" uid="uid://c47mufmp5i703" path="res://Prefabs/Products/Apple.tscn" id="P_Apple"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_WarehouseDoors.tscn" id="P_BOHDoors"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CartCorral.tscn" id="P_CartCorral"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CheckoutLane.tscn" id="P_Checkout"]
@@ -22,8 +24,10 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Store_DeliServiceCounter.tscn" id="P_Deli"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsLockupCase.tscn" id="P_ElecLockup"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsDisplayTable.tscn" id="P_ElecTable"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_EmergencyBeacon.tscn" id="P_EmergencyBeacon"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FittingRoomDivider.tscn" id="P_Fitting"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight.tscn" id="P_FluorescentLight"]
+[ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight_Flickering.tscn" id="P_FluorescentLight_Flickering"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FoldedApparelTable.tscn" id="P_FoldTable"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FreezerBunker.tscn" id="P_Freezer"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PalletCargoStack.tscn" id="P_Pallet"]
@@ -40,6 +44,7 @@ sky_material = SubResource("ProceduralSkyMaterial_0fj1v")
 
 [sub_resource type="Environment" id="Environment_510ba"]
 sky = SubResource("Sky_7oesd")
+ambient_light_source = 1
 tonemap_mode = 3
 tonemap_exposure = 1.5
 tonemap_white = 4.0
@@ -56,9 +61,13 @@ sdfgi_energy = 1.2
 sdfgi_normal_bias = 1.5
 glow_enabled = true
 glow_normalized = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.003
+volumetric_fog_albedo = Color(0.72156864, 0.7607843, 0.8, 1)
+volumetric_fog_anisotropy = 0.65
+volumetric_fog_length = 100.0
 
 [sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_p8oww"]
-auto_exposure_enabled = true
 auto_exposure_min_exposure_value = 0.5
 auto_exposure_max_exposure_value = 8.0
 
@@ -71,10 +80,10 @@ agent_height = 1.8
 agent_max_climb = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_Floor"]
-lightmap_size_hint = Vector2i(1604, 907)
+lightmap_size_hint = Vector2i(1614, 912)
 material = ExtResource("1_floor")
 add_uv2 = true
-size = Vector3(180, 0.2, 140)
+size = Vector3(181, 0.2, 141)
 
 [sub_resource type="BoxShape3D" id="BoxShape_Floor"]
 size = Vector3(180, 0.2, 140)
@@ -163,35 +172,24 @@ environment = SubResource("Environment_510ba")
 camera_attributes = SubResource("CameraAttributesPhysical_p8oww")
 compositor = SubResource("Compositor_06bnu")
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="WorldStuff" unique_id=2141133733]
+[node name="GameManager" type="Node" parent="WorldStuff" unique_id=268635566 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
+script = ExtResource("1_510ba")
+ShoppingDuration = 10.0
+_lightmap = NodePath("../../LightmapGI")
+_worldEnvironment = NodePath("../WorldEnvironment")
+BattleRoyaleSound = ExtResource("2_ency6")
+
+[node name="GamePhaseHud" parent="WorldStuff" unique_id=920991269 instance=ExtResource("2_p8oww")]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=340474803]
 _spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
 spawn_path = NodePath("..")
 
-[node name="SpawnedProjectiles" type="Node3D" parent="WorldStuff" unique_id=577647498]
+[node name="SpawnedProjectiles" type="Node3D" parent="." unique_id=577647498]
 
-[node name="ProjectileSpawner" type="MultiplayerSpawner" parent="WorldStuff" unique_id=1052041002]
+[node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1052041002]
 _spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq")
 spawn_path = NodePath("../SpawnedProjectiles")
-
-[node name="SpawnPoints" type="Node3D" parent="WorldStuff" unique_id=498755932]
-
-[node name="SpawnPoint1" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=1854250749]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, -55)
-
-[node name="SpawnPoint2" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=141841240]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, -55)
-
-[node name="SpawnPoint3" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=2043293066]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 55)
-
-[node name="SpawnPoint4" type="Marker3D" parent="WorldStuff/SpawnPoints" unique_id=413023564]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 55)
-
-[node name="GameManager" type="Node" parent="WorldStuff" unique_id=268635566]
-script = ExtResource("1_510ba")
-ShoppingDuration = 5.0
-
-[node name="GamePhaseHud" parent="WorldStuff" unique_id=920991269 instance=ExtResource("2_p8oww")]
 
 [node name="LightmapGI" type="LightmapGI" parent="." unique_id=1960108528]
 quality = 2
@@ -1032,7 +1030,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 23)
 [node name="LightFixture_9" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1467311609 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 34)
 
-[node name="LightFixture_10" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1254311620 instance=ExtResource("P_FluorescentLight")]
+[node name="LightFixture_10" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1254311620 instance=ExtResource("P_FluorescentLight_Flickering")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 45)
 
 [node name="LightFixture_11" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=861937370 instance=ExtResource("P_FluorescentLight")]
@@ -1131,7 +1129,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -54)
 [node name="LightFixture_42" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=800954499 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -43)
 
-[node name="LightFixture_43" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1293711349 instance=ExtResource("P_FluorescentLight")]
+[node name="LightFixture_43" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1293711349 instance=ExtResource("P_FluorescentLight_Flickering")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 8.6, -32)
 
 [node name="LightFixture_44" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=593279491 instance=ExtResource("P_FluorescentLight")]
@@ -1203,7 +1201,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, -10)
 [node name="LightFixture_66" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=596940053 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 1)
 
-[node name="LightFixture_67" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=937974308 instance=ExtResource("P_FluorescentLight")]
+[node name="LightFixture_67" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=937974308 instance=ExtResource("P_FluorescentLight_Flickering")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 8.6, 12)
 
 [node name="LightFixture_68" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=376372584 instance=ExtResource("P_FluorescentLight")]
@@ -1299,7 +1297,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 12)
 [node name="LightFixture_98" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1120208232 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 23)
 
-[node name="LightFixture_99" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1487700354 instance=ExtResource("P_FluorescentLight")]
+[node name="LightFixture_99" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1487700354 instance=ExtResource("P_FluorescentLight_Flickering")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 8.6, 34)
 
 [node name="LightFixture_100" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=706229342 instance=ExtResource("P_FluorescentLight")]
@@ -1337,11 +1335,315 @@ mesh = SubResource("BoxMesh_Dept_Banner_Giant")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, -60)
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
 
-[node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("3_uw6uw")]
+[node name="Emergency_Lighting" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=881290341]
+
+[node name="Beacon_West_Grocery" parent="NavigationRegion3D/Interior/Emergency_Lighting" unique_id=1189402845 instance=ExtResource("P_EmergencyBeacon")]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, -48, 8.465466, -10.965579)
+
+[node name="Beacon_East_Electronics" parent="NavigationRegion3D/Interior/Emergency_Lighting" unique_id=1773901844 instance=ExtResource("P_EmergencyBeacon")]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 48, 8.51013, -11.00486)
+
+[node name="Beacon_Center_Aisle" parent="NavigationRegion3D/Interior/Emergency_Lighting" unique_id=1298402941 instance=ExtResource("P_EmergencyBeacon")]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0.06011957, 7.628775, 15)
+
+[node name="Beacon_North_BOH" parent="NavigationRegion3D/Interior/Emergency_Lighting" unique_id=1849204812 instance=ExtResource("P_EmergencyBeacon")]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 7.6573954, 64.1263)
+
+[node name="Groomba2" parent="." unique_id=1744360655 instance=ExtResource("3_uw6uw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.324036, 0.1, 27.550652)
 
-[node name="Groomba2" parent="." unique_id=358620972 instance=ExtResource("3_uw6uw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.27465, 0.1, -40.836502)
+[node name="Groomba3" parent="." unique_id=358620972 instance=ExtResource("3_uw6uw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.6638, 0.1, 15.230622)
 
 [node name="ReadyUp" parent="." unique_id=1398623995 instance=ExtResource("29_t3mvi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.14164, 1.4286656, -69.6)
+
+[node name="Apples" type="Node" parent="." unique_id=897283671]
+
+[node name="Apple" parent="Apples" unique_id=1412821752 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -44.945446)
+
+[node name="Apple2" parent="Apples" unique_id=449751067 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -44.948418)
+
+[node name="Apple3" parent="Apples" unique_id=1550224319 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -44.95225)
+
+[node name="Apple4" parent="Apples" unique_id=1207585581 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -44.95225)
+
+[node name="Apple5" parent="Apples" unique_id=663420251 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -44.95225)
+
+[node name="Apple6" parent="Apples" unique_id=1178249052 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -44.95225)
+
+[node name="Apple7" parent="Apples" unique_id=1184036369 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -44.95225)
+
+[node name="Apple8" parent="Apples" unique_id=1919938093 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -44.95225)
+
+[node name="Apple9" parent="Apples" unique_id=2009950260 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -44.95225)
+
+[node name="Apple10" parent="Apples" unique_id=846503817 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -44.95225)
+
+[node name="Apple11" parent="Apples" unique_id=529334318 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -44.95225)
+
+[node name="Apple12" parent="Apples" unique_id=422360219 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -44.95225)
+
+[node name="Apple13" parent="Apples" unique_id=587996285 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -44.95225)
+
+[node name="Apple14" parent="Apples" unique_id=1300088430 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -44.7421)
+
+[node name="Apple15" parent="Apples" unique_id=456573714 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -44.74507)
+
+[node name="Apple16" parent="Apples" unique_id=1574552600 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -44.748905)
+
+[node name="Apple17" parent="Apples" unique_id=1829907404 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -44.748905)
+
+[node name="Apple18" parent="Apples" unique_id=789951216 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -44.748905)
+
+[node name="Apple19" parent="Apples" unique_id=713209947 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -44.748905)
+
+[node name="Apple20" parent="Apples" unique_id=893380646 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -44.748905)
+
+[node name="Apple21" parent="Apples" unique_id=495453989 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -44.748905)
+
+[node name="Apple22" parent="Apples" unique_id=857108409 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -44.748905)
+
+[node name="Apple23" parent="Apples" unique_id=1377103945 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -44.748905)
+
+[node name="Apple24" parent="Apples" unique_id=1209379614 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -44.748905)
+
+[node name="Apple25" parent="Apples" unique_id=1515163714 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -44.748905)
+
+[node name="Apple26" parent="Apples" unique_id=2071694480 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -44.748905)
+
+[node name="Apple27" parent="Apples" unique_id=268183310 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -44.503002)
+
+[node name="Apple28" parent="Apples" unique_id=1268439185 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -44.505974)
+
+[node name="Apple29" parent="Apples" unique_id=1066559706 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -44.509808)
+
+[node name="Apple30" parent="Apples" unique_id=1638737063 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -44.509808)
+
+[node name="Apple31" parent="Apples" unique_id=114780736 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -44.509808)
+
+[node name="Apple32" parent="Apples" unique_id=1782367707 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -44.509808)
+
+[node name="Apple33" parent="Apples" unique_id=2118973501 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -44.509808)
+
+[node name="Apple34" parent="Apples" unique_id=714769163 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -44.509808)
+
+[node name="Apple35" parent="Apples" unique_id=1891709098 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -44.509808)
+
+[node name="Apple36" parent="Apples" unique_id=98593147 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -44.509808)
+
+[node name="Apple37" parent="Apples" unique_id=1007813831 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -44.509808)
+
+[node name="Apple38" parent="Apples" unique_id=1771865439 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -44.509808)
+
+[node name="Apple39" parent="Apples" unique_id=928235468 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -44.509808)
+
+[node name="Apple40" parent="Apples" unique_id=1118037155 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -44.262703)
+
+[node name="Apple41" parent="Apples" unique_id=472410813 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -44.265675)
+
+[node name="Apple42" parent="Apples" unique_id=1846042325 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -44.26951)
+
+[node name="Apple43" parent="Apples" unique_id=75536170 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -44.26951)
+
+[node name="Apple44" parent="Apples" unique_id=415501176 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -44.26951)
+
+[node name="Apple45" parent="Apples" unique_id=1649933457 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -44.26951)
+
+[node name="Apple46" parent="Apples" unique_id=2007720226 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -44.26951)
+
+[node name="Apple47" parent="Apples" unique_id=613061588 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -44.26951)
+
+[node name="Apple48" parent="Apples" unique_id=416697064 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -44.26951)
+
+[node name="Apple49" parent="Apples" unique_id=1295179260 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -44.26951)
+
+[node name="Apple50" parent="Apples" unique_id=975145776 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -44.26951)
+
+[node name="Apple51" parent="Apples" unique_id=1646967571 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -44.26951)
+
+[node name="Apple52" parent="Apples" unique_id=2075969718 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -44.26951)
+
+[node name="Apple53" parent="Apples" unique_id=1690281554 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -43.970207)
+
+[node name="Apple54" parent="Apples" unique_id=262627539 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -43.97318)
+
+[node name="Apple55" parent="Apples" unique_id=2095630909 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -43.977013)
+
+[node name="Apple56" parent="Apples" unique_id=485801738 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -43.977013)
+
+[node name="Apple57" parent="Apples" unique_id=77183893 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -43.977013)
+
+[node name="Apple58" parent="Apples" unique_id=1777192756 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -43.977013)
+
+[node name="Apple59" parent="Apples" unique_id=2110053252 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -43.977013)
+
+[node name="Apple60" parent="Apples" unique_id=1738447442 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -43.977013)
+
+[node name="Apple61" parent="Apples" unique_id=412987030 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -43.977013)
+
+[node name="Apple62" parent="Apples" unique_id=115783317 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -43.977013)
+
+[node name="Apple63" parent="Apples" unique_id=49891654 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -43.977013)
+
+[node name="Apple64" parent="Apples" unique_id=1205995544 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -43.977013)
+
+[node name="Apple65" parent="Apples" unique_id=1618115188 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -43.977013)
+
+[node name="Apple66" parent="Apples" unique_id=353680598 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -43.65568)
+
+[node name="Apple67" parent="Apples" unique_id=659047387 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -43.658653)
+
+[node name="Apple68" parent="Apples" unique_id=1462616203 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -43.662487)
+
+[node name="Apple69" parent="Apples" unique_id=591874851 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -43.662487)
+
+[node name="Apple70" parent="Apples" unique_id=1750906010 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -43.662487)
+
+[node name="Apple71" parent="Apples" unique_id=587156530 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -43.662487)
+
+[node name="Apple72" parent="Apples" unique_id=161171010 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -43.662487)
+
+[node name="Apple73" parent="Apples" unique_id=1419150836 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -43.662487)
+
+[node name="Apple74" parent="Apples" unique_id=109794298 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -43.662487)
+
+[node name="Apple75" parent="Apples" unique_id=27572616 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -43.662487)
+
+[node name="Apple76" parent="Apples" unique_id=711662798 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -43.662487)
+
+[node name="Apple77" parent="Apples" unique_id=1557201914 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -43.662487)
+
+[node name="Apple78" parent="Apples" unique_id=1015974534 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -43.662487)
+
+[node name="Apple79" parent="Apples" unique_id=1614925848 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.38488, 1.2696255, -43.282635)
+
+[node name="Apple80" parent="Apples" unique_id=216549550 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.18859, 1.2786305, -43.285606)
+
+[node name="Apple81" parent="Apples" unique_id=918464841 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.975266, 1.2876356, -43.28944)
+
+[node name="Apple82" parent="Apples" unique_id=1492353221 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.739735, 1.2876356, -43.28944)
+
+[node name="Apple83" parent="Apples" unique_id=1863409322 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.522457, 1.2876356, -43.28944)
+
+[node name="Apple84" parent="Apples" unique_id=143711330 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.34351, 1.2876356, -43.28944)
+
+[node name="Apple85" parent="Apples" unique_id=27495459 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.139244, 1.2876356, -43.28944)
+
+[node name="Apple86" parent="Apples" unique_id=1745710792 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.940296, 1.2876356, -43.28944)
+
+[node name="Apple87" parent="Apples" unique_id=1166263466 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.734062, 1.2876356, -43.28944)
+
+[node name="Apple88" parent="Apples" unique_id=1914761665 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.52173, 1.2876356, -43.28944)
+
+[node name="Apple89" parent="Apples" unique_id=1522615365 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.287563, 1.2876356, -43.28944)
+
+[node name="Apple90" parent="Apples" unique_id=556128930 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -43.28944)
+
+[node name="Apple91" parent="Apples" unique_id=801691677 instance=ExtResource("P_Apple")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.807335, 1.2876356, -43.28944)
+
+[node name="SpawnPoints" type="Node3D" parent="." unique_id=498755932]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7201505, 0)
+
+[node name="SpawnPoint1" type="Marker3D" parent="SpawnPoints" unique_id=1854250749]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, -55)
+
+[node name="SpawnPoint2" type="Marker3D" parent="SpawnPoints" unique_id=141841240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, -55)
+
+[node name="SpawnPoint3" type="Marker3D" parent="SpawnPoints" unique_id=2043293066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 55)
+
+[node name="SpawnPoint4" type="Marker3D" parent="SpawnPoints" unique_id=413023564]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 55)

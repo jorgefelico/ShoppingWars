@@ -6,6 +6,9 @@
 [ext_resource type="AudioStream" uid="uid://dkd8iqlyew17" path="res://Sounds/groomba_on.wav" id="3_groomba_on"]
 [ext_resource type="AudioStream" uid="uid://cg8nc03d3bsry" path="res://Sounds/groomba-patrol.wav" id="3_patrol"]
 [ext_resource type="AudioStream" uid="uid://osxwpwrdu0md" path="res://Sounds/groomba_search.wav" id="4_vs47u"]
+[ext_resource type="AudioStream" uid="uid://bwxa1x1mtqu4u" path="res://Sounds/groomba_explode.wav" id="5_8wka4"]
+[ext_resource type="PackedScene" uid="uid://b3f54rplox86w" path="res://Prefabs/Explosion.tscn" id="6_expl"]
+[ext_resource type="PackedScene" uid="uid://l5tsmw1sghk" path="res://Prefabs/SmokeUp.tscn" id="7_r1vrn"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_y1t4u"]
 height = 0.2
@@ -28,7 +31,7 @@ height = 0.025
 cap_top = false
 cap_bottom = false
 
-[node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("RingMesh", "NavAgent", "Health")]
+[node name="Groomba" type="CharacterBody3D" unique_id=1744360655 node_paths=PackedStringArray("RingMesh", "_smoke", "NavAgent", "Health")]
 collision_mask = 3
 script = ExtResource("1_1nlae")
 SearchDuration = 15.0
@@ -36,9 +39,13 @@ RingMesh = NodePath("MeshInstance3D/RingMesh")
 PatrolStateSound = ExtResource("3_patrol")
 AttackStateSound = ExtResource("3_c42uf")
 SearchStateSound = ExtResource("4_vs47u")
+SelfDestructSound = ExtResource("5_8wka4")
+ExplosionScene = ExtResource("6_expl")
+_smoke = NodePath("SmokeUp")
 NavAgent = NodePath("NavigationAgent3D")
 Health = NodePath("Health")
 ChaseSpeed = 6.0
+ContactDamage = 25
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=417780725]
 
@@ -59,3 +66,7 @@ script = ExtResource("2_dka28")
 stream = ExtResource("3_groomba_on")
 unit_size = 15.0
 max_distance = 40.0
+
+[node name="SmokeUp" parent="." unique_id=1685256930 instance=ExtResource("7_r1vrn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.30869484, 0)
+emitting = false

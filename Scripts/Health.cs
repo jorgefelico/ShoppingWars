@@ -2,7 +2,7 @@ using Godot;
 
 public partial class Health : Node
 {
-    [Export] int MaxHealth = 100;
+    [Export] public int MaxHealth = 100;
     [Export] HealthBar HealthBar;
     public int CurrentHealth;
     public bool IsDead = false;

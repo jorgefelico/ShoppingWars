@@ -9,7 +9,11 @@ public partial class Groomba : PatrolEnemy
     [Export] public AudioStream PatrolStateSound;
     [Export] public AudioStream AttackStateSound;
     [Export] public AudioStream SearchStateSound;
+    [Export] public AudioStream SelfDestructSound;
+    [Export] public PackedScene ExplosionScene;
+    [Export] private GpuParticles3D _smoke;
     private AudioStreamPlayer3D _audioPlayer;
+    private bool _isDestroyed = false;
     StandardMaterial3D RingMat;
 
     public override void _Ready()
@@ -175,6 +179,8 @@ public partial class Groomba : PatrolEnemy
 
     public override void TakeDamage(int amount, Node3D source = null)
     {
+        if (_isDestroyed) return;
+
         if (source is PlayerController playerWhoHit && !playerWhoHit.Health.IsDead)
         {
             _lastKnownPlayerPos = playerWhoHit.GlobalPosition;
@@ -183,6 +189,11 @@ public partial class Groomba : PatrolEnemy
                 NavAgent.TargetPosition = _lastKnownPlayerPos;
                 _searchTimer = SearchDuration;
             }
+        }
+
+        if (Health != null && Health.CurrentHealth <= Health.MaxHealth / 2 && _smoke != null && !_smoke.Emitting)
+        {
+            _smoke.Emitting = true;
         }
         base.TakeDamage(amount, source);
     }
@@ -308,28 +319,58 @@ public partial class Groomba : PatrolEnemy
 
     private void HandleContactDamage()
     {
-        for(int i = 0; i < GetSlideCollisionCount(); i++)
+        if (_isDestroyed) return;
+
+        for (int i = 0; i < GetSlideCollisionCount(); i++)
         {
             KinematicCollision3D collision = GetSlideCollision(i);
-            if(collision.GetCollider() is PlayerController player && _attackCooldown <= 0f)
+            if (collision.GetCollider() is PlayerController player && player.Health != null && !player.Health.IsDead && _attackCooldown <= 0f)
             {
-                GD.Print("DAMAGE");
                 player.Health.TakeDamage(ContactDamage);
                 _attackCooldown = 1.0f;
+                Die();
+                break;
             }
         }
     }
 
     public override void Die()
     {
-        if(!Multiplayer.IsServer()) return;
-        GD.Print("[Groomba] Destroyed!");
-        Rpc(nameof(RpcDestroyGroomba));
+        if (_isDestroyed) return;
+        _isDestroyed = true;
+        if (!Multiplayer.IsServer()) return;
+
+        GD.Print("[Groomba] Destroyed / Self-Destructed!");
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcDestroyGroomba));
+        }
+        else
+        {
+            RpcDestroyGroomba();
+        }
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer,CallLocal = true)]
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     public void RpcDestroyGroomba()
     {
+        _isDestroyed = true;
+        SpawnExplosion();
         QueueFree();
+    }
+
+    private void SpawnExplosion()
+    {
+        PackedScene scene = ExplosionScene ?? GD.Load<PackedScene>("res://Prefabs/Explosion.tscn");
+        if (scene != null)
+        {
+            Node3D explosion = scene.Instantiate<Node3D>();
+            Node parent = GetTree().CurrentScene ?? GetParent();
+            if (parent != null)
+            {
+                parent.AddChild(explosion);
+                explosion.GlobalPosition = GlobalPosition;
+            }
+        }
     }
 }

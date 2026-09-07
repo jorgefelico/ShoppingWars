@@ -123,7 +123,7 @@ dotnet build "Shopping Wars.csproj"
 ## Code Conventions & Common Patterns
 
 - **Wiring:** `[Export]` node paths set in scene files (`node_paths` in `.tscn`) with code fallbacks.
-- **Input:** Use named actions from the input map: `move_forward/back/left/right` (WASD), `jump` (Space), `interact` (E), `fire` (LMB), `sprint` (Shift), `scroll_up/down`, `slot1`–`slot5` (keys 1–5), `ui_cancel` (Esc).
+- **Input:** Use named actions from the input map: `move_forward/back/left/right` (WASD), `jump` (Space), `interact` (E), `drop_item` (Q), `fire` (LMB), `sprint` (Shift), `scroll_up/down`, `slot1`–`slot5` (keys 1–5), `ui_cancel` (Esc).
 - **Naming:** C# public members and `[Export]`s are PascalCase; private fields are mixed underscore-camel (`_heldItem`, `_targetPlayer`) and PascalCase (`IsRunning`). Asset files are snake_case (`produce_table.tscn`, `apple_material.tres`) with product prefabs PascalCase (`Products/Apple.tscn`).
 - **Authority & Multiplayer:**
   - Node names for player instances use Godot 32-bit peer IDs (`1`, `2`, etc.).

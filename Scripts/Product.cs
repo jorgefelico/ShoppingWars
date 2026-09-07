@@ -89,7 +89,7 @@ public partial class Product : RigidBody3D, IInteractable
     {
         if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange && GameManager.Instance.CurrentPhase != GamePhase.Lobby)
         {
-            if (player.Inventory.IsInventoryFull()) return;
+            if (!player.Inventory.CanAddItem(this)) return;
             if(GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale && !CanBePickedUp) return;
             if (IsForSale && GameManager.Instance?.CurrentPhase == GamePhase.Shopping)
             {
@@ -103,11 +103,6 @@ public partial class Product : RigidBody3D, IInteractable
             IsForSale = false;
             WasBought = true;
 
-            if (player.HeldItem != null)
-            {
-                player.HeldItem.Visible = false;
-            }
-            
             if(HoverLabel != null) HoverLabel.Visible = false;
 
             player.Rpc(nameof(player.RPCPickupItem), GetPath());

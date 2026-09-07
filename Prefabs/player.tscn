@@ -129,6 +129,16 @@ custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
 
+[node name="CountLabel" type="Label" parent="InventoryBar/HBoxContainer/Slot1" unique_id=1770231380]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 2
+
 [node name="Slot2" type="PanelContainer" parent="InventoryBar/HBoxContainer" unique_id=1602764108]
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
@@ -146,6 +156,16 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
+
+[node name="CountLabel" type="Label" parent="InventoryBar/HBoxContainer/Slot2" unique_id=1602764112]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="Slot3" type="PanelContainer" parent="InventoryBar/HBoxContainer" unique_id=1974503833]
 custom_minimum_size = Vector2(40, 40)
@@ -165,6 +185,16 @@ custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
 
+[node name="CountLabel" type="Label" parent="InventoryBar/HBoxContainer/Slot3" unique_id=1974503837]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 2
+
 [node name="Slot4" type="PanelContainer" parent="InventoryBar/HBoxContainer" unique_id=927441398]
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
@@ -183,6 +213,16 @@ custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
 
+[node name="CountLabel" type="Label" parent="InventoryBar/HBoxContainer/Slot4" unique_id=927441402]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 2
+
 [node name="Slot5" type="PanelContainer" parent="InventoryBar/HBoxContainer" unique_id=291309483]
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
@@ -200,6 +240,16 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(40, 40)
 custom_maximum_size = Vector2(40, 40)
 layout_mode = 2
+
+[node name="CountLabel" type="Label" parent="InventoryBar/HBoxContainer/Slot5" unique_id=291309487]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="HealthBar" type="CanvasLayer" parent="." unique_id=1082677140 node_paths=PackedStringArray("ColorRect")]
 script = ExtResource("4_fkybt")

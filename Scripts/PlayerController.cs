@@ -141,7 +141,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 if (!InputDisabled) InputDisabled = true;
                 if (DeathOverlay != null && !DeathOverlay.Visible) DeathOverlay.Visible = true;
 
-                if (Multiplayer.IsServer() && HeldItem != null)
+                if (Multiplayer.IsServer())
                 {
                     Inventory.DropLoot();
                     HeldItem = null;
@@ -277,6 +277,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         HandleThrow();
         UpdateTargeting();
         HandleInteract();
+        HandleDropItem();
         HandleInventoryActions();
         HandleMovement(delta);
 
@@ -343,12 +344,17 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             interactable.Interact(this);
         }
-        else if (HeldItem != null)
+    }
+
+    private void HandleDropItem()
+    {
+        if (InputDisabled) return;
+        if (!Input.IsActionJustPressed("drop_item")) return;
+
+        if (HeldItem != null)
         {
             if (GameManager.Instance?.CurrentPhase == GamePhase.Shopping) HeldItem.IsForSale = true;
             Rpc(nameof(RPCDropItem), HeldItem.GetPath());
-            return;
-
         }
     }
 
@@ -358,28 +364,25 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         Product item = GetNodeOrNull<Product>(nodePath);
         if (item == null) return;
 
-        // Hide any previously held items on all clients
-        if (ItemHand != null)
-        {
-            foreach (Node child in ItemHand.GetChildren())
-            {
-                if (child is Product p) p.Visible = false;
-            }
-        }
-
-        // Parent new item to hand and make only it visible
+        // Parent new item to hand and disable physics
         item.CollisionLayer = 0;
         item.CollisionMask = 0;
         item.Freeze = true;
         item.Reparent(ItemHand);
         item.Position = Vector3.Zero;
-        item.Visible = true;
+        item.Visible = false;
 
         if (IsMultiplayerAuthority())
         {
-            HeldItem = item;
-            Inventory.AddItem(HeldItem);
-            Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
+            Inventory.AddItem(item);
+            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
+            if (HeldItem != null)
+            {
+                HeldItem.Visible = true;
+            }
+
+            NodePath activePath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
+            Rpc(nameof(RpcSyncActiveHeldItem), activePath);
         }
 
         if (Multiplayer.IsServer())
@@ -411,9 +414,17 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
-            HeldItem = null;
-            Inventory.RemoveCurrentSelectedItem();
-            Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
+            Inventory.RemoveItem(item);
+            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
+            if (HeldItem != null)
+            {
+                HeldItem.Visible = true;
+                Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
+            }
+            else
+            {
+                Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
+            }
         }
 
         if (Multiplayer.IsServer())
@@ -510,9 +521,17 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
-            HeldItem = null;
-            Inventory.RemoveCurrentSelectedItem();
-            Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
+            Inventory.RemoveItem(item);
+            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
+            if (HeldItem != null)
+            {
+                HeldItem.Visible = true;
+                Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
+            }
+            else
+            {
+                Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
+            }
         }
 
         if (Multiplayer.IsServer())

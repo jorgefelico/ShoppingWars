@@ -1647,3 +1647,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 55)
 
 [node name="SpawnPoint4" type="Marker3D" parent="SpawnPoints" unique_id=413023564]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 55)
+
+[node name="Groomba" parent="." unique_id=1990442305 instance=ExtResource("3_uw6uw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.585772, 0.10000048, 60.813393)

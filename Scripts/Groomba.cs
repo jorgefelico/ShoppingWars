@@ -49,6 +49,17 @@ public partial class Groomba : PatrolEnemy
 
         UpdateRingEmission(PatrolState);
 
+        if (Health != null)
+        {
+            Health.HealthChanged += (cur, max) =>
+            {
+                if (cur <= max / 2 && _smoke != null && !_smoke.Emitting)
+                {
+                    _smoke.Emitting = true;
+                }
+            };
+        }
+
         SyncPosition = GlobalPosition;
         SyncRotation = Rotation;
     }
@@ -194,11 +205,28 @@ public partial class Groomba : PatrolEnemy
             }
         }
 
+        base.TakeDamage(amount, source);
+
         if (Health != null && Health.CurrentHealth <= Health.MaxHealth / 2 && _smoke != null && !_smoke.Emitting)
         {
-            _smoke.Emitting = true;
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                Rpc(nameof(RpcSetSmoke), true);
+            }
+            else
+            {
+                RpcSetSmoke(true);
+            }
         }
-        base.TakeDamage(amount, source);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcSetSmoke(bool emitting)
+    {
+        if (_smoke != null)
+        {
+            _smoke.Emitting = emitting;
+        }
     }
 
     private void HandleSearchState(double delta, ref Vector3 velocity)
@@ -358,6 +386,7 @@ public partial class Groomba : PatrolEnemy
     public void RpcDestroyGroomba()
     {
         _isDestroyed = true;
+        if (_smoke != null) _smoke.Emitting = false;
         SpawnExplosion();
         QueueFree();
     }

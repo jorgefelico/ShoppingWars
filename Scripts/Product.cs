@@ -67,7 +67,6 @@ public partial class Product : RigidBody3D, IInteractable
             {
                 Freeze = false;
             }
-            return;
         }
 
         _lastVelocity = LinearVelocity;
@@ -82,7 +81,12 @@ public partial class Product : RigidBody3D, IInteractable
         // Ignore hitting the thrower!
         if (body == Thrower) return;
 
-        if (body is IDamageable target) target.TakeDamage(Damage, Thrower);
+        if (body is IDamageable target)
+        {
+            _lastVelocity = Vector3.Zero;
+            LinearVelocity = LinearVelocity * 0.2f;
+            target.TakeDamage(Damage, Thrower);
+        }
     }
 
     public void Interact(PlayerController player)

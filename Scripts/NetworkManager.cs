@@ -31,6 +31,7 @@ public partial class NetworkManager : Node
     {
         GD.Print($"[NetworkManager] Connected to Host server! My Peer ID: {Multiplayer.GetUniqueId()}");
         
+        Node oldScene = GetTree().CurrentScene;
         Error err = GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
         if (err != Error.Ok)
         {
@@ -38,8 +39,9 @@ public partial class NetworkManager : Node
             return;
         }
 
-        // Wait until CurrentScene is actually StoreInterior and is fully ready in tree
-        while (GetTree().CurrentScene == null || 
+        // Wait until CurrentScene is actually the new StoreInterior instance and is fully ready in tree
+        while (GetTree().CurrentScene == oldScene ||
+               GetTree().CurrentScene == null || 
                GetTree().CurrentScene.SceneFilePath != "res://Scenes/StoreInterior.tscn" || 
                !GetTree().CurrentScene.IsInsideTree() || 
                !GetTree().CurrentScene.IsNodeReady())
@@ -79,19 +81,27 @@ public partial class NetworkManager : Node
         if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
         {
             int count = spawnPointsNode.GetChildCount();
-            Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>((int)senderId % count);
-            newPlayerSpawnPos = spawnPoint.GlobalPosition;
+            int index = (int)(Mathf.Abs(senderId) % count);
+            Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(index);
+            if (spawnPoint != null)
+            {
+                newPlayerSpawnPos = spawnPoint.GlobalPosition;
+            }
         }
 
         // 3. Spawn the new player for EVERYONE (host + all connected clients including senderId)
         Rpc(nameof(RpcSpawnPlayer), senderId, newPlayerSpawnPos, clientPlayerName);
 
-        // 4. Sync current Groomba state to new client
+        // 4. Sync current Groomba state and smoke to new client
         Groomba groomba = GetTree().CurrentScene?.GetNodeOrNull<Groomba>("Groomba") ?? 
                           GetTree().CurrentScene?.GetNodeOrNull<Groomba>("WorldStuff/Groomba");
         if (groomba != null)
         {
             groomba.RpcId(senderId, nameof(PatrolEnemy.RpcSyncPatrolState), (int)groomba.PatrolState);
+            if (groomba.Health != null && groomba.Health.CurrentHealth <= groomba.Health.MaxHealth / 2)
+            {
+                groomba.RpcId(senderId, nameof(Groomba.RpcSetSmoke), true);
+            }
         }
 
         // 5. Sync match state to player
@@ -165,9 +175,11 @@ public partial class NetworkManager : Node
         if (Multiplayer.IsServer())
         {
             _spawnedPlayers.Clear();
+            Node oldScene = GetTree().CurrentScene;
             GetTree().ChangeSceneToFile(scenePath);
             
-            while (GetTree().CurrentScene == null || 
+            while (GetTree().CurrentScene == oldScene ||
+                   GetTree().CurrentScene == null || 
                    GetTree().CurrentScene.SceneFilePath != scenePath || 
                    !GetTree().CurrentScene.IsInsideTree() || 
                    !GetTree().CurrentScene.IsNodeReady())
@@ -175,18 +187,103 @@ public partial class NetworkManager : Node
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             }
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
             Vector3 hostSpawnPos = Vector3.Zero;
             Node3D spawnPointsNode = GetTree().CurrentScene.GetNodeOrNull<Node3D>("SpawnPoints");
             if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
             {
                 int count = spawnPointsNode.GetChildCount();
-                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>((int)Multiplayer.GetUniqueId() % count);
-                hostSpawnPos = spawnPoint.GlobalPosition;
+                int hostIndex = (int)(Mathf.Abs(Multiplayer.GetUniqueId()) % count);
+                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(hostIndex);
+                if (spawnPoint != null)
+                {
+                    hostSpawnPos = spawnPoint.GlobalPosition;
+                }
             }
 
             string hostName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Multiplayer.GetUniqueId()}";
             RpcSpawnPlayer(Multiplayer.GetUniqueId(), hostSpawnPos, hostName);
         }
+    }
+
+    public async void RestartMatch()
+    {
+        if (Multiplayer.IsServer())
+        {
+            GD.Print("[NetworkManager] Host initiating match restart...");
+            _spawnedPlayers.Clear();
+            Node oldScene = GetTree().CurrentScene;
+            GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
+
+            while (GetTree().CurrentScene == oldScene || 
+                   GetTree().CurrentScene == null || 
+                   GetTree().CurrentScene.SceneFilePath != "res://Scenes/StoreInterior.tscn" || 
+                   !GetTree().CurrentScene.IsInsideTree() || 
+                   !GetTree().CurrentScene.IsNodeReady())
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            }
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+            Vector3 hostSpawnPos = Vector3.Zero;
+            Node3D spawnPointsNode = GetTree().CurrentScene.GetNodeOrNull<Node3D>("SpawnPoints");
+            if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
+            {
+                int count = spawnPointsNode.GetChildCount();
+                int hostIndex = (int)(Mathf.Abs(Multiplayer.GetUniqueId()) % count);
+                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(hostIndex);
+                if (spawnPoint != null)
+                {
+                    hostSpawnPos = spawnPoint.GlobalPosition;
+                }
+            }
+
+            string hostName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Multiplayer.GetUniqueId()}";
+            RpcSpawnPlayer(Multiplayer.GetUniqueId(), hostSpawnPos, hostName);
+
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                Rpc(nameof(RpcClientRestartMatch));
+            }
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private async void RpcClientRestartMatch()
+    {
+        GD.Print("[NetworkManager] Received RpcClientRestartMatch from Host! Reloading scene...");
+        Node oldScene = GetTree().CurrentScene;
+        Error err = GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
+        if (err != Error.Ok)
+        {
+            GD.PrintErr($"[NetworkManager] Failed to change scene to StoreInterior on restart: {err}");
+            return;
+        }
+
+        while (GetTree().CurrentScene == oldScene || 
+               GetTree().CurrentScene == null || 
+               GetTree().CurrentScene.SceneFilePath != "res://Scenes/StoreInterior.tscn" || 
+               !GetTree().CurrentScene.IsInsideTree() || 
+               !GetTree().CurrentScene.IsNodeReady())
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        string myName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Multiplayer.GetUniqueId()}";
+        GD.Print($"[NetworkManager] Client reloaded StoreInterior scene! Sending RpcClientReady to Host with name '{myName}'...");
+        RpcId(1, nameof(RpcClientReady), myName);
+    }
+
+    public void ReturnToMainMenu()
+    {
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Multiplayer.MultiplayerPeer = null;
+        }
+        GetTree().ChangeSceneToFile("res://Scenes/MainMenu.tscn");
     }
 }

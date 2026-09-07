@@ -33,7 +33,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export]
     public string PlayerName
     {
-        get => _playerName;
+        get => string.IsNullOrEmpty(_playerName) ? $"Player {Name}" : _playerName;
         set
         {
             _playerName = value;
@@ -66,6 +66,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (Head == null) Head = GetNode<Node3D>("Head");
         if (Camera == null) Camera = GetNode<Camera3D>("Head/Camera");
         if (MeshInstance == null) MeshInstance = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
+        if (Health == null) Health = GetNodeOrNull<Health>("Health");
+        if (Inventory == null) Inventory = GetNodeOrNull<Inventory>("Inventory");
 
         if (int.TryParse(Name, out int peerId))
         {
@@ -240,6 +242,19 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     {
         if (!IsMultiplayerAuthority()) return;
 
+        if (GameManager.Instance?.CurrentPhase == GamePhase.GameOver)
+        {
+            if (Input.MouseMode != Input.MouseModeEnum.Visible)
+            {
+                Input.MouseMode = Input.MouseModeEnum.Visible;
+            }
+            if (@event.IsActionPressed("ui_cancel"))
+            {
+                GetTree().Quit();
+            }
+            return;
+        }
+
         if (IsSpectating)
         {
             if (@event.IsActionPressed("ui_cancel"))
@@ -371,7 +386,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public override void _PhysicsProcess(double delta)
     {
         if (!IsMultiplayerAuthority()) return;
-        if (InputDisabled) return;
+        if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver) return;
         HandleThrow();
         UpdateTargeting();
         HandleInteract();
@@ -754,7 +769,25 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public void TakeDamage(int amount, Node3D source = null)
     {
+        if (!Multiplayer.IsServer())
+        {
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                RpcId(1, nameof(RpcRequestDamage), amount, source != null ? source.GetPath() : new NodePath());
+            }
+            return;
+        }
+
+        if (Health == null) Health = GetNodeOrNull<Health>("Health");
         Health?.TakeDamage(amount);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcRequestDamage(int amount, NodePath sourcePath)
+    {
+        if (!Multiplayer.IsServer()) return;
+        Node3D source = !sourcePath.IsEmpty ? GetNodeOrNull<Node3D>(sourcePath) : null;
+        TakeDamage(amount, source);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -802,7 +835,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             if (node is PlayerController pc && GodotObject.IsInstanceValid(pc) && pc.IsInsideTree() && pc != this)
             {
-                if (pc.Health != null && !pc.Health.IsDead)
+                Health health = pc.Health ?? pc.GetNodeOrNull<Health>("Health");
+                if (health != null && !health.IsDead && health.CurrentHealth > 0)
                 {
                     list.Add(pc);
                 }

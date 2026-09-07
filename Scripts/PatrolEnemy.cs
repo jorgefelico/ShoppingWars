@@ -73,20 +73,37 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
 
     public virtual void TakeDamage(int amount, Node3D source = null)
     {
-        if(Health == null) return;
+        if (!Multiplayer.IsServer())
+        {
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                RpcId(1, nameof(RpcRequestEnemyDamage), amount, source != null ? source.GetPath() : new NodePath());
+            }
+            return;
+        }
+
+        if (Health == null) return;
         Health.TakeDamage(amount);
 
-        if(source is PlayerController playerWhoHit && !playerWhoHit.Health.IsDead)
+        if (source is PlayerController playerWhoHit && !playerWhoHit.Health.IsDead)
         {
             _targetPlayer = playerWhoHit;
             NavAgent.TargetPosition = _targetPlayer.GlobalPosition;
             SetState(PatrolEntityState.Search);
         }
 
-        if(Health.IsDead)
+        if (Health.IsDead)
         {
             Die();
         }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    public void RpcRequestEnemyDamage(int amount, NodePath sourcePath)
+    {
+        if (!Multiplayer.IsServer()) return;
+        Node3D source = !sourcePath.IsEmpty ? GetNodeOrNull<Node3D>(sourcePath) : null;
+        TakeDamage(amount, source);
     }
 
     public virtual void SetState(PatrolEntityState newState)

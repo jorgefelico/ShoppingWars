@@ -9,6 +9,7 @@ public partial class Health : Node
     public bool IsDead = false;
 
     public event Action Died;
+    public event Action<int, int> HealthChanged;
 
     public override void _EnterTree()
     {
@@ -23,20 +24,27 @@ public partial class Health : Node
         CurrentHealth = MaxHealth;
         if (!IsMultiplayerAuthority())
         {
-            HealthBar?.QueueFree();
+            if (HealthBar != null && GodotObject.IsInstanceValid(HealthBar))
+            {
+                HealthBar.QueueFree();
+            }
+            HealthBar = null;
         }
         else
         {
-            HealthBar?.Refresh(CurrentHealth, MaxHealth);
+            if (HealthBar != null && GodotObject.IsInstanceValid(HealthBar))
+            {
+                HealthBar.Refresh(CurrentHealth, MaxHealth);
+            }
         }
     }
 
     public void TakeDamage(int amount)
     {
-        if(!Multiplayer.IsServer()) return;
-        CurrentHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
-        if (CurrentHealth == 0) IsDead = true;
-        Rpc(nameof(RpcSyncHealth), CurrentHealth, IsDead);
+        if (!Multiplayer.IsServer()) return;
+        int newHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
+        bool isDead = newHealth <= 0;
+        Rpc(nameof(RpcSyncHealth), newHealth, isDead);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -45,10 +53,18 @@ public partial class Health : Node
         CurrentHealth = health;
         bool justDied = isDead && !IsDead;
         IsDead = isDead;
-        HealthBar?.Refresh(CurrentHealth, MaxHealth);
+
+        if (HealthBar != null && GodotObject.IsInstanceValid(HealthBar))
+        {
+            HealthBar.Refresh(CurrentHealth, MaxHealth);
+        }
+
+        HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+
         if (justDied)
         {
             Died?.Invoke();
         }
     }
 }
+

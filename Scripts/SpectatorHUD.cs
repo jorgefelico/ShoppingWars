@@ -26,6 +26,17 @@ public partial class SpectatorHUD : CanvasLayer
         }
     }
 
+    public override void _Process(double delta)
+    {
+        if (GameManager.Instance != null && GameManager.Instance.CurrentPhase == GamePhase.GameOver)
+        {
+            if (ControlsContainer != null && ControlsContainer.Visible)
+            {
+                ControlsContainer.Visible = false;
+            }
+        }
+    }
+
     public void SetSpectating(string playerName)
     {
         if (TitleLabel != null)

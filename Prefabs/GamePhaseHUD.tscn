@@ -2,7 +2,101 @@
 
 [ext_resource type="Script" uid="uid://bm61rmyd44el4" path="res://Scripts/GamePhaseHUD.cs" id="1_1gfh8"]
 
-[node name="GamePhaseHud" type="CanvasLayer" unique_id=920991269 node_paths=PackedStringArray("PhaseLabel", "TimerLabel", "MoneyLabel", "EventLabel", "EventDescLabel", "EventContainer")]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0.04, 0.05, 0.08, 0.85)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.08, 0.1, 0.14, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.8, 0.2, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+expand_margin_left = 24.0
+expand_margin_top = 24.0
+expand_margin_right = 24.0
+expand_margin_bottom = 24.0
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_restart_normal"]
+bg_color = Color(0.12, 0.35, 0.18, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.9, 0.4, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_restart_hover"]
+bg_color = Color(0.18, 0.5, 0.25, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 1, 0.6, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_restart_pressed"]
+bg_color = Color(0.08, 0.25, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.7, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_menu_normal"]
+bg_color = Color(0.15, 0.18, 0.25, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.7, 0.9, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_menu_hover"]
+bg_color = Color(0.22, 0.28, 0.4, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.9, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_menu_pressed"]
+bg_color = Color(0.1, 0.12, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.5, 0.7, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="GamePhaseHud" type="CanvasLayer" unique_id=920991269 node_paths=PackedStringArray("PhaseLabel", "TimerLabel", "MoneyLabel", "EventLabel", "EventDescLabel", "EventContainer", "GameOverPanel", "GameOverHeaderLabel", "WinnerNameLabel", "SubtitleLabel", "StatsDetailLabel", "PlayAgainButton", "MainMenuButton")]
+layer = 10
 script = ExtResource("1_1gfh8")
 PhaseLabel = NodePath("VBoxContainer/PhaseLabel")
 TimerLabel = NodePath("VBoxContainer/TimerLabel")
@@ -10,6 +104,13 @@ MoneyLabel = NodePath("VBoxContainer/Money")
 EventLabel = NodePath("VBoxContainer/EventContainer/EventLabel")
 EventDescLabel = NodePath("VBoxContainer/EventContainer/EventDescLabel")
 EventContainer = NodePath("VBoxContainer/EventContainer")
+GameOverPanel = NodePath("GameOverPanel")
+GameOverHeaderLabel = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/GameOverHeaderLabel")
+WinnerNameLabel = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/WinnerNameLabel")
+SubtitleLabel = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/SubtitleLabel")
+StatsDetailLabel = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/StatsDetailLabel")
+PlayAgainButton = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/ButtonContainer/PlayAgainButton")
+MainMenuButton = NodePath("GameOverPanel/CenterContainer/CardPanel/VBox/ButtonContainer/MainMenuButton")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=363241478]
 anchors_preset = -1
@@ -59,3 +160,94 @@ theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 13
 text = "Store electrical grid failed! Emergency power active."
 horizontal_alignment = 1
+
+[node name="GameOverPanel" type="Panel" parent="." unique_id=712894101]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+
+[node name="CenterContainer" type="CenterContainer" parent="GameOverPanel" unique_id=712894102]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPanel" type="PanelContainer" parent="GameOverPanel/CenterContainer" unique_id=712894103]
+custom_minimum_size = Vector2(520, 340)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel/CenterContainer/CardPanel" unique_id=712894104]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="GameOverHeaderLabel" type="Label" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894105]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "👑 VICTORY ROYALE 👑"
+horizontal_alignment = 1
+
+[node name="WinnerNameLabel" type="Label" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894106]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 38
+text = "WINNER: PLAYER"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894107]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "Last Shopper Standing in Shopping Wars!"
+horizontal_alignment = 1
+
+[node name="StatsDetailLabel" type="Label" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894108]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "Shopping Wars Match Complete"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894109]
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="GameOverPanel/CenterContainer/CardPanel/VBox" unique_id=712894110]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="PlayAgainButton" type="Button" parent="GameOverPanel/CenterContainer/CardPanel/VBox/ButtonContainer" unique_id=712894111]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_restart_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_restart_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_restart_pressed")
+text = "🔄 RESTART MATCH"
+
+[node name="MainMenuButton" type="Button" parent="GameOverPanel/CenterContainer/CardPanel/VBox/ButtonContainer" unique_id=712894112]
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_menu_pressed")
+text = "🏠 MAIN MENU"

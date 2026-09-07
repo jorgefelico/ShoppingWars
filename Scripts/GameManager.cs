@@ -111,6 +111,7 @@ public partial class GameManager : Node
         if (!Multiplayer.IsServer()) return;
         long senderId = Multiplayer.GetRemoteSenderId();
         RpcId(senderId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
+        AmbientEventManager.Instance?.SyncStateToClient(senderId);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -120,7 +121,11 @@ public partial class GameManager : Node
         if (CurrentPhase != newPhase)
         {
             CurrentPhase = newPhase;
-            ApplyPhaseLighting(newPhase);
+
+            if (newPhase == GamePhase.Lobby)
+            {
+                AmbientEventManager.Instance?.ResetEvents();
+            }
 
             if(newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
             {
@@ -134,43 +139,12 @@ public partial class GameManager : Node
         TimeRemaining = serverTimeRemaining;
     }
 
-    private void ApplyPhaseLighting(GamePhase phase)
-    {
-        bool isBattleRoyale = (phase == GamePhase.BattleRoyale);
-
-        // Turn off physical light bulbs & emission across all store lights
-        GetTree().CallGroup("StoreLights", "SetPower", !isBattleRoyale);
-
-        // Find LightmapGI fallback if not exported
-        if (_lightmap == null)
-        {
-            _lightmap = GetTree().CurrentScene?.GetNodeOrNull<LightmapGI>("LightmapGI")
-                     ?? GetTree().CurrentScene?.FindChild("LightmapGI", true, false) as LightmapGI;
-        }
-
-        if (_lightmap != null)
-        {
-            _lightmap.Visible = !isBattleRoyale;
-        }
-
-        // Find WorldEnvironment fallback if not exported
-        if (_worldEnvironment == null)
-        {
-            _worldEnvironment = GetTree().CurrentScene?.GetNodeOrNull<WorldEnvironment>("WorldStuff/WorldEnvironment")
-                             ?? GetTree().CurrentScene?.FindChild("WorldEnvironment", true, false) as WorldEnvironment;
-        }
-
-        if (_worldEnvironment?.Environment != null)
-        {
-            _worldEnvironment.Environment.TonemapExposure = isBattleRoyale ? 1.0f : 1.5f;
-        }
-    }
-
     public void SyncStateToPlayer(long peerId)
     {
         if (!Multiplayer.IsServer()) return;
 
         RpcId(peerId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining);
+        AmbientEventManager.Instance?.SyncStateToClient(peerId);
     }
 
     [Signal]

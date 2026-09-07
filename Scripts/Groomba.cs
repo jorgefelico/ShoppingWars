@@ -18,6 +18,9 @@ public partial class Groomba : PatrolEnemy
 
     public override void _Ready()
     {
+        AddToGroup("PatrolEnemies");
+        AddToGroup("Groombas");
+
         // Wait for first physics frame so Navigation map is synched.
         if (Multiplayer.IsServer())
         {

@@ -2,20 +2,23 @@
 
 [ext_resource type="Script" uid="uid://bm61rmyd44el4" path="res://Scripts/GamePhaseHUD.cs" id="1_1gfh8"]
 
-[node name="GamePhaseHud" type="CanvasLayer" unique_id=920991269 node_paths=PackedStringArray("PhaseLabel", "TimerLabel", "MoneyLabel")]
+[node name="GamePhaseHud" type="CanvasLayer" unique_id=920991269 node_paths=PackedStringArray("PhaseLabel", "TimerLabel", "MoneyLabel", "EventLabel", "EventDescLabel", "EventContainer")]
 script = ExtResource("1_1gfh8")
 PhaseLabel = NodePath("VBoxContainer/PhaseLabel")
 TimerLabel = NodePath("VBoxContainer/TimerLabel")
 MoneyLabel = NodePath("VBoxContainer/Money")
+EventLabel = NodePath("VBoxContainer/EventContainer/EventLabel")
+EventDescLabel = NodePath("VBoxContainer/EventContainer/EventDescLabel")
+EventContainer = NodePath("VBoxContainer/EventContainer")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=363241478]
 anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -20.0
+offset_left = -250.0
 offset_top = 10.0
-offset_right = 20.0
-offset_bottom = 40.0
+offset_right = 250.0
+offset_bottom = 100.0
 grow_horizontal = 2
 mouse_filter = 2
 
@@ -32,4 +35,27 @@ horizontal_alignment = 1
 [node name="TimerLabel" type="Label" parent="VBoxContainer" unique_id=1285908256]
 layout_mode = 2
 text = "00:30"
+horizontal_alignment = 1
+
+[node name="EventContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=983718274]
+visible = false
+layout_mode = 2
+
+[node name="EventLabel" type="Label" parent="VBoxContainer/EventContainer" unique_id=892371629]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "⚡ BLACKOUT! (18s) ⚡"
+horizontal_alignment = 1
+
+[node name="EventDescLabel" type="Label" parent="VBoxContainer/EventContainer" unique_id=748291038]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 13
+text = "Store electrical grid failed! Emergency power active."
 horizontal_alignment = 1

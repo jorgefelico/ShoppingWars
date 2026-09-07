@@ -15,6 +15,8 @@ public partial class EmergencyBeacon : Node3D
 
     public override void _Ready()
     {
+        AddToGroup("EmergencyBeacons");
+
         _light = GetNodeOrNull<OmniLight3D>("OmniLight3D");
         _domeMesh = GetNodeOrNull<MeshInstance3D>("Dome");
 
@@ -28,23 +30,7 @@ public partial class EmergencyBeacon : Node3D
             }
         }
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
-            OnGamePhaseChanged();
-        }
-        else
-        {
-            SetBeaconState(false);
-        }
-    }
-
-    private void OnGamePhaseChanged()
-    {
-        if (GameManager.Instance != null)
-        {
-            SetBeaconState(GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale);
-        }
+        SetBeaconState(false);
     }
 
     public void SetBeaconState(bool active)

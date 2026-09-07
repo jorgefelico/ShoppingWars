@@ -11,6 +11,7 @@
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
+[ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
 [ext_resource type="PackedScene" uid="uid://c47mufmp5i703" path="res://Prefabs/Products/Apple.tscn" id="P_Apple"]
@@ -174,10 +175,16 @@ compositor = SubResource("Compositor_06bnu")
 
 [node name="GameManager" type="Node" parent="WorldStuff" unique_id=268635566 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
 script = ExtResource("1_510ba")
-ShoppingDuration = 10.0
+ShoppingDuration = 20.0
+BattleDuration = 240.0
 _lightmap = NodePath("../../LightmapGI")
 _worldEnvironment = NodePath("../WorldEnvironment")
-BattleRoyaleSound = ExtResource("2_ency6")
+
+[node name="AmbientEventManager" type="Node" parent="WorldStuff" unique_id=981240182 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
+script = ExtResource("ext_ambient_mgr")
+_lightmap = NodePath("../../LightmapGI")
+_worldEnvironment = NodePath("../WorldEnvironment")
+BlackoutSound = ExtResource("2_ency6")
 
 [node name="GamePhaseHud" parent="WorldStuff" unique_id=920991269 instance=ExtResource("2_p8oww")]
 

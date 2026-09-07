@@ -29,7 +29,7 @@ roughness = 0.5
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_y1t4u"]
 material = SubResource("StandardMaterial3D_player")
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "NameCard", "Flashlight")]
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "NameCard", "Flashlight", "MeshInstance")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
@@ -44,6 +44,7 @@ Health = NodePath("Health")
 DeathOverlay = NodePath("Death")
 NameCard = NodePath("NameCard")
 Flashlight = NodePath("Head/Camera/Flashlight")
+MeshInstance = NodePath("MeshInstance3D")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")

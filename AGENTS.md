@@ -24,10 +24,11 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
 - `PlayerController` casts a forward raycast each physics frame to detect `IInteractable` objects, dynamically rendering inverted-hull outline shaders (`outline.gdshader`) and billboarded 3D text prompts (`Utils.CreateHoverLabel()`).
 - Supported interactables: Store items (`Product.cs`) and the lobby start button (`ReadyUp.cs`).
 
-**Health, Death & Loot Drops:**
+**Health, Death, Spectator Mode & Loot Drops:**
 - Player has 100 HP (`Health.cs`, `HealthBar.cs`).
 - Remote players show overhead name tags (`NameCard` `Label3D`) displaying their Steam persona name.
-- When health reaches 0, input is disabled, a death overlay appears (`Death.tscn`), and all held inventory items drop onto the floor (`Inventory.DropLoot()`). Dropped floor items are marked `IsForSale = false` and can be picked up for free by any player.
+- When health reaches 0, input is disabled, physics collisions are disabled, held items drop as free loot (`Inventory.DropLoot()`), and the player seamlessly transitions into **Spectator mode** (`SpectatorHUD.cs`).
+- Dead players can cycle between remaining living players in first-person using `Left Click` / `Right Click`, `A` / `D`, or on-screen UI buttons (`SpectatorHUD.cs`). If a spectated player dies, the camera automatically switches to the next living player.
 
 **PvE Enemy & AI (Groomba):**
 - Patrolling robot vacuum (`Groomba.cs`, inherits `PatrolEnemy.cs`, `CharacterBody3D`, `IDamageable`, `IPatrol`).
@@ -60,17 +61,21 @@ Configured in `project.godot`:
 1. `SteamManager` (`Scripts/SteamManager.cs`) — Steam lifecycle, lobby management, GodotSteam integration, persona names.
 2. `NetworkManager` (`Scripts/NetworkManager.cs`) — Player spawning, multiplayer signals, connection handshake.
 
-### C# Scripts (20 files in `Scripts/`):
+### C# Scripts:
 
 - **`Constants.cs`** — Shared static constants (e.g. `PATROL_GREEN`, `PATROL_YELLOW`, `PATROL_RED` emission colors).
 - **`MainMenu.cs`** — Main menu UI controller (Host, Join, Solo, JoinLocal, and dynamic Steam friend invite banners).
 - **`SteamManager.cs`** (`Autoload`) — GodotSteam GDExtension wrapper; handles lobby creation, overlay invites, joining, persona names, and `SteamMultiplayerPeer` configuration.
 - **`NetworkManager.cs`** (`Autoload`) — Connection lifecycle, client readiness handshake (`RpcClientReady`), player instancing, level loading.
-- **`PlayerController.cs`** (`CharacterBody3D`, on `Prefabs/player.tscn`) — Movement, mouse look, raycast targeting (`IInteractable`), purchasing, throwing, network interpolation (`SyncPosition`), authority management, Steam nameplate sync, `IDamageable`.
+- **`PlayerController.cs`** (`CharacterBody3D`, on `Prefabs/player.tscn`) — Movement, mouse look, raycast targeting (`IInteractable`), purchasing, throwing, spectator mode cycling, network interpolation (`SyncPosition`), authority management, Steam nameplate sync, `IDamageable`.
+- **`SpectatorHUD.cs`** (`CanvasLayer`, on `Prefabs/Death.tscn`) — Spectator UI overlay showing elimination banner, active spectated player name, and previous/next navigation buttons.
 - **`Product.cs`** (`RigidBody3D`, implements `IInteractable`) — Throwable items. Contact monitor enabled, phase-gated damage check against `IDamageable`, thrower immunity, client-side velocity simulation.
 - **`ReadyUp.cs`** (`StaticBody3D`, implements `IInteractable`) — In-world lobby ready button to trigger `StartShoppingPhase()` on the server.
 - **`GameManager.cs`** (`Node`, child of `world.tscn`) — Server-authoritative match state & countdown timer singleton (`Instance`). Broadcasts high-frequency state sync (`RpcSyncState`).
-- **`GamePhaseHUD.cs`** (`CanvasLayer`) — Top-screen UI displaying current phase status, countdown timer (`mm:ss`), and player money.
+- **`GamePhaseHUD.cs`** (`CanvasLayer`) — Top-screen UI displaying current phase status, countdown timer (`mm:ss`), player money, and active ambient event banners.
+- **`AmbientEventManager.cs`** (`Node`) — Server-authoritative ambient event scheduler and network synchronizer managing dynamic arena events (`LightsOut`, `PowerSurge`, `LowGravity`, `SpeedFrenzy`, `DenseFog`, `GroombaRage`).
+- **`Scripts/AmbientEvents/`** — Modular ambient event implementations implementing `IAmbientEvent` / `AmbientEventBase`.
+- **`EmergencyBeacon.cs`** (`Node3D`) — Pulsing red emergency beacon activated during blackout and emergency ambient events.
 - **`PatrolEnemy.cs`** (`CharacterBody3D`, implements `IDamageable`, `IPatrol`) — Abstract base class for patrolling enemy AI with navigation, state transitions, player detection, and damage handling.
 - **`Groomba.cs`** (`PatrolEnemy`) — Vacuum robot enemy AI with glowing indicator ring and Patrol $\to$ Attack $\to$ Search state machine.
 - **`IPatrol.cs`** (`interface`) — Patrol navigation contract & `PatrolEntityState` enum (`Patrol`, `Search`, `Attack`).

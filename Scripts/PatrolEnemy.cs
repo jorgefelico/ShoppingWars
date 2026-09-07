@@ -15,6 +15,12 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
     
     protected const float Gravity = 9.8f;
     public PatrolEntityState PatrolState {get; set;} = PatrolEntityState.Patrol;
+    public float SpeedMultiplier { get; set; } = 1.0f;
+
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        SpeedMultiplier = multiplier;
+    }
 
     public virtual void MoveAlongPath(float speed, ref Vector3 velocity)
     {
@@ -32,8 +38,8 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
         if (dir.LengthSquared() > 0.01f)
         {
             LookAt(GlobalPosition + dir, Vector3.Up);
-            velocity.X = dir.Normalized().X * speed;
-            velocity.Z = dir.Normalized().Z * speed;
+            velocity.X = dir.Normalized().X * speed * SpeedMultiplier;
+            velocity.Z = dir.Normalized().Z * speed * SpeedMultiplier;
         }
     }
 

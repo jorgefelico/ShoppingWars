@@ -1,10 +1,11 @@
 using Godot;
+using System.Collections.Generic;
 
 public partial class PlayerController : CharacterBody3D, IDamageable
 {
     static public PlayerController Instance { get; private set; }
-    [Export] private Node3D Head;
-    [Export] private Camera3D Camera;
+    [Export] public Node3D Head { get; private set; }
+    [Export] public Camera3D Camera { get; private set; }
     [Export] private RayCast3D RayCast;
     [Export] private Node3D ItemHand;
     [Export] public Inventory Inventory;
@@ -15,10 +16,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private CanvasLayer DeathOverlay;
     [Export] private Label3D NameCard;
     [Export] public SpotLight3D Flashlight;
+    [Export] public MeshInstance3D MeshInstance;
     [Export] public float PickUpRange = 2.0f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
+    public float SpeedModifier { get; set; } = 1.0f;
+    public float GravityModifier { get; set; } = 1.0f;
+    public float JumpModifier { get; set; } = 1.0f;
     [Export] int StartingMoney = 100;
     public int Money { get; private set; }
     [Export] public Vector3 SyncPosition = Vector3.Zero;
@@ -49,13 +54,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public Product HeldItem { get; private set; }
     IInteractable _highlightedItem;
     bool InputDisabled = false;
+    public bool IsSpectating { get; private set; } = false;
+    private PlayerController _currentSpectatedPlayer;
+    private int _spectatedIndex = 0;
+    private bool _isBeingSpectated = false;
 
     public override void _Ready()
     {
         AddToGroup("Players");
 
         if (Head == null) Head = GetNode<Node3D>("Head");
-        if (Camera == null) Camera = GetNode<Camera3D>("Camera");
+        if (Camera == null) Camera = GetNode<Camera3D>("Head/Camera");
+        if (MeshInstance == null) MeshInstance = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
 
         if (int.TryParse(Name, out int peerId))
         {
@@ -85,6 +95,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 GD.Print($"[PlayerController] Activated Camera for Local Authority Player '{Name}'");
             }
             Rpc(nameof(SyncPlayerName), PlayerName);
+
+            if (DeathOverlay is SpectatorHUD specHud)
+            {
+                specHud.PreviousRequested += SpectatePreviousPlayer;
+                specHud.NextRequested += SpectateNextPlayer;
+            }
         }
         else
         {
@@ -113,14 +129,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         if (Flashlight == null) Flashlight = GetNodeOrNull<SpotLight3D>("Head/Camera/Flashlight");
+        if (Flashlight != null) SetFlashlight(false);
         if (Health != null)
         {
             Health.Died += OnPlayerDied;
-        }
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
-            OnGamePhaseChanged();
         }
 
         Money = StartingMoney;
@@ -128,13 +140,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _ExitTree()
     {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
-        }
         if (Health != null)
         {
             Health.Died -= OnPlayerDied;
+        }
+        if (DeathOverlay is SpectatorHUD specHud)
+        {
+            specHud.PreviousRequested -= SpectatePreviousPlayer;
+            specHud.NextRequested -= SpectateNextPlayer;
+        }
+        if (_currentSpectatedPlayer != null && GodotObject.IsInstanceValid(_currentSpectatedPlayer))
+        {
+            _currentSpectatedPlayer.SetSpectateTargetActive(false);
         }
     }
 
@@ -154,20 +171,37 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             if (Health.IsDead)
             {
-                if (!InputDisabled) InputDisabled = true;
-                if (DeathOverlay != null && !DeathOverlay.Visible) DeathOverlay.Visible = true;
+                if (!IsSpectating)
+                {
+                    StartSpectating();
+                }
+                UpdateSpectatingState();
+                return;
             }
         }
         else
         {
-            if (NameCard != null)
+            if (Health != null && Health.IsDead)
             {
-                if (!NameCard.Visible) NameCard.Visible = true;
-                if (!string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+                if (MeshInstance != null && MeshInstance.Visible) MeshInstance.Visible = false;
+                if (NameCard != null && NameCard.Visible) NameCard.Visible = false;
+            }
+            else if (!_isBeingSpectated)
+            {
+                if (NameCard != null)
                 {
-                    NameCard.Text = PlayerName;
+                    if (!NameCard.Visible) NameCard.Visible = true;
+                    if (!string.IsNullOrEmpty(PlayerName) && NameCard.Text != PlayerName)
+                    {
+                        NameCard.Text = PlayerName;
+                    }
+                }
+                if (MeshInstance != null && !MeshInstance.Visible)
+                {
+                    MeshInstance.Visible = true;
                 }
             }
+
             // Smooth framerate-independent network interpolation for remote player clones
             float distance = GlobalPosition.DistanceTo(SyncPosition);
             if (distance > 6.0f)
@@ -205,6 +239,54 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public override void _UnhandledInput(InputEvent @event)
     {
         if (!IsMultiplayerAuthority()) return;
+
+        if (IsSpectating)
+        {
+            if (@event.IsActionPressed("ui_cancel"))
+            {
+                if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
+                Input.MouseMode = Input.MouseModeEnum.Visible;
+                return;
+            }
+
+            if (@event is InputEventMouseButton mouseButton && mouseButton.Pressed)
+            {
+                if (mouseButton.ButtonIndex == MouseButton.Left)
+                {
+                    SpectateNextPlayer();
+                }
+                else if (mouseButton.ButtonIndex == MouseButton.Right)
+                {
+                    SpectatePreviousPlayer();
+                }
+                else if (mouseButton.ButtonIndex == MouseButton.WheelUp)
+                {
+                    SpectatePreviousPlayer();
+                }
+                else if (mouseButton.ButtonIndex == MouseButton.WheelDown)
+                {
+                    SpectateNextPlayer();
+                }
+                return;
+            }
+
+            if (@event is InputEventKey keyEvent && keyEvent.Pressed && !keyEvent.Echo)
+            {
+                if (keyEvent.Keycode == Key.A || keyEvent.Keycode == Key.Left)
+                {
+                    SpectatePreviousPlayer();
+                    return;
+                }
+                if (keyEvent.Keycode == Key.D || keyEvent.Keycode == Key.Right || keyEvent.Keycode == Key.Space)
+                {
+                    SpectateNextPlayer();
+                    return;
+                }
+            }
+
+            return;
+        }
+
         if (@event.IsActionPressed("ui_cancel"))
         {
             if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
@@ -235,11 +317,17 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
-    private void OnGamePhaseChanged()
+    public static void SetGlobalFlashlight(bool enabled)
     {
-        if (Flashlight != null && GameManager.Instance != null)
+        if (Engine.GetMainLoop() is SceneTree tree)
         {
-            SetFlashlight(GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale);
+            foreach (Node node in tree.GetNodesInGroup("Players"))
+            {
+                if (node is PlayerController pc && pc.IsMultiplayerAuthority())
+                {
+                    pc.SetFlashlight(enabled);
+                }
+            }
         }
     }
 
@@ -368,6 +456,19 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
+    public void UpdateHandItemVisibility()
+    {
+        if (ItemHand == null) return;
+        HeldItem = Inventory != null ? Inventory.GetItem(Inventory.selectedItemIndex) : null;
+        foreach (Node child in ItemHand.GetChildren())
+        {
+            if (child is Product p)
+            {
+                p.Visible = (HeldItem != null && p == HeldItem);
+            }
+        }
+    }
+
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     public void RPCPickupItem(NodePath nodePath)
     {
@@ -385,11 +486,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (IsMultiplayerAuthority())
         {
             Inventory.AddItem(item);
-            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
-            if (HeldItem != null)
-            {
-                HeldItem.Visible = true;
-            }
+            UpdateHandItemVisibility();
 
             NodePath activePath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
             Rpc(nameof(RpcSyncActiveHeldItem), activePath);
@@ -425,16 +522,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (IsMultiplayerAuthority())
         {
             Inventory.RemoveItem(item);
-            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
-            if (HeldItem != null)
-            {
-                HeldItem.Visible = true;
-                Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
-            }
-            else
-            {
-                Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
-            }
+            UpdateHandItemVisibility();
+
+            NodePath activePath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
+            Rpc(nameof(RpcSyncActiveHeldItem), activePath);
         }
 
         if (Multiplayer.IsServer())
@@ -455,6 +546,35 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
 
 
+    public static void SetGlobalSpeedModifier(float modifier)
+    {
+        if (Engine.GetMainLoop() is SceneTree tree)
+        {
+            foreach (Node node in tree.GetNodesInGroup("Players"))
+            {
+                if (node is PlayerController pc)
+                {
+                    pc.SpeedModifier = modifier;
+                }
+            }
+        }
+    }
+
+    public static void SetGlobalGravityModifier(float gravityMod, float jumpMod = 1.0f)
+    {
+        if (Engine.GetMainLoop() is SceneTree tree)
+        {
+            foreach (Node node in tree.GetNodesInGroup("Players"))
+            {
+                if (node is PlayerController pc)
+                {
+                    pc.GravityModifier = gravityMod;
+                    pc.JumpModifier = jumpMod;
+                }
+            }
+        }
+    }
+
     private void HandleMovement(double delta)
     {
         if (InputDisabled) return;
@@ -467,24 +587,25 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             IsRunning = false;
         }
 
+        float effectiveGravity = Gravity * GravityModifier;
         if (IsOnFloor())
         {
-            Velocity = new Vector3(Velocity.X, -Gravity, Velocity.Z);
+            Velocity = new Vector3(Velocity.X, -effectiveGravity, Velocity.Z);
         }
         else
         {
-            Velocity = new Vector3(Velocity.X, Velocity.Y - Gravity * (float)delta, Velocity.Z);
+            Velocity = new Vector3(Velocity.X, Velocity.Y - effectiveGravity * (float)delta, Velocity.Z);
         }
 
         if (Input.IsActionJustPressed("jump") && IsOnFloor())
         {
-            Velocity = new Vector3(Velocity.X, JumpVelocity, Velocity.Z);
+            Velocity = new Vector3(Velocity.X, JumpVelocity * JumpModifier, Velocity.Z);
         }
 
         Vector2 movementAxis = Input.GetVector("move_left", "move_right", "move_back", "move_forward");
         Vector3 direction = new Vector3(movementAxis.X, 0, -movementAxis.Y);
         Vector3 worldDir = Head.GlobalBasis * direction;
-        Vector3 target = worldDir * WalkSpeed * (IsRunning ? RunMultiplier : 1);
+        Vector3 target = worldDir * WalkSpeed * SpeedModifier * (IsRunning ? RunMultiplier : 1);
         float newX = Mathf.MoveToward(Velocity.X, target.X, Accel * (float)delta);
         float newZ = Mathf.MoveToward(Velocity.Z, target.Z, Accel * (float)delta);
         if (movementAxis != Vector2.Zero)
@@ -532,16 +653,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (IsMultiplayerAuthority())
         {
             Inventory.RemoveItem(item);
-            HeldItem = Inventory.GetItem(Inventory.selectedItemIndex);
-            if (HeldItem != null)
-            {
-                HeldItem.Visible = true;
-                Rpc(nameof(RpcSyncActiveHeldItem), HeldItem.GetPath());
-            }
-            else
-            {
-                Rpc(nameof(RpcSyncActiveHeldItem), new NodePath());
-            }
+            UpdateHandItemVisibility();
+
+            NodePath activePath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
+            Rpc(nameof(RpcSyncActiveHeldItem), activePath);
         }
 
         if (Multiplayer.IsServer())
@@ -594,13 +709,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void SwitchInventorySlot(int index)
     {
-        if (HeldItem != null) HeldItem.Visible = false;
-        HeldItem = Inventory.GetItem(index);
         Inventory.SetCurrentSelectedItem(index);
-        if (HeldItem != null)
-        {
-            HeldItem.Visible = true;
-        }
+        UpdateHandItemVisibility();
 
         NodePath activeItemPath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
         Rpc(nameof(RpcSyncActiveHeldItem), activeItemPath);
@@ -672,13 +782,167 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
+    public void SetSpectateTargetActive(bool isBeingSpectated)
+    {
+        _isBeingSpectated = isBeingSpectated;
+        if (MeshInstance != null)
+        {
+            MeshInstance.Visible = !isBeingSpectated && (Health == null || !Health.IsDead);
+        }
+        if (NameCard != null)
+        {
+            NameCard.Visible = !isBeingSpectated && (Health == null || !Health.IsDead);
+        }
+    }
+
+    public List<PlayerController> GetLivingPlayers()
+    {
+        var list = new List<PlayerController>();
+        foreach (Node node in GetTree().GetNodesInGroup("Players"))
+        {
+            if (node is PlayerController pc && GodotObject.IsInstanceValid(pc) && pc.IsInsideTree() && pc != this)
+            {
+                if (pc.Health != null && !pc.Health.IsDead)
+                {
+                    list.Add(pc);
+                }
+            }
+        }
+        return list;
+    }
+
+    public void StartSpectating()
+    {
+        IsSpectating = true;
+        InputDisabled = true;
+        Input.MouseMode = Input.MouseModeEnum.Visible;
+
+        _highlightedItem?.OutlineOff();
+        _highlightedItem = null;
+
+        if (CrossHair != null) CrossHair.Visible = false;
+        if (InventoryBar != null) InventoryBar.Visible = false;
+        if (HealthBar != null) HealthBar.Visible = false;
+        if (DeathOverlay != null) DeathOverlay.Visible = true;
+        SetFlashlight(false);
+
+        CollisionLayer = 0;
+        CollisionMask = 0;
+        GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.SetDeferred("disabled", true);
+        if (MeshInstance != null) MeshInstance.Visible = false;
+        if (NameCard != null) NameCard.Visible = false;
+
+        var livingPlayers = GetLivingPlayers();
+        if (livingPlayers.Count > 0)
+        {
+            _spectatedIndex = 0;
+            SpectatePlayer(livingPlayers[_spectatedIndex]);
+        }
+        else
+        {
+            SpectatePlayer(null);
+        }
+    }
+
+    public void SpectatePlayer(PlayerController target)
+    {
+        if (_currentSpectatedPlayer != null && GodotObject.IsInstanceValid(_currentSpectatedPlayer))
+        {
+            _currentSpectatedPlayer.SetSpectateTargetActive(false);
+        }
+
+        _currentSpectatedPlayer = target;
+        var specHud = DeathOverlay as SpectatorHUD;
+
+        if (_currentSpectatedPlayer != null && GodotObject.IsInstanceValid(_currentSpectatedPlayer))
+        {
+            _currentSpectatedPlayer.SetSpectateTargetActive(true);
+            _currentSpectatedPlayer.Camera?.MakeCurrent();
+            _currentSpectatedPlayer.GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
+            specHud?.SetSpectating(_currentSpectatedPlayer.PlayerName);
+        }
+        else
+        {
+            if (Camera != null)
+            {
+                Camera.MakeCurrent();
+            }
+            GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
+            specHud?.SetNoLivingPlayers();
+        }
+    }
+
+    public void SpectateNextPlayer()
+    {
+        if (!IsSpectating) return;
+        var livingPlayers = GetLivingPlayers();
+        if (livingPlayers.Count == 0)
+        {
+            SpectatePlayer(null);
+            return;
+        }
+
+        _spectatedIndex = (_spectatedIndex + 1) % livingPlayers.Count;
+        SpectatePlayer(livingPlayers[_spectatedIndex]);
+    }
+
+    public void SpectatePreviousPlayer()
+    {
+        if (!IsSpectating) return;
+        var livingPlayers = GetLivingPlayers();
+        if (livingPlayers.Count == 0)
+        {
+            SpectatePlayer(null);
+            return;
+        }
+
+        _spectatedIndex = (_spectatedIndex - 1 + livingPlayers.Count) % livingPlayers.Count;
+        SpectatePlayer(livingPlayers[_spectatedIndex]);
+    }
+
+    private void UpdateSpectatingState()
+    {
+        if (_currentSpectatedPlayer != null)
+        {
+            if (!GodotObject.IsInstanceValid(_currentSpectatedPlayer) ||
+                !_currentSpectatedPlayer.IsInsideTree() ||
+                _currentSpectatedPlayer.Health == null ||
+                _currentSpectatedPlayer.Health.IsDead)
+            {
+                var livingPlayers = GetLivingPlayers();
+                if (livingPlayers.Count > 0)
+                {
+                    _spectatedIndex = _spectatedIndex % livingPlayers.Count;
+                    SpectatePlayer(livingPlayers[_spectatedIndex]);
+                }
+                else
+                {
+                    SpectatePlayer(null);
+                }
+            }
+        }
+        else
+        {
+            var livingPlayers = GetLivingPlayers();
+            if (livingPlayers.Count > 0)
+            {
+                _spectatedIndex = 0;
+                SpectatePlayer(livingPlayers[0]);
+            }
+        }
+    }
+
     private void OnPlayerDied()
     {
+        CollisionLayer = 0;
+        CollisionMask = 0;
+        GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.SetDeferred("disabled", true);
+        if (MeshInstance != null) MeshInstance.Visible = false;
+        if (NameCard != null) NameCard.Visible = false;
+
         if (IsMultiplayerAuthority())
         {
-            InputDisabled = true;
-            if (DeathOverlay != null) DeathOverlay.Visible = true;
-            Input.MouseMode = Input.MouseModeEnum.Visible;
+            StartSpectating();
         }
 
         DropAllHeldItems();

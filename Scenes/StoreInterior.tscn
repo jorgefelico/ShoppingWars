@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Lemon.tscn" id="39_kml1t"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/FireExtinguisher.tscn" id="40_2mhrk"]
 [ext_resource type="PackedScene" uid="uid://2k6ybcairpcj" path="res://Prefabs/Products/PowerDrill.tscn" id="41_wpfo0"]
+[ext_resource type="PackedScene" path="res://Prefabs/CeilingSpeaker.tscn" id="P_CeilingSpeaker"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
@@ -191,6 +192,11 @@ TransitionChime = ExtResource("2_11fay")
 ShoppingTransitionSound = ExtResource("2_wpfo0")
 BattleTransitionSound = ExtResource("4_1y5qk")
 MusicVolumeDb = -24.0
+UseCeilingSpeakers = true
+SpeakerVolumeDb = -6.0
+SpeakerTransitionSoundVolumeDb = 4.0
+DuckedMusicVolumeDb = -34.0
+CeilingSpeakerPrefab = ExtResource("P_CeilingSpeaker")
 
 [node name="AmbientEventManager" type="Node" parent="WorldStuff" unique_id=981240182 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
 script = ExtResource("ext_ambient_mgr")
@@ -1367,6 +1373,8 @@ transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0.06
 
 [node name="Beacon_North_BOH" parent="NavigationRegion3D/Interior/Emergency_Lighting" unique_id=1849204812 instance=ExtResource("P_EmergencyBeacon")]
 transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 7.6573954, 64.1263)
+
+[node name="CeilingSpeakers" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=74829103]
 
 [node name="Groomba2" parent="." unique_id=1744360655 instance=ExtResource("3_uw6uw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.324036, 0.1, 27.550652)

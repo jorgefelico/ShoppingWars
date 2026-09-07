@@ -29,9 +29,32 @@ public partial class GameManager : Node
     [Export] public Godot.Collections.Array<AudioStream> BattleRoyalePlaylist = new();
     [Export] public bool ShufflePlaylists = true;
     [Export] public float MusicVolumeDb = -6.0f;
+
+    [ExportGroup("Ceiling Speakers")]
+    [Export] public bool UseCeilingSpeakers = true;
+    [Export] public int CeilingSpeakerCount = 16;
+    [Export] public float CeilingSpeakerHeight = 8.7f;
+    [Export] public float SpeakerVolumeDb = -6.0f;
+    [Export] public float SpeakerTransitionSoundVolumeDb = 4.0f;
+    [Export] public float DuckedMusicVolumeDb = -34.0f;
+    [Export] public float MusicDuckFadeDuration = 0.2f;
+    [Export] public float MusicRestoreFadeDuration = 0.8f;
+    [Export] public float SpeakerUnitSize = 12.0f;
+    [Export] public float SpeakerMaxDistance = 50.0f;
+    [Export] public float SpeakerPanningStrength = 0.7f;
+    [Export] public int SpeakerPlacementSeed = 42;
+    [Export] public PackedScene CeilingSpeakerPrefab;
+
+    public float EffectiveMusicVolumeDb => (_ceilingSpeakers.Count > 0 && UseCeilingSpeakers) ? SpeakerVolumeDb : MusicVolumeDb;
+
     private AudioStreamPlayer _audioPlayer;
     private AudioStreamPlayer _musicPlayer;
+    private readonly System.Collections.Generic.List<AudioStreamPlayer3D> _ceilingSpeakers = new();
+    private readonly System.Collections.Generic.List<AudioStreamPlayer3D> _ceilingSpeakerSFX = new();
+    private Node3D _ceilingSpeakersContainer;
     private Tween _musicTween;
+    private Tween _duckTween;
+    private bool _isMusicDucked = false;
     private Godot.Collections.Array<AudioStream> _activePlaylist;
     private int _currentTrackIndex = -1;
     public GamePhase CurrentPhase { get; private set; } = GamePhase.Lobby;
@@ -82,11 +105,28 @@ public partial class GameManager : Node
         foreach (var stream in LobbyPlaylist) DisableStreamLoop(stream);
         foreach (var stream in BattleRoyalePlaylist) DisableStreamLoop(stream);
 
-        _musicPlayer = new AudioStreamPlayer();
-        _musicPlayer.Bus = "Master";
-        _musicPlayer.VolumeDb = MusicVolumeDb;
-        _musicPlayer.Finished += OnMusicTrackFinished;
-        AddChild(_musicPlayer);
+        if (CeilingSpeakerPrefab == null)
+        {
+            if (ResourceLoader.Exists("res://Prefabs/CeilingSpeaker.tscn") || FileAccess.FileExists("res://Prefabs/CeilingSpeaker.tscn"))
+            {
+                CeilingSpeakerPrefab = GD.Load<PackedScene>("res://Prefabs/CeilingSpeaker.tscn");
+            }
+        }
+
+        if (UseCeilingSpeakers)
+        {
+            InitializeCeilingSpeakers();
+        }
+
+        // Only create 2D music player if ceiling speakers are not used or not available
+        if (_ceilingSpeakers.Count == 0)
+        {
+            _musicPlayer = new AudioStreamPlayer();
+            _musicPlayer.Bus = "Master";
+            _musicPlayer.VolumeDb = MusicVolumeDb;
+            _musicPlayer.Finished += OnMusicTrackFinished;
+            AddChild(_musicPlayer);
+        }
 
         PlayMusicForPhase(CurrentPhase);
 
@@ -102,6 +142,10 @@ public partial class GameManager : Node
 
     public override void _ExitTree()
     {
+        if (_ceilingSpeakers.Count > 0)
+        {
+            _ceilingSpeakers[0].Finished -= OnMusicTrackFinished;
+        }
         if (_musicPlayer != null)
         {
             _musicPlayer.Finished -= OnMusicTrackFinished;
@@ -406,8 +450,7 @@ public partial class GameManager : Node
                 AudioStream chime = ShoppingTransitionSound ?? TransitionChime;
                 if (chime != null)
                 {
-                    _audioPlayer.Stream = chime;
-                    _audioPlayer.Play();
+                    PlaySoundOnSpeakers(chime, SpeakerTransitionSoundVolumeDb, duckMusic: true);
                 }
             }
             else if (newPhase == GamePhase.BattleTransition)
@@ -415,14 +458,12 @@ public partial class GameManager : Node
                 AudioStream chime = BattleTransitionSound ?? TransitionChime;
                 if (chime != null)
                 {
-                    _audioPlayer.Stream = chime;
-                    _audioPlayer.Play();
+                    PlaySoundOnSpeakers(chime, SpeakerTransitionSoundVolumeDb, duckMusic: true);
                 }
             }
             else if (newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
             {
-                _audioPlayer.Stream = BattleRoyaleSound;
-                _audioPlayer.Play();
+                PlaySoundOnSpeakers(BattleRoyaleSound, SpeakerTransitionSoundVolumeDb, duckMusic: true);
             }
 
             if (newPhase == GamePhase.GameOver)
@@ -554,8 +595,12 @@ public partial class GameManager : Node
             return;
         }
 
+        bool isMusicPlaying = (_ceilingSpeakers.Count > 0)
+            ? _ceilingSpeakers[0].Playing
+            : (_musicPlayer != null && _musicPlayer.Playing);
+
         // If transitioning between Lobby and Shopping (both use LobbyPlaylist) and a track is already playing, keep it playing smoothly!
-        if (_activePlaylist == targetPlaylist && _musicPlayer != null && _musicPlayer.Playing)
+        if (_activePlaylist == targetPlaylist && isMusicPlaying)
         {
             return;
         }
@@ -571,15 +616,23 @@ public partial class GameManager : Node
 
     public void PlayMusicTrack(AudioStream track, float fadeDuration = 0.5f)
     {
-        if (track == null || _musicPlayer == null) return;
+        if (track == null) return;
+        if (_ceilingSpeakers.Count == 0 && _musicPlayer == null) return;
 
-        if (_musicPlayer.Stream == track && _musicPlayer.Playing)
+        bool isPlayingThisTrack = (_ceilingSpeakers.Count > 0)
+            ? (_ceilingSpeakers[0].Stream == track && _ceilingSpeakers[0].Playing)
+            : (_musicPlayer != null && _musicPlayer.Stream == track && _musicPlayer.Playing);
+
+        if (isPlayingThisTrack)
         {
             if (_musicTween != null && _musicTween.IsValid())
             {
                 _musicTween.Kill();
             }
-            _musicPlayer.VolumeDb = MusicVolumeDb;
+            if (!_isMusicDucked)
+            {
+                SetMusicVolume(EffectiveMusicVolumeDb);
+            }
             return;
         }
 
@@ -588,29 +641,109 @@ public partial class GameManager : Node
             _musicTween.Kill();
         }
 
-        if (_musicPlayer.Playing && fadeDuration > 0f)
+        bool anyPlaying = (_ceilingSpeakers.Count > 0)
+            ? _ceilingSpeakers[0].Playing
+            : (_musicPlayer != null && _musicPlayer.Playing);
+
+        if (anyPlaying && fadeDuration > 0f)
         {
+            float halfFade = fadeDuration * 0.5f;
             _musicTween = CreateTween();
-            _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, fadeDuration * 0.5f);
-            _musicTween.TweenCallback(Callable.From(() =>
+            _musicTween.SetParallel(true);
+
+            if (_ceilingSpeakers.Count > 0)
             {
-                _musicPlayer.Stream = track;
-                _musicPlayer.Play();
+                foreach (var speaker in _ceilingSpeakers)
+                {
+                    if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                    {
+                        _musicTween.TweenProperty(speaker, "volume_db", -80.0f, halfFade);
+                    }
+                }
+            }
+            if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer) && _musicPlayer.IsInsideTree())
+            {
+                _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, halfFade);
+            }
+
+            _musicTween.Chain().TweenCallback(Callable.From(() =>
+            {
+                StartSpeakersTrack(track);
                 Tween inTween = CreateTween();
-                inTween.TweenProperty(_musicPlayer, "volume_db", MusicVolumeDb, fadeDuration * 0.5f);
+                inTween.SetParallel(true);
+                float targetVol = _isMusicDucked ? DuckedMusicVolumeDb : EffectiveMusicVolumeDb;
+
+                if (_ceilingSpeakers.Count > 0)
+                {
+                    foreach (var speaker in _ceilingSpeakers)
+                    {
+                        if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                        {
+                            inTween.TweenProperty(speaker, "volume_db", targetVol, halfFade);
+                        }
+                    }
+                }
+                if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer) && _musicPlayer.IsInsideTree())
+                {
+                    inTween.TweenProperty(_musicPlayer, "volume_db", targetVol, halfFade);
+                }
             }));
         }
         else
         {
+            StartSpeakersTrack(track);
+            SetMusicVolume(_isMusicDucked ? DuckedMusicVolumeDb : EffectiveMusicVolumeDb);
+        }
+    }
+
+    private void StartSpeakersTrack(AudioStream track)
+    {
+        if (_ceilingSpeakers.Count > 0)
+        {
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                if (GodotObject.IsInstanceValid(speaker))
+                {
+                    speaker.Stream = track;
+                    speaker.Play();
+                }
+            }
+        }
+        if (_musicPlayer != null && _ceilingSpeakers.Count == 0 && GodotObject.IsInstanceValid(_musicPlayer))
+        {
             _musicPlayer.Stream = track;
-            _musicPlayer.VolumeDb = MusicVolumeDb;
             _musicPlayer.Play();
+        }
+    }
+
+    private void SetMusicVolume(float volumeDb)
+    {
+        foreach (var speaker in _ceilingSpeakers)
+        {
+            if (GodotObject.IsInstanceValid(speaker))
+            {
+                speaker.VolumeDb = volumeDb;
+            }
+        }
+        if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer))
+        {
+            _musicPlayer.VolumeDb = volumeDb;
         }
     }
 
     public void FadeOutMusic(float duration = 1.0f)
     {
-        if (_musicPlayer == null || !_musicPlayer.Playing) return;
+        _isMusicDucked = false;
+        if (_duckTween != null && _duckTween.IsValid())
+        {
+            _duckTween.Kill();
+        }
+
+        bool anyPlaying = (_ceilingSpeakers.Count > 0)
+            ? _ceilingSpeakers[0].Playing
+            : (_musicPlayer != null && _musicPlayer.Playing);
+
+        if (!anyPlaying) return;
 
         if (_musicTween != null && _musicTween.IsValid())
         {
@@ -618,12 +751,378 @@ public partial class GameManager : Node
         }
 
         _musicTween = CreateTween();
-        _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, duration);
-        _musicTween.TweenCallback(Callable.From(() =>
+        _musicTween.SetParallel(true);
+
+        if (_ceilingSpeakers.Count > 0)
         {
-            _musicPlayer.Stop();
-            _musicPlayer.Stream = null;
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                {
+                    _musicTween.TweenProperty(speaker, "volume_db", -80.0f, duration);
+                }
+            }
+        }
+        if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer) && _musicPlayer.IsInsideTree())
+        {
+            _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, duration);
+        }
+
+        _musicTween.Chain().TweenCallback(Callable.From(() =>
+        {
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                speaker.Stop();
+                speaker.Stream = null;
+            }
+            if (_musicPlayer != null)
+            {
+                _musicPlayer.Stop();
+                _musicPlayer.Stream = null;
+            }
         }));
+    }
+
+    private void InitializeCeilingSpeakers()
+    {
+        if (!UseCeilingSpeakers) return;
+
+        _ceilingSpeakers.Clear();
+        _ceilingSpeakerSFX.Clear();
+
+        // 1. Check if there are already speaker instances placed in the scene tree
+        var existingSpeakers = GetTree().GetNodesInGroup("CeilingSpeakers");
+        if (existingSpeakers.Count > 0)
+        {
+            foreach (var node in existingSpeakers)
+            {
+                AudioStreamPlayer3D player = node as AudioStreamPlayer3D ?? node.GetNodeOrNull<AudioStreamPlayer3D>("AudioPlayer");
+                if (player != null && !_ceilingSpeakers.Contains(player))
+                {
+                    _ceilingSpeakers.Add(player);
+                }
+
+                AudioStreamPlayer3D sfx = node.GetNodeOrNull<AudioStreamPlayer3D>("SFXPlayer");
+                if (sfx != null && !_ceilingSpeakerSFX.Contains(sfx))
+                {
+                    _ceilingSpeakerSFX.Add(sfx);
+                }
+            }
+            if (_ceilingSpeakers.Count > 0)
+            {
+                SetupSpeakerPlayers();
+                return;
+            }
+        }
+
+        // 2. Locate or create CeilingSpeakers container in store Interior
+        Node storeRoot = GetTree().CurrentScene ?? GetParent();
+        Node interior = storeRoot?.FindChild("Interior", true, false) ?? storeRoot;
+        if (interior == null) return;
+
+        _ceilingSpeakersContainer = interior.FindChild("CeilingSpeakers", false, false) as Node3D;
+        if (_ceilingSpeakersContainer == null)
+        {
+            _ceilingSpeakersContainer = new Node3D { Name = "CeilingSpeakers" };
+            interior.AddChild(_ceilingSpeakersContainer);
+        }
+
+        // Check if container already has children
+        foreach (Node child in _ceilingSpeakersContainer.GetChildren())
+        {
+            AudioStreamPlayer3D player = child as AudioStreamPlayer3D ?? child.GetNodeOrNull<AudioStreamPlayer3D>("AudioPlayer");
+            if (player != null && !_ceilingSpeakers.Contains(player))
+            {
+                _ceilingSpeakers.Add(player);
+            }
+
+            AudioStreamPlayer3D sfx = child.GetNodeOrNull<AudioStreamPlayer3D>("SFXPlayer");
+            if (sfx != null && !_ceilingSpeakerSFX.Contains(sfx))
+            {
+                _ceilingSpeakerSFX.Add(sfx);
+            }
+        }
+
+        if (_ceilingSpeakers.Count > 0)
+        {
+            SetupSpeakerPlayers();
+            return;
+        }
+
+        // 3. Generate randomized ceiling speakers throughout store interior
+        SpawnRandomCeilingSpeakers();
+    }
+
+    private void SpawnRandomCeilingSpeakers()
+    {
+        RandomNumberGenerator rand = new();
+        if (SpeakerPlacementSeed != 0)
+        {
+            rand.Seed = (ulong)SpeakerPlacementSeed;
+        }
+        else
+        {
+            rand.Randomize();
+        }
+
+        int cols = 4;
+        int rows = 4;
+        float xMin = -65.0f;
+        float xMax = 65.0f;
+        float zMin = -50.0f;
+        float zMax = 50.0f;
+
+        float cellWidth = (xMax - xMin) / cols;
+        float cellDepth = (zMax - zMin) / rows;
+
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                float cellCenterX = xMin + (c + 0.5f) * cellWidth;
+                float cellCenterZ = zMin + (r + 0.5f) * cellDepth;
+
+                float jitterX = rand.RandfRange(-cellWidth * 0.25f, cellWidth * 0.25f);
+                float jitterZ = rand.RandfRange(-cellDepth * 0.25f, cellDepth * 0.25f);
+
+                Vector3 pos = new Vector3(cellCenterX + jitterX, CeilingSpeakerHeight, cellCenterZ + jitterZ);
+
+                Node3D speakerNode = null;
+                AudioStreamPlayer3D player = null;
+                AudioStreamPlayer3D sfxPlayer = null;
+
+                if (CeilingSpeakerPrefab != null)
+                {
+                    speakerNode = CeilingSpeakerPrefab.Instantiate<Node3D>();
+                    player = speakerNode.GetNodeOrNull<AudioStreamPlayer3D>("AudioPlayer") ?? (speakerNode as AudioStreamPlayer3D);
+                    sfxPlayer = speakerNode.GetNodeOrNull<AudioStreamPlayer3D>("SFXPlayer");
+                }
+
+                if (speakerNode == null)
+                {
+                    speakerNode = CreateProceduralSpeakerNode(out player, out sfxPlayer);
+                }
+
+                speakerNode.Name = $"CeilingSpeaker_{r * cols + c + 1}";
+                speakerNode.AddToGroup("CeilingSpeakers");
+                _ceilingSpeakersContainer.AddChild(speakerNode);
+                speakerNode.Position = pos;
+
+                if (player != null)
+                {
+                    ConfigureSpeakerAudioPlayer(player);
+                    _ceilingSpeakers.Add(player);
+                }
+
+                if (sfxPlayer != null)
+                {
+                    ConfigureSpeakerSFXPlayer(sfxPlayer);
+                    _ceilingSpeakerSFX.Add(sfxPlayer);
+                }
+            }
+        }
+
+        SetupSpeakerPlayers();
+        GD.Print($"[GameManager] Spawned {_ceilingSpeakers.Count} randomized ceiling speakers (SFX: {_ceilingSpeakerSFX.Count}) across store interior.");
+    }
+
+    private Node3D CreateProceduralSpeakerNode(out AudioStreamPlayer3D player, out AudioStreamPlayer3D sfxPlayer)
+    {
+        Node3D speakerRoot = new Node3D();
+
+        MeshInstance3D stem = new MeshInstance3D
+        {
+            Mesh = new CylinderMesh { TopRadius = 0.025f, BottomRadius = 0.025f, Height = 0.35f },
+            Position = new Vector3(0, -0.175f, 0)
+        };
+        speakerRoot.AddChild(stem);
+
+        MeshInstance3D housing = new MeshInstance3D
+        {
+            Mesh = new CylinderMesh { TopRadius = 0.16f, BottomRadius = 0.32f, Height = 0.22f },
+            Position = new Vector3(0, -0.44f, 0)
+        };
+        speakerRoot.AddChild(housing);
+
+        MeshInstance3D grill = new MeshInstance3D
+        {
+            Mesh = new CylinderMesh { TopRadius = 0.3f, BottomRadius = 0.3f, Height = 0.03f },
+            Position = new Vector3(0, -0.55f, 0)
+        };
+        speakerRoot.AddChild(grill);
+
+        player = new AudioStreamPlayer3D
+        {
+            Name = "AudioPlayer",
+            Position = new Vector3(0, -0.56f, 0)
+        };
+        speakerRoot.AddChild(player);
+
+        sfxPlayer = new AudioStreamPlayer3D
+        {
+            Name = "SFXPlayer",
+            Position = new Vector3(0, -0.56f, 0)
+        };
+        speakerRoot.AddChild(sfxPlayer);
+
+        return speakerRoot;
+    }
+
+    private void ConfigureSpeakerAudioPlayer(AudioStreamPlayer3D player)
+    {
+        player.Bus = "Master";
+        player.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
+        player.UnitSize = SpeakerUnitSize;
+        player.MaxDistance = SpeakerMaxDistance;
+        player.PanningStrength = SpeakerPanningStrength;
+        player.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
+        player.MaxPolyphony = 1;
+        player.VolumeDb = EffectiveMusicVolumeDb;
+    }
+
+    private void ConfigureSpeakerSFXPlayer(AudioStreamPlayer3D sfxPlayer)
+    {
+        sfxPlayer.Bus = "Master";
+        sfxPlayer.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
+        sfxPlayer.UnitSize = SpeakerUnitSize + 2.0f;
+        sfxPlayer.MaxDistance = SpeakerMaxDistance + 10.0f;
+        sfxPlayer.PanningStrength = SpeakerPanningStrength;
+        sfxPlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
+        sfxPlayer.MaxPolyphony = 2;
+        sfxPlayer.VolumeDb = SpeakerTransitionSoundVolumeDb;
+    }
+
+    private void SetupSpeakerPlayers()
+    {
+        if (_ceilingSpeakers.Count == 0) return;
+
+        foreach (var speaker in _ceilingSpeakers)
+        {
+            ConfigureSpeakerAudioPlayer(speaker);
+        }
+
+        foreach (var sfx in _ceilingSpeakerSFX)
+        {
+            ConfigureSpeakerSFXPlayer(sfx);
+        }
+
+        _ceilingSpeakers[0].Finished += OnMusicTrackFinished;
+    }
+
+    public void PlaySoundOnSpeakers(AudioStream sound, float volumeDb = float.NaN, bool duckMusic = false)
+    {
+        if (sound == null) return;
+
+        float targetVol = float.IsNaN(volumeDb) ? SpeakerTransitionSoundVolumeDb : volumeDb;
+
+        if (UseCeilingSpeakers && _ceilingSpeakerSFX.Count > 0)
+        {
+            foreach (var sfx in _ceilingSpeakerSFX)
+            {
+                if (GodotObject.IsInstanceValid(sfx) && sfx.IsInsideTree())
+                {
+                    sfx.VolumeDb = targetVol;
+                    sfx.Stream = sound;
+                    sfx.Play();
+                }
+            }
+        }
+        else if (UseCeilingSpeakers && _ceilingSpeakers.Count > 0)
+        {
+            // Fallback if SFXPlayer wasn't found on speakers
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                {
+                    speaker.Stream = sound;
+                    speaker.Play();
+                }
+            }
+        }
+        else if (_audioPlayer != null && GodotObject.IsInstanceValid(_audioPlayer) && _audioPlayer.IsInsideTree())
+        {
+            _audioPlayer.VolumeDb = targetVol;
+            _audioPlayer.Stream = sound;
+            _audioPlayer.Play();
+        }
+
+        if (duckMusic)
+        {
+            DuckMusicForSound(sound);
+        }
+    }
+
+    public void DuckMusicForSound(AudioStream sound, float extraHoldTime = 0.25f)
+    {
+        if (sound == null) return;
+        float soundLength = (float)sound.GetLength();
+        if (soundLength <= 0.1f) soundLength = 3.0f;
+        DuckMusic(soundLength + extraHoldTime);
+    }
+
+    public void DuckMusic(float duration)
+    {
+        _isMusicDucked = true;
+
+        if (_duckTween != null && _duckTween.IsValid())
+        {
+            _duckTween.Kill();
+        }
+
+        _duckTween = CreateTween();
+        _duckTween.SetParallel(true);
+
+        if (_ceilingSpeakers.Count > 0)
+        {
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                {
+                    _duckTween.TweenProperty(speaker, "volume_db", DuckedMusicVolumeDb, MusicDuckFadeDuration);
+                }
+            }
+        }
+        if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer) && _musicPlayer.IsInsideTree())
+        {
+            _duckTween.TweenProperty(_musicPlayer, "volume_db", DuckedMusicVolumeDb, MusicDuckFadeDuration);
+        }
+
+        float holdDuration = Mathf.Max(0.01f, duration - MusicDuckFadeDuration);
+        _duckTween.Chain().TweenInterval(holdDuration);
+        _duckTween.Chain().TweenCallback(Callable.From(() =>
+        {
+            RestoreMusicVolume(MusicRestoreFadeDuration);
+        }));
+    }
+
+    public void RestoreMusicVolume(float fadeDuration = 0.8f)
+    {
+        _isMusicDucked = false;
+
+        if (_duckTween != null && _duckTween.IsValid())
+        {
+            _duckTween.Kill();
+        }
+
+        _duckTween = CreateTween();
+        _duckTween.SetParallel(true);
+
+        float targetVol = EffectiveMusicVolumeDb;
+
+        if (_ceilingSpeakers.Count > 0)
+        {
+            foreach (var speaker in _ceilingSpeakers)
+            {
+                if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
+                {
+                    _duckTween.TweenProperty(speaker, "volume_db", targetVol, fadeDuration);
+                }
+            }
+        }
+        if (_musicPlayer != null && GodotObject.IsInstanceValid(_musicPlayer) && _musicPlayer.IsInsideTree())
+        {
+            _duckTween.TweenProperty(_musicPlayer, "volume_db", targetVol, fadeDuration);
+        }
     }
 
     public void RestartGame()

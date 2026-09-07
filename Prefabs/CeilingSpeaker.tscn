@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://cavvmg6hkxcwv"]
+
+[ext_resource type="Script" uid="uid://dv0w0mocu0cx5" path="res://Scripts/CeilingSpeaker.cs" id="1_script"]
+[ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="2_metal"]
+[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="3_dark"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_Stem"]
+material = ExtResource("2_metal")
+top_radius = 0.025
+bottom_radius = 0.025
+height = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_Housing"]
+material = ExtResource("3_dark")
+top_radius = 0.16
+bottom_radius = 0.32
+height = 0.22
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_Grill"]
+material = ExtResource("2_metal")
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.03
+
+[node name="CeilingSpeaker" type="Node3D" unique_id=431279335 node_paths=PackedStringArray("AudioPlayer", "SFXPlayer")]
+script = ExtResource("1_script")
+AudioPlayer = NodePath("AudioPlayer")
+SFXPlayer = NodePath("SFXPlayer")
+
+[node name="Stem" type="MeshInstance3D" parent="." unique_id=1600714633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, 0)
+mesh = SubResource("CylinderMesh_Stem")
+
+[node name="Housing" type="MeshInstance3D" parent="." unique_id=661808811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.44, 0)
+mesh = SubResource("CylinderMesh_Housing")
+
+[node name="Grill" type="MeshInstance3D" parent="." unique_id=1859310192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.55, 0)
+mesh = SubResource("CylinderMesh_Grill")
+
+[node name="AudioPlayer" type="AudioStreamPlayer3D" parent="." unique_id=527102699]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.56, 0)
+volume_db = -12.0
+unit_size = 12.0
+max_distance = 50.0
+panning_strength = 0.7
+
+[node name="SFXPlayer" type="AudioStreamPlayer3D" parent="." unique_id=963264184]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.56, 0)
+unit_size = 14.0
+max_distance = 60.0
+panning_strength = 0.7

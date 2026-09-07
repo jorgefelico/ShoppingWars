@@ -16,7 +16,17 @@ public partial class GameManager : Node
     [Export] private LightmapGI _lightmap;
     [Export] private WorldEnvironment _worldEnvironment;
     [Export] public AudioStream BattleRoyaleSound;
+    [Export] public AudioStream LobbyMusic;
+    [Export] public AudioStream BattleRoyaleMusic;
+    [Export] public Godot.Collections.Array<AudioStream> LobbyPlaylist = new();
+    [Export] public Godot.Collections.Array<AudioStream> BattleRoyalePlaylist = new();
+    [Export] public bool ShufflePlaylists = true;
+    [Export] public float MusicVolumeDb = -6.0f;
     private AudioStreamPlayer _audioPlayer;
+    private AudioStreamPlayer _musicPlayer;
+    private Tween _musicTween;
+    private Godot.Collections.Array<AudioStream> _activePlaylist;
+    private int _currentTrackIndex = -1;
     public GamePhase CurrentPhase { get; private set; } = GamePhase.Lobby;
     public float TimeRemaining { get; private set; }
     public string WinnerName { get; private set; } = "";
@@ -32,6 +42,32 @@ public partial class GameManager : Node
         _audioPlayer.Bus = "Master";
         AddChild(_audioPlayer);
 
+        // Populate default Lobby/Shopping playlist if empty
+        if (LobbyPlaylist.Count == 0)
+        {
+            if (LobbyMusic != null) LobbyPlaylist.Add(LobbyMusic);
+            AddTrackIfValid(LobbyPlaylist, "res://Sounds/Prime_Time_Jackpot.mp3");
+            AddTrackIfValid(LobbyPlaylist, "res://Sounds/Velvet_Sunday.mp3");
+        }
+
+        // Populate default Battle Royale playlist if empty
+        if (BattleRoyalePlaylist.Count == 0)
+        {
+            if (BattleRoyaleMusic != null) BattleRoyalePlaylist.Add(BattleRoyaleMusic);
+            AddTrackIfValid(BattleRoyalePlaylist, "res://Sounds/Overdrive_Takedown.mp3");
+        }
+
+        foreach (var stream in LobbyPlaylist) DisableStreamLoop(stream);
+        foreach (var stream in BattleRoyalePlaylist) DisableStreamLoop(stream);
+
+        _musicPlayer = new AudioStreamPlayer();
+        _musicPlayer.Bus = "Master";
+        _musicPlayer.VolumeDb = MusicVolumeDb;
+        _musicPlayer.Finished += OnMusicTrackFinished;
+        AddChild(_musicPlayer);
+
+        PlayMusicForPhase(CurrentPhase);
+
         if (!Multiplayer.IsServer())
         {
             // Client requests current authoritative state from host immediately on load
@@ -39,6 +75,18 @@ public partial class GameManager : Node
             {
                 RpcId(1, nameof(RpcRequestSyncState));
             }
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        if (_musicPlayer != null)
+        {
+            _musicPlayer.Finished -= OnMusicTrackFinished;
+        }
+        if (_musicTween != null && _musicTween.IsValid())
+        {
+            _musicTween.Kill();
         }
     }
 
@@ -287,6 +335,8 @@ public partial class GameManager : Node
                 AmbientEventManager.Instance?.ResetEvents();
             }
 
+            PlayMusicForPhase(newPhase);
+
             EmitSignal(SignalName.GamePhaseChanged);
             GD.Print($"[GameManager] Phase synced to: {CurrentPhase} (Winner: {WinnerName})");
         }
@@ -303,10 +353,180 @@ public partial class GameManager : Node
         TimeRemaining = 0f;
 
         AmbientEventManager.Instance?.ResetEvents();
+        PlayMusicForPhase(GamePhase.GameOver);
 
         EmitSignal(SignalName.GamePhaseChanged);
         EmitSignal(SignalName.GameOverDeclared, winnerName, isDraw);
         GD.Print($"[GameManager] GameOver Synced! Winner: '{winnerName}', IsDraw: {isDraw}");
+    }
+
+    private void AddTrackIfValid(Godot.Collections.Array<AudioStream> playlist, string resPath)
+    {
+        if (string.IsNullOrEmpty(resPath)) return;
+        if (ResourceLoader.Exists(resPath) || FileAccess.FileExists(resPath))
+        {
+            try
+            {
+                AudioStream stream = GD.Load<AudioStream>(resPath);
+                if (stream != null && !playlist.Contains(stream))
+                {
+                    DisableStreamLoop(stream);
+                    playlist.Add(stream);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[GameManager] Failed to load audio track '{resPath}': {ex.Message}");
+            }
+        }
+    }
+
+    private static void DisableStreamLoop(AudioStream stream)
+    {
+        if (stream is AudioStreamMP3 mp3)
+        {
+            mp3.Loop = false;
+        }
+        else if (stream is AudioStreamOggVorbis ogg)
+        {
+            ogg.Loop = false;
+        }
+    }
+
+    private void OnMusicTrackFinished()
+    {
+        if (_activePlaylist == null || _activePlaylist.Count == 0) return;
+        AdvancePlaylist(0.3f);
+    }
+
+    public void AdvancePlaylist(float fadeDuration = 0.5f)
+    {
+        if (_activePlaylist == null || _activePlaylist.Count == 0) return;
+
+        if (_activePlaylist.Count == 1)
+        {
+            _currentTrackIndex = 0;
+        }
+        else if (ShufflePlaylists)
+        {
+            int nextIndex;
+            int attempts = 0;
+            do
+            {
+                nextIndex = (int)(GD.Randi() % (uint)_activePlaylist.Count);
+                attempts++;
+            } while (nextIndex == _currentTrackIndex && attempts < 10);
+            _currentTrackIndex = nextIndex;
+        }
+        else
+        {
+            _currentTrackIndex = (_currentTrackIndex + 1) % _activePlaylist.Count;
+        }
+
+        AudioStream nextTrack = _activePlaylist[_currentTrackIndex];
+        PlayMusicTrack(nextTrack, fadeDuration);
+    }
+
+    public void PlayMusicForPhase(GamePhase phase)
+    {
+        Godot.Collections.Array<AudioStream> targetPlaylist = null;
+        float fade = 0.5f;
+
+        switch (phase)
+        {
+            case GamePhase.Lobby:
+            case GamePhase.Shopping:
+                targetPlaylist = LobbyPlaylist;
+                fade = 1.0f;
+                break;
+
+            case GamePhase.BattleRoyale:
+                targetPlaylist = BattleRoyalePlaylist;
+                fade = 0.4f;
+                break;
+
+            case GamePhase.GameOver:
+                _activePlaylist = null;
+                FadeOutMusic(1.5f);
+                return;
+        }
+
+        if (targetPlaylist == null || targetPlaylist.Count == 0)
+        {
+            FadeOutMusic(0.5f);
+            return;
+        }
+
+        // If transitioning between Lobby and Shopping (both use LobbyPlaylist) and a track is already playing, keep it playing smoothly!
+        if (_activePlaylist == targetPlaylist && _musicPlayer != null && _musicPlayer.Playing)
+        {
+            return;
+        }
+
+        _activePlaylist = targetPlaylist;
+        _currentTrackIndex = (ShufflePlaylists && _activePlaylist.Count > 1)
+            ? (int)(GD.Randi() % (uint)_activePlaylist.Count)
+            : 0;
+
+        AudioStream selectedTrack = _activePlaylist[_currentTrackIndex];
+        PlayMusicTrack(selectedTrack, fade);
+    }
+
+    public void PlayMusicTrack(AudioStream track, float fadeDuration = 0.5f)
+    {
+        if (track == null || _musicPlayer == null) return;
+
+        if (_musicPlayer.Stream == track && _musicPlayer.Playing)
+        {
+            if (_musicTween != null && _musicTween.IsValid())
+            {
+                _musicTween.Kill();
+            }
+            _musicPlayer.VolumeDb = MusicVolumeDb;
+            return;
+        }
+
+        if (_musicTween != null && _musicTween.IsValid())
+        {
+            _musicTween.Kill();
+        }
+
+        if (_musicPlayer.Playing && fadeDuration > 0f)
+        {
+            _musicTween = CreateTween();
+            _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, fadeDuration * 0.5f);
+            _musicTween.TweenCallback(Callable.From(() =>
+            {
+                _musicPlayer.Stream = track;
+                _musicPlayer.Play();
+                Tween inTween = CreateTween();
+                inTween.TweenProperty(_musicPlayer, "volume_db", MusicVolumeDb, fadeDuration * 0.5f);
+            }));
+        }
+        else
+        {
+            _musicPlayer.Stream = track;
+            _musicPlayer.VolumeDb = MusicVolumeDb;
+            _musicPlayer.Play();
+        }
+    }
+
+    public void FadeOutMusic(float duration = 1.0f)
+    {
+        if (_musicPlayer == null || !_musicPlayer.Playing) return;
+
+        if (_musicTween != null && _musicTween.IsValid())
+        {
+            _musicTween.Kill();
+        }
+
+        _musicTween = CreateTween();
+        _musicTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, duration);
+        _musicTween.TweenCallback(Callable.From(() =>
+        {
+            _musicPlayer.Stop();
+            _musicPlayer.Stream = null;
+        }));
     }
 
     public void RestartGame()

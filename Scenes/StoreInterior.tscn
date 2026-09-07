@@ -181,6 +181,7 @@ ShoppingDuration = 20.0
 BattleDuration = 240.0
 _lightmap = NodePath("../../LightmapGI")
 _worldEnvironment = NodePath("../WorldEnvironment")
+MusicVolumeDb = -24.0
 
 [node name="AmbientEventManager" type="Node" parent="WorldStuff" unique_id=981240182 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
 script = ExtResource("ext_ambient_mgr")

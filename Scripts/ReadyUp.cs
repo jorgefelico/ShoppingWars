@@ -12,16 +12,18 @@ public partial class ReadyUp : StaticBody3D, IInteractable
     {
         if (ButtonMesh != null)
         {
-            Outline = new MeshInstance3D
-            {
-                Mesh = ButtonMesh.Mesh,
-                Visible = false,
-            };
             ShaderMaterial outlineMaterial = new()
             {
                 Shader = GD.Load<Shader>("res://Shaders/outline.gdshader"),
             };
-            for (int i = 0; i < ButtonMesh.GetSurfaceOverrideMaterialCount(); i++)
+            Outline = new MeshInstance3D
+            {
+                Mesh = ButtonMesh.Mesh,
+                Visible = false,
+                MaterialOverride = outlineMaterial
+            };
+            int surfaceCount = ButtonMesh.Mesh != null ? ButtonMesh.Mesh.GetSurfaceCount() : ButtonMesh.GetSurfaceOverrideMaterialCount();
+            for (int i = 0; i < surfaceCount; i++)
             {
                 Outline.SetSurfaceOverrideMaterial(i, outlineMaterial);
             }

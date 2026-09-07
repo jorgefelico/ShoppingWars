@@ -17,7 +17,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private Label3D NameCard;
     [Export] public SpotLight3D Flashlight;
     [Export] public MeshInstance3D MeshInstance;
-    [Export] public float PickUpRange = 2.0f;
+    [Export] public float PickUpRange = 2.75f;
     [Export] private float ThrowVelocity = 50.0f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;

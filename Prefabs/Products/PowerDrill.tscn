@@ -1,11 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://2k6ybcairpcj"]
 
 [ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_script"]
-[ext_resource type="Texture2D" path="res://Icons/powerdrill.png" id="2_icon"]
-[ext_resource type="PackedScene" path="res://Models/power_drill.glb" id="3_model"]
+[ext_resource type="Texture2D" uid="uid://b218ed8xpb2o2" path="res://Icons/powerdrill.png" id="2_icon"]
+[ext_resource type="PackedScene" uid="uid://bygm4ejejpyuf" path="res://Models/power_drill.glb" id="3_model"]
 
 [sub_resource type="BoxShape3D" id="ColShape_PowerDrill"]
-size = Vector3(0.28, 0.24, 0.09)
+size = Vector3(0.26702148, 0.27606446, 0.09)
 
 [sub_resource type="SceneReplicationConfig" id="SyncConfig_PowerDrill"]
 properties/0/path = NodePath(".:position")
@@ -24,7 +24,8 @@ properties/4/path = NodePath(".:scale")
 properties/4/spawn = true
 properties/4/replication_mode = 2
 
-[node name="PowerDrill" type="RigidBody3D"]
+[node name="PowerDrill" type="RigidBody3D" unique_id=1443889012]
+collision_layer = 1
 collision_mask = 3
 mass = 2.2
 continuous_cd = true
@@ -34,16 +35,15 @@ script = ExtResource("1_script")
 DisplayName = &"Power Drill"
 Price = 50
 Damage = 75
-ScaleVariation = true
 Icon = ExtResource("2_icon")
 ThrowMultiplier = 0.6
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=994329749]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052944336, 0.13803223, 0)
 shape = SubResource("ColShape_PowerDrill")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=484284950]
 delta_interval = 0.05
 replication_config = SubResource("SyncConfig_PowerDrill")
 
-[node name="Model" parent="." instance=ExtResource("3_model")]
+[node name="Model" parent="." unique_id=883966255 instance=ExtResource("3_model")]

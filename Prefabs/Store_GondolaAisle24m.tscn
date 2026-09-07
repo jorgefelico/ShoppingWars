@@ -52,8 +52,17 @@ lightmap_size_hint = Vector2i(16, 16)
 add_uv2 = true
 size = Vector3(1.5, 0.9, 0.1)
 
-[sub_resource type="BoxShape3D" id="BoxShape_Aisle"]
-size = Vector3(1.7, 2.9, 26.4)
+[sub_resource type="BoxShape3D" id="BoxShape_CenterWall"]
+size = Vector3(0.14, 2.9, 24)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Base"]
+size = Vector3(1.6, 0.25, 24)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Endcap_Wall"]
+size = Vector3(1.8, 2.9, 0.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Endcap_Base"]
+size = Vector3(1.8, 0.25, 1.2)
 
 [node name="GondolaAisle24m" type="StaticBody3D"]
 
@@ -184,4 +193,25 @@ mesh = SubResource("BoxMesh_Aisle_Sign")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
-shape = SubResource("BoxShape_Aisle")
+shape = SubResource("BoxShape_CenterWall")
+
+[node name="Col_Base" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+shape = SubResource("BoxShape_Base")
+
+[node name="Col_Endcap_N_Wall" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 12.05)
+shape = SubResource("BoxShape_Endcap_Wall")
+
+[node name="Col_Endcap_N_Base" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 12.60)
+shape = SubResource("BoxShape_Endcap_Base")
+
+[node name="Col_Endcap_S_Wall" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, -12.05)
+shape = SubResource("BoxShape_Endcap_Wall")
+
+[node name="Col_Endcap_S_Base" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, -12.60)
+shape = SubResource("BoxShape_Endcap_Base")
+

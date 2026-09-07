@@ -73,16 +73,18 @@ public partial class Product : RigidBody3D, IInteractable
 
         if (mesh != null)
         {
-            Outline = new MeshInstance3D
-            {
-                Mesh = mesh.Mesh,
-                Visible = false,
-            };
             ShaderMaterial outlineMaterial = new()
             {
                 Shader = GD.Load<Shader>("res://Shaders/outline.gdshader"),
             };
-            for (int i = 0; i < mesh.GetSurfaceOverrideMaterialCount(); i++)
+            Outline = new MeshInstance3D
+            {
+                Mesh = mesh.Mesh,
+                Visible = false,
+                MaterialOverride = outlineMaterial
+            };
+            int surfaceCount = mesh.Mesh != null ? mesh.Mesh.GetSurfaceCount() : mesh.GetSurfaceOverrideMaterialCount();
+            for (int i = 0; i < surfaceCount; i++)
             {
                 Outline.SetSurfaceOverrideMaterial(i, outlineMaterial);
             }
@@ -211,7 +213,8 @@ public partial class Product : RigidBody3D, IInteractable
     public void Interact(PlayerController player)
     {
         if (GameManager.Instance == null) return;
-        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= player.PickUpRange && GameManager.Instance.CurrentPhase != GamePhase.Lobby)
+        Vector3 playerPos = player.Camera != null ? player.Camera.GlobalPosition : player.GlobalPosition;
+        if (GlobalPosition.DistanceTo(playerPos) <= player.PickUpRange && GameManager.Instance.CurrentPhase != GamePhase.Lobby)
         {
             if (!player.Inventory.CanAddItem(this)) return;
 

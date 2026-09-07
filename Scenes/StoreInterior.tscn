@@ -3,17 +3,22 @@
 [ext_resource type="LightmapGIData" uid="uid://cpnf838vxyqkp" path="res://Bakes/StoreInterior.lmbake" id="1_7u461"]
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="1_510ba"]
 [ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="1_floor"]
+[ext_resource type="AudioStream" uid="uid://ct1y46i3smmuo" path="res://Sounds/store_chime.wav" id="2_11fay"]
 [ext_resource type="Material" uid="uid://crjn34m3d6v40" path="res://Materials/ceiling.tres" id="2_ceiling"]
 [ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
+[ext_resource type="AudioStream" uid="uid://crlspo1d4dyis" path="res://Sounds/shopping_phase_starting.wav" id="2_wpfo0"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
 [ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
+[ext_resource type="AudioStream" uid="uid://n2kntl7et4dk" path="res://Sounds/battle_phase_starting.wav" id="4_1y5qk"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="38_kml1t"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Lemon.tscn" id="39_kml1t"]
+[ext_resource type="PackedScene" path="res://Prefabs/Products/FireExtinguisher.tscn" id="40_2mhrk"]
+[ext_resource type="PackedScene" uid="uid://2k6ybcairpcj" path="res://Prefabs/Products/PowerDrill.tscn" id="41_wpfo0"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
@@ -182,6 +187,9 @@ ShoppingDuration = 20.0
 BattleDuration = 240.0
 _lightmap = NodePath("../../LightmapGI")
 _worldEnvironment = NodePath("../WorldEnvironment")
+TransitionChime = ExtResource("2_11fay")
+ShoppingTransitionSound = ExtResource("2_wpfo0")
+BattleTransitionSound = ExtResource("4_1y5qk")
 MusicVolumeDb = -24.0
 
 [node name="AmbientEventManager" type="Node" parent="WorldStuff" unique_id=981240182 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
@@ -2206,3 +2214,111 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56.577972, 1.25, -36.806374)
 
 [node name="Lemon" parent="." unique_id=2105217577 instance=ExtResource("39_kml1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.57565, 1.25, -43.147625)
+
+[node name="FireExtinguisher" parent="." unique_id=1944164578 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -33.70205)
+
+[node name="FireExtinguisher2" parent="." unique_id=490690249 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -33.388023)
+
+[node name="FireExtinguisher3" parent="." unique_id=102646322 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -33.06281)
+
+[node name="FireExtinguisher4" parent="." unique_id=932478476 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -32.72453)
+
+[node name="FireExtinguisher5" parent="." unique_id=1426184923 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -32.3807)
+
+[node name="FireExtinguisher6" parent="." unique_id=413909452 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -32.0457)
+
+[node name="FireExtinguisher7" parent="." unique_id=86780170 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 2.2620308, -31.73088)
+
+[node name="FireExtinguisher8" parent="." unique_id=1638206282 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -31.73088)
+
+[node name="FireExtinguisher9" parent="." unique_id=1158213579 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -32.050705)
+
+[node name="FireExtinguisher10" parent="." unique_id=1014950445 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -32.345375)
+
+[node name="FireExtinguisher11" parent="." unique_id=639741000 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -32.67449)
+
+[node name="FireExtinguisher12" parent="." unique_id=847111477 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -33.010365)
+
+[node name="FireExtinguisher13" parent="." unique_id=1160261879 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -33.34649)
+
+[node name="FireExtinguisher14" parent="." unique_id=734033392 instance=ExtResource("40_2mhrk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.812176, 1.6281545, -33.687798)
+
+[node name="PowerDrill" parent="." unique_id=228714070 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -33.3521)
+
+[node name="PowerDrill2" parent="." unique_id=978162078 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -33.643288)
+
+[node name="PowerDrill3" parent="." unique_id=162238613 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -33.170998)
+
+[node name="PowerDrill4" parent="." unique_id=586257640 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -32.948486)
+
+[node name="PowerDrill5" parent="." unique_id=784524106 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -32.74348)
+
+[node name="PowerDrill6" parent="." unique_id=1994648625 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -32.50004)
+
+[node name="PowerDrill7" parent="." unique_id=1093565355 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -32.30797)
+
+[node name="PowerDrill8" parent="." unique_id=438374864 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -32.1126)
+
+[node name="PowerDrill9" parent="." unique_id=1669988912 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -31.966236)
+
+[node name="PowerDrill10" parent="." unique_id=524592629 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -31.795683)
+
+[node name="PowerDrill11" parent="." unique_id=826858883 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 1.0133922, -31.570787)
+
+[node name="PowerDrill12" parent="." unique_id=810965738 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -33.3521)
+
+[node name="PowerDrill13" parent="." unique_id=198572525 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -33.643288)
+
+[node name="PowerDrill14" parent="." unique_id=292102281 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -33.170998)
+
+[node name="PowerDrill15" parent="." unique_id=806336465 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -32.948486)
+
+[node name="PowerDrill16" parent="." unique_id=1010694625 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -32.74348)
+
+[node name="PowerDrill17" parent="." unique_id=2138723446 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -32.50004)
+
+[node name="PowerDrill18" parent="." unique_id=1093276200 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -32.30797)
+
+[node name="PowerDrill19" parent="." unique_id=1530503940 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -32.1126)
+
+[node name="PowerDrill20" parent="." unique_id=1647040835 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -31.966236)
+
+[node name="PowerDrill21" parent="." unique_id=1297173353 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -31.795683)
+
+[node name="PowerDrill22" parent="." unique_id=1834092499 instance=ExtResource("41_wpfo0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.752586, 0.4162717, -31.570787)

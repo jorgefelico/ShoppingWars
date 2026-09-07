@@ -5,8 +5,8 @@
 [ext_resource type="PackedScene" path="res://Models/fire_extinguisher.glb" id="3_model"]
 
 [sub_resource type="CylinderShape3D" id="ColShape_FireExtinguisher"]
-height = 0.42
-radius = 0.06
+height = 0.44
+radius = 0.08
 
 [sub_resource type="SceneReplicationConfig" id="SyncConfig_FireExtinguisher"]
 properties/0/path = NodePath(".:position")
@@ -26,6 +26,7 @@ properties/4/spawn = true
 properties/4/replication_mode = 2
 
 [node name="FireExtinguisher" type="RigidBody3D"]
+collision_layer = 1
 collision_mask = 3
 mass = 2.5
 continuous_cd = true
@@ -40,7 +41,7 @@ Icon = ExtResource("2_icon")
 ThrowMultiplier = 0.55
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, 0)
 shape = SubResource("ColShape_FireExtinguisher")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

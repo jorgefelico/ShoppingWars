@@ -179,11 +179,17 @@ public partial class Inventory : Node
             foreach (Product item in _slots[i])
             {
                 if (item == null || !GodotObject.IsInstanceValid(item)) continue;
-                item.Reparent(GetTree().CurrentScene, true);
+                if (item.GetParent() != GetTree().CurrentScene)
+                {
+                    item.Reparent(GetTree().CurrentScene, true);
+                }
                 item.Freeze = false;
                 item.CollisionLayer = 1;
                 item.CollisionMask = 3;
                 item.Visible = true;
+                item.IsForSale = false;
+                item.WasBought = true;
+                item.CanBePickedUp = true;
             }
             _slots[i].Clear();
         }

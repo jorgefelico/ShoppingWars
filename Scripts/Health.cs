@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class Health : Node
 {
@@ -6,6 +7,8 @@ public partial class Health : Node
     [Export] HealthBar HealthBar;
     public int CurrentHealth;
     public bool IsDead = false;
+
+    public event Action Died;
 
     public override void _EnterTree()
     {
@@ -40,7 +43,12 @@ public partial class Health : Node
     private void RpcSyncHealth(int health, bool isDead)
     {
         CurrentHealth = health;
+        bool justDied = isDead && !IsDead;
         IsDead = isDead;
         HealthBar?.Refresh(CurrentHealth, MaxHealth);
+        if (justDied)
+        {
+            Died?.Invoke();
+        }
     }
 }

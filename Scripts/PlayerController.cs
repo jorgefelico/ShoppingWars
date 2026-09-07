@@ -113,6 +113,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         if (Flashlight == null) Flashlight = GetNodeOrNull<SpotLight3D>("Head/Camera/Flashlight");
+        if (Health != null)
+        {
+            Health.Died += OnPlayerDied;
+        }
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
@@ -120,6 +124,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         Money = StartingMoney;
+    }
+
+    public override void _ExitTree()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
+        }
+        if (Health != null)
+        {
+            Health.Died -= OnPlayerDied;
+        }
     }
 
     public override void _EnterTree()
@@ -140,12 +156,6 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 if (!InputDisabled) InputDisabled = true;
                 if (DeathOverlay != null && !DeathOverlay.Visible) DeathOverlay.Visible = true;
-
-                if (Multiplayer.IsServer())
-                {
-                    Inventory.DropLoot();
-                    HeldItem = null;
-                }
             }
         }
         else
@@ -660,5 +670,71 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 }
             }
         }
+    }
+
+    private void OnPlayerDied()
+    {
+        if (IsMultiplayerAuthority())
+        {
+            InputDisabled = true;
+            if (DeathOverlay != null) DeathOverlay.Visible = true;
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+
+        DropAllHeldItems();
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcDropLoot()
+    {
+        DropAllHeldItems();
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcDropLoot));
+                    }
+                }
+            }
+        }
+    }
+
+    public void DropAllHeldItems()
+    {
+        if (ItemHand != null)
+        {
+            var children = new Godot.Collections.Array<Node>(ItemHand.GetChildren());
+            for (int i = 0; i < children.Count; i++)
+            {
+                if (children[i] is Product product && GodotObject.IsInstanceValid(product))
+                {
+                    product.Reparent(GetTree().CurrentScene, true);
+                    product.GlobalPosition = GlobalPosition + new Vector3(0, 0.5f, 0);
+                    product.Freeze = false;
+                    product.CollisionLayer = 1;
+                    product.CollisionMask = 3;
+                    product.Visible = true;
+                    product.IsForSale = false;
+                    product.WasBought = true;
+                    product.CanBePickedUp = true;
+
+                    float angle = (float)(i * (2.0 * Mathf.Pi / Mathf.Max(1, children.Count)));
+                    Vector3 scatterDir = new Vector3(Mathf.Cos(angle), 1.0f, Mathf.Sin(angle)).Normalized();
+                    product.LinearVelocity = scatterDir * 2.5f;
+                }
+            }
+        }
+
+        if (Inventory != null)
+        {
+            Inventory.DropLoot();
+        }
+        HeldItem = null;
     }
 }

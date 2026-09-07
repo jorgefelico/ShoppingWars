@@ -66,12 +66,24 @@ public partial class GamePhaseHUD : CanvasLayer
                 MoneyLabel.Visible = false;
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
+            case GamePhase.ShoppingTransition:
+                PhaseLabel.Text = "PREPARE TO SHOP!";
+                PhaseLabel.Modulate = Colors.Gold;
+                MoneyLabel.Visible = false;
+                if (GameOverPanel != null) GameOverPanel.Visible = false;
+                break;
             case GamePhase.Shopping:
                 PhaseLabel.Text = "SHOPPING PHASE";
                 PhaseLabel.Modulate = Colors.Cyan;
                 MoneyLabel.Visible = true;
                 MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
                 MoneyLabel.Modulate = PlayerController.Instance?.Money != 0 ? Colors.Green : Colors.Red;
+                if (GameOverPanel != null) GameOverPanel.Visible = false;
+                break;
+            case GamePhase.BattleTransition:
+                PhaseLabel.Text = "STORE LOCKDOWN - PREPARE FOR BATTLE!";
+                PhaseLabel.Modulate = Colors.OrangeRed;
+                MoneyLabel.Visible = false;
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.BattleRoyale:

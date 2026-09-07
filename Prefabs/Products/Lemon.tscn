@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_script"]
 [ext_resource type="Texture2D" path="res://Icons/lemon.png" id="2_icon"]
 [ext_resource type="PackedScene" path="res://Models/lemon.glb" id="3_model"]
+[ext_resource type="PackedScene" uid="uid://fruit_splat_generic" path="res://Prefabs/FruitSplatter.tscn" id="4_splatter"]
 
 [sub_resource type="SphereShape3D" id="ColShape_Lemon"]
 radius = 0.05
@@ -37,6 +38,7 @@ Damage = 15
 ScaleVariation = true
 Icon = ExtResource("2_icon")
 ThrowMultiplier = 1.25
+ImpactEffect = ExtResource("4_splatter")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)

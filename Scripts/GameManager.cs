@@ -3,7 +3,9 @@ using Godot;
 public enum GamePhase
 {
     Lobby,
+    ShoppingTransition,
     Shopping,
+    BattleTransition,
     BattleRoyale,
     GameOver
 }
@@ -11,11 +13,16 @@ public enum GamePhase
 public partial class GameManager : Node
 {
     public static GameManager Instance { get; private set; }
+    [Export] public float ShoppingTransitionDuration = 10.0f;
     [Export] public float ShoppingDuration = 30.0f;
+    [Export] public float BattleTransitionDuration = 10.0f;
     [Export] public float BattleDuration = 60.0f;
     [Export] private LightmapGI _lightmap;
     [Export] private WorldEnvironment _worldEnvironment;
     [Export] public AudioStream BattleRoyaleSound;
+    [Export] public AudioStream TransitionChime;
+    [Export] public AudioStream ShoppingTransitionSound;
+    [Export] public AudioStream BattleTransitionSound;
     [Export] public AudioStream LobbyMusic;
     [Export] public AudioStream BattleRoyaleMusic;
     [Export] public Godot.Collections.Array<AudioStream> LobbyPlaylist = new();
@@ -41,6 +48,21 @@ public partial class GameManager : Node
         _audioPlayer = new AudioStreamPlayer();
         _audioPlayer.Bus = "Master";
         AddChild(_audioPlayer);
+
+        if (TransitionChime == null)
+        {
+            string[] candidatePaths = {
+                "res://Sounds/store_chime.wav",
+            };
+            foreach (var path in candidatePaths)
+            {
+                if (ResourceLoader.Exists(path) || FileAccess.FileExists(path))
+                {
+                    TransitionChime = GD.Load<AudioStream>(path);
+                    break;
+                }
+            }
+        }
 
         // Populate default Lobby/Shopping playlist if empty
         if (LobbyPlaylist.Count == 0)
@@ -108,14 +130,24 @@ public partial class GameManager : Node
                 }
             }
 
-            if (CurrentPhase == GamePhase.BattleRoyale)
+            if (CurrentPhase == GamePhase.ShoppingTransition && TimeRemaining <= 0f)
             {
-                CheckBattleRoyaleOutcome();
+                TimeRemaining = 0f;
+                StartShoppingPhase();
             }
             else if (CurrentPhase == GamePhase.Shopping && TimeRemaining <= 0f)
             {
                 TimeRemaining = 0f;
+                StartBattleTransition();
+            }
+            else if (CurrentPhase == GamePhase.BattleTransition && TimeRemaining <= 0f)
+            {
+                TimeRemaining = 0f;
                 StartBattleRoyalePhase();
+            }
+            else if (CurrentPhase == GamePhase.BattleRoyale)
+            {
+                CheckBattleRoyaleOutcome();
             }
         }
         else
@@ -247,9 +279,33 @@ public partial class GameManager : Node
         return list;
     }
 
+    public void StartShoppingTransition()
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        WinnerName = "";
+        IsDraw = false;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncState), (int)GamePhase.ShoppingTransition, ShoppingTransitionDuration, "", false);
+        }
+        else
+        {
+            RpcSyncState((int)GamePhase.ShoppingTransition, ShoppingTransitionDuration, "", false);
+        }
+        GD.Print($"[GameManager] PRE-PHASE 1: SHOPPING TRANSITION STARTED ({ShoppingTransitionDuration}s)!");
+    }
+
     public void StartShoppingPhase()
     {
         if (!Multiplayer.IsServer()) return;
+
+        if (CurrentPhase == GamePhase.Lobby)
+        {
+            StartShoppingTransition();
+            return;
+        }
 
         WinnerName = "";
         IsDraw = false;
@@ -265,9 +321,30 @@ public partial class GameManager : Node
         GD.Print("[GameManager] PHASE 1: SHOPPING STARTED!");
     }
 
+    public void StartBattleTransition()
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncState), (int)GamePhase.BattleTransition, BattleTransitionDuration, "", false);
+        }
+        else
+        {
+            RpcSyncState((int)GamePhase.BattleTransition, BattleTransitionDuration, "", false);
+        }
+        GD.Print($"[GameManager] PRE-PHASE 2: BATTLE ROYALE TRANSITION STARTED ({BattleTransitionDuration}s)!");
+    }
+
     public void StartBattleRoyalePhase()
     {
         if (!Multiplayer.IsServer()) return;
+
+        if (CurrentPhase == GamePhase.Shopping)
+        {
+            StartBattleTransition();
+            return;
+        }
 
         if (Multiplayer.HasMultiplayerPeer())
         {
@@ -324,7 +401,25 @@ public partial class GameManager : Node
                 AmbientEventManager.Instance?.ResetEvents();
             }
 
-            if (newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
+            if (newPhase == GamePhase.ShoppingTransition)
+            {
+                AudioStream chime = ShoppingTransitionSound ?? TransitionChime;
+                if (chime != null)
+                {
+                    _audioPlayer.Stream = chime;
+                    _audioPlayer.Play();
+                }
+            }
+            else if (newPhase == GamePhase.BattleTransition)
+            {
+                AudioStream chime = BattleTransitionSound ?? TransitionChime;
+                if (chime != null)
+                {
+                    _audioPlayer.Stream = chime;
+                    _audioPlayer.Play();
+                }
+            }
+            else if (newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
             {
                 _audioPlayer.Stream = BattleRoyaleSound;
                 _audioPlayer.Play();
@@ -435,7 +530,9 @@ public partial class GameManager : Node
         switch (phase)
         {
             case GamePhase.Lobby:
+            case GamePhase.ShoppingTransition:
             case GamePhase.Shopping:
+            case GamePhase.BattleTransition:
                 targetPlaylist = LobbyPlaylist;
                 fade = 1.0f;
                 break;

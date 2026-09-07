@@ -14,12 +14,14 @@
 
 Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P Relay multiplayer** and local LAN/solo support.
 
-### Game Loop — Four Phases (`GameManager.cs`)
+### Game Loop — Match Phases & Transitions (`GameManager.cs`)
 
 1. **Lobby phase (`Lobby`)** — Initial spawn and waiting lobby state before match start. Players can move around the store freely. The host or server player interacts with the `ReadyUp` button (`E`) to kick off the match.
-2. **Shopping phase (`Shopping`)** — Timed purchasing spree (default 30s). Players start with `$100` and buy items off store shelves, coolers, and display tables (`E`). Purchasing deducts `Product.Price`. Thrown items deal **no damage** during this phase.
-3. **Battle Royale phase (`BattleRoyale`)** — When the shopping timer expires, combat activates (`GamePhaseHUD` displays a red warning banner). Store items bought during shopping deal damage when thrown (`LMB`). The **Groomba** hazard activates, patrols the aisles, and chases players. Server-authoritative **Ambient Events** trigger dynamically.
-4. **Game Over / Winner phase (`GameOver`)** — Triggered when only one player remains alive (last shopper standing), if all players are eliminated (draw), or when the battle timer expires (highest remaining HP winner or tiebreaker draw).
+2. **Shopping Transition (`ShoppingTransition`)** — 10-second pre-shopping warmup countdown (`PREPARE TO SHOP!`). Allows players to scout aisles and sprint into position before stores open. Purchasing is disabled.
+3. **Shopping phase (`Shopping`)** — Timed purchasing spree (default 30s). Players start with `$100` and buy items off store shelves, coolers, and display tables (`E`). Purchasing deducts `Product.Price`. Thrown items deal **no damage** during this phase.
+4. **Battle Transition (`BattleTransition`)** — 10-second store lockdown countdown (`STORE LOCKDOWN - PREPARE FOR BATTLE!`). Purchasing is disabled and unbought shelf items lock down. Gives players time to select weapon slots and take cover before combat begins.
+5. **Battle Royale phase (`BattleRoyale`)** — When the battle transition timer expires, combat activates with warning alarm (`GamePhaseHUD` displays a red warning banner). Store items bought during shopping deal damage when thrown (`LMB`). The **Groomba** hazard activates, patrols the aisles, and chases players. Server-authoritative **Ambient Events** trigger dynamically.
+6. **Game Over / Winner phase (`GameOver`)** — Triggered when only one player remains alive (last shopper standing), if all players are eliminated (draw), or when the battle timer expires (highest remaining HP winner or tiebreaker draw).
    - Broadcasts `RpcSyncGameOver` to all clients with `winnerName` and `isDraw`.
    - Displays an animated Victory Royale / Defeat / Draw end screen (`GamePhaseHUD.tscn`) with champion details.
    - Unlocks the mouse cursor.
@@ -118,6 +120,8 @@ Configured in `project.godot`:
 - **`Groomba.cs`** (`PatrolEnemy`) — Vacuum robot enemy with state machine navigation and color-coded indicator ring.
 - **`TestShooter.cs`** (`Node3D`) — Automated projectile test turret.
 - **`Explosion.cs`** (`Node3D`) — Particle burst, dynamic flash lighting, audio playback, and auto-cleanup for explosive items.
+- **`WatermelonSplatter.cs`** (`Node3D`) — Multi-emitter watermelon impact burst controller (mist, juice splatter, melon chunks, seeds, rind bits, flash light, sound).
+- **`FruitSplatter.cs`** (`Node3D`) — Generic multi-emitter fruit impact splatter with dynamic fruit color tinting (juice mist, splatter droplets, pulp chunks, fine spray, flash light, sound).
 
 #### Environment & Lighting
 - **`StoreFluorescentLight.cs`** (`Node3D`) — Fluorescent light fixture supporting power toggling for blackout events.
@@ -156,7 +160,7 @@ Configured in `project.godot`:
 |`Scripts/`|All C# gameplay, AI, lighting, and networking code (26 root files)|
 |`Scripts/AmbientEvents/`|Modular ambient event implementations (8 files)|
 |`Scenes/`|`MainMenu.tscn`, `StoreInterior.tscn` (main gameplay arena), `world.tscn` (test arena)|
-|`Prefabs/`|Core reusable prefabs: `player.tscn`, `Groomba.tscn`, `ReadyUp.tscn`, `GamePhaseHUD.tscn`, `Death.tscn`, `Explosion.tscn`, `SmokeUp.tscn`, `Store_*.tscn`|
+|`Prefabs/`|Core reusable prefabs: `player.tscn`, `Groomba.tscn`, `ReadyUp.tscn`, `GamePhaseHUD.tscn`, `Death.tscn`, `Explosion.tscn`, `SmokeUp.tscn`, `WatermelonSplatter.tscn`, `FruitSplatter.tscn`, `Store_*.tscn`|
 |`Prefabs/Products/`|25+ throwable store product prefabs (`Apple.tscn`, `Watermelon.tscn`, `PropaneTank.tscn`, etc.)|
 |`Prefabs/Stock/`|Pre-stocked shelf and display modules (`Stock_CerealShelf_12m.tscn`, `Stock_ProduceCrates.tscn`, etc.)|
 |`Models/`|Blender `.blend` and `.fbx` 3D model sources imported natively by Godot (`importer="scene"`)|

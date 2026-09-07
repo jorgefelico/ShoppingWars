@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="38_kml1t"]
+[ext_resource type="PackedScene" path="res://Prefabs/Products/Lemon.tscn" id="39_kml1t"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
@@ -2202,3 +2203,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57.173553, 1.25, -36.806374)
 
 [node name="Watermelon15" parent="." unique_id=680129194 instance=ExtResource("38_kml1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56.577972, 1.25, -36.806374)
+
+[node name="Lemon" parent="." unique_id=2105217577 instance=ExtResource("39_kml1t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.57565, 1.25, -43.147625)

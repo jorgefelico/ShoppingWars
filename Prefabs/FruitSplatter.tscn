@@ -1,0 +1,239 @@
+[gd_scene format=3 uid="uid://fruit_splat_generic"]
+
+[ext_resource type="Script" path="res://Scripts/FruitSplatter.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dc5e8pin0lbvl" path="res://Textures/particles/smoke_04.png" id="2_mist"]
+[ext_resource type="Texture2D" uid="uid://kjd8mseqq8my" path="res://Textures/particles/dirt_01.png" id="3_splat"]
+[ext_resource type="Texture2D" uid="uid://dn8sbooqkh4sj" path="res://Textures/particles/dirt_02.png" id="4_chunks"]
+[ext_resource type="Texture2D" uid="uid://dufnh2sv514mf" path="res://Textures/particles/circle_05.png" id="5_spray"]
+[ext_resource type="AudioStream" uid="uid://cm40ki5ct0ll5" path="res://Sounds/wartermelon_splash.wav" id="6_sound"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_common"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mist"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.98, 0.5, 0.15, 1)
+albedo_texture = ExtResource("2_mist")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_mist"]
+offsets = PackedFloat32Array(0, 0.3, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0.85, 1, 1, 1, 0.75, 1, 1, 1, 0.35, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_mist"]
+gradient = SubResource("Gradient_mist")
+use_hdr = true
+
+[sub_resource type="Curve" id="Curve_mist"]
+_limits = [0.0, 2.0, 0.0, 1.0]
+_data = [Vector2(0, 0.3), 0.0, 3.5, 0, 0, Vector2(0.35, 1.4), 0.5, 0.0, 0, 0, Vector2(1, 1.7), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_mist"]
+curve = SubResource("Curve_mist")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_mist"]
+emission_shape = 1
+emission_sphere_radius = 0.2
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 1.8
+initial_velocity_max = 4.0
+damping_min = 3.5
+damping_max = 6.0
+gravity = Vector3(0, -1.2, 0)
+scale_curve = SubResource("CurveTexture_mist")
+color_ramp = SubResource("GradientTexture1D_mist")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_splat"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.98, 0.5, 0.15, 1)
+albedo_texture = ExtResource("3_splat")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_splat"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.85, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_splat"]
+gradient = SubResource("Gradient_splat")
+use_hdr = true
+
+[sub_resource type="Curve" id="Curve_splat"]
+_limits = [0.0, 1.0, 0.0, 1.0]
+_data = [Vector2(0, 0.7), 0.0, 0.0, 0, 0, Vector2(0.2, 1.0), 0.0, 0.0, 0, 0, Vector2(1, 0.1), -1.2, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_splat"]
+curve = SubResource("Curve_splat")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_splat"]
+emission_shape = 1
+emission_sphere_radius = 0.15
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 170.0
+initial_velocity_min = 4.0
+initial_velocity_max = 8.0
+damping_min = 1.5
+damping_max = 3.5
+gravity = Vector3(0, -13, 0)
+scale_min = 0.2
+scale_max = 0.5
+scale_curve = SubResource("CurveTexture_splat")
+color_ramp = SubResource("GradientTexture1D_splat")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chunks"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.98, 0.5, 0.15, 1)
+albedo_texture = ExtResource("4_chunks")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_chunks"]
+offsets = PackedFloat32Array(0, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.9, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_chunks"]
+gradient = SubResource("Gradient_chunks")
+use_hdr = true
+
+[sub_resource type="Curve" id="Curve_chunks"]
+_limits = [0.0, 1.0, 0.0, 1.0]
+_data = [Vector2(0, 0.6), 0.0, 0.0, 0, 0, Vector2(0.25, 1.0), 0.0, 0.0, 0, 0, Vector2(1, 0.2), -1.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_chunks"]
+curve = SubResource("Curve_chunks")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_chunks"]
+emission_shape = 1
+emission_sphere_radius = 0.1
+angle_min = -180.0
+angle_max = 180.0
+angular_velocity_min = -220.0
+angular_velocity_max = 220.0
+direction = Vector3(0, 1, 0)
+spread = 160.0
+initial_velocity_min = 3.0
+initial_velocity_max = 6.5
+damping_min = 1.0
+damping_max = 2.5
+gravity = Vector3(0, -12, 0)
+scale_min = 0.2
+scale_max = 0.45
+scale_curve = SubResource("CurveTexture_chunks")
+color_ramp = SubResource("GradientTexture1D_chunks")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spray"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.98, 0.5, 0.15, 1)
+albedo_texture = ExtResource("5_spray")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_spray"]
+offsets = PackedFloat32Array(0, 0.6, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_spray"]
+gradient = SubResource("Gradient_spray")
+use_hdr = true
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spray"]
+emission_shape = 1
+emission_sphere_radius = 0.12
+direction = Vector3(0, 1, 0)
+spread = 175.0
+initial_velocity_min = 3.5
+initial_velocity_max = 7.5
+gravity = Vector3(0, -11, 0)
+scale_min = 0.08
+scale_max = 0.22
+color_ramp = SubResource("GradientTexture1D_spray")
+
+[node name="FruitSplatter" type="Node3D" node_paths=PackedStringArray("SplashLight", "AudioPlayer", "ParticleEmitters")]
+script = ExtResource("1_script")
+Lifetime = 1.8
+SplashLight = NodePath("SplashLight")
+AudioPlayer = NodePath("AudioStreamPlayer3D")
+ParticleEmitters = [NodePath("JuiceMist"), NodePath("JuiceSplatter"), NodePath("PulpChunks"), NodePath("FineSpray")]
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("6_sound")
+unit_size = 16.0
+max_distance = 40.0
+bus = &"Master"
+
+[node name="SplashLight" type="OmniLight3D" parent="."]
+light_color = Color(0.98, 0.5, 0.15, 1)
+light_energy = 2.5
+omni_range = 3.5
+
+[node name="JuiceMist" type="GPUParticles3D" parent="."]
+material_override = SubResource("StandardMaterial3D_mist")
+emitting = false
+amount = 20
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.95
+process_material = SubResource("ParticleProcessMaterial_mist")
+draw_pass_1 = SubResource("QuadMesh_common")
+
+[node name="JuiceSplatter" type="GPUParticles3D" parent="."]
+material_override = SubResource("StandardMaterial3D_splat")
+emitting = false
+amount = 40
+lifetime = 0.65
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_splat")
+draw_pass_1 = SubResource("QuadMesh_common")
+
+[node name="PulpChunks" type="GPUParticles3D" parent="."]
+material_override = SubResource("StandardMaterial3D_chunks")
+emitting = false
+amount = 24
+lifetime = 0.75
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_chunks")
+draw_pass_1 = SubResource("QuadMesh_common")
+
+[node name="FineSpray" type="GPUParticles3D" parent="."]
+material_override = SubResource("StandardMaterial3D_spray")
+emitting = false
+amount = 20
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_spray")
+draw_pass_1 = SubResource("QuadMesh_common")

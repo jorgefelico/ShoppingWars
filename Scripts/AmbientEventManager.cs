@@ -9,8 +9,9 @@ public partial class AmbientEventManager : Node
     [Export] public bool EnableRandomEvents = true;
     [Export] public float MinEventInterval = 25.0f;
     [Export] public float MaxEventInterval = 45.0f;
-    [Export] public float FirstEventDelay = 12.0f;
-    [Export] public bool TriggerInShoppingPhase = true;
+    [Export] public float MinFirstEventDelay = 15.0f;
+    [Export] public float MaxFirstEventDelay = 35.0f;
+    [Export] public bool TriggerInShoppingPhase = false;
     [Export] public bool TriggerInBattleRoyalePhase = true;
 
     [Export] private LightmapGI _lightmap;
@@ -25,6 +26,7 @@ public partial class AmbientEventManager : Node
     private readonly Dictionary<string, IAmbientEvent> _events = new();
     private string _lastEventId = "";
     private AudioStreamPlayer _audioPlayer;
+    private bool _subscribedToGameManager = false;
 
     [Signal]
     public delegate void AmbientEventStartedEventHandler(string eventId, string displayName, string description, float duration);
@@ -55,7 +57,50 @@ public partial class AmbientEventManager : Node
         RegisterEvent(new DenseFogAmbientEvent());
         RegisterEvent(new GroombaRageAmbientEvent());
 
-        NextEventTimer = FirstEventDelay;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
+            _subscribedToGameManager = true;
+        }
+
+        ScheduleFirstEventDelay();
+    }
+
+    public override void _ExitTree()
+    {
+        if (_subscribedToGameManager && GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
+            _subscribedToGameManager = false;
+        }
+    }
+
+    public void ScheduleFirstEventDelay()
+    {
+        float min = Mathf.Min(MinFirstEventDelay, MaxFirstEventDelay);
+        float max = Mathf.Max(MinFirstEventDelay, MaxFirstEventDelay);
+        NextEventTimer = (float)GD.RandRange(min, max);
+    }
+
+    private void OnGamePhaseChanged()
+    {
+        if (GameManager.Instance == null) return;
+
+        if (GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
+        {
+            if (Multiplayer.IsServer())
+            {
+                ScheduleFirstEventDelay();
+                GD.Print($"[AmbientEventManager] Battle Royale phase started! First ambient event scheduled in {NextEventTimer:0.0}s");
+            }
+        }
+        else
+        {
+            if (ActiveEvent != null)
+            {
+                EndActiveEvent();
+            }
+        }
     }
 
     private void FindSceneReferences()
@@ -87,6 +132,12 @@ public partial class AmbientEventManager : Node
 
     public override void _Process(double delta)
     {
+        if (!_subscribedToGameManager && GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
+            _subscribedToGameManager = true;
+        }
+
         // 1. Process active ambient event
         if (ActiveEvent != null)
         {
@@ -243,7 +294,7 @@ public partial class AmbientEventManager : Node
         PlayerController.SetGlobalGravityModifier(1.0f, 1.0f);
         GetTree().CallGroup("PatrolEnemies", "SetSpeedMultiplier", 1.0f);
 
-        NextEventTimer = FirstEventDelay;
+        ScheduleFirstEventDelay();
     }
 
     public void SetLightmapVisible(bool visible)

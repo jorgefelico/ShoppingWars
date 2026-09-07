@@ -436,14 +436,20 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             if (interactable != _highlightedItem)
             {
-                _highlightedItem?.OutlineOff();
+                if (_highlightedItem is GodotObject prev && GodotObject.IsInstanceValid(prev))
+                {
+                    _highlightedItem.OutlineOff();
+                }
                 _highlightedItem = interactable;
                 _highlightedItem.OutlineOn();
             }
         }
         else if (_highlightedItem != null)
         {
-            _highlightedItem.OutlineOff();
+            if (_highlightedItem is GodotObject prev && GodotObject.IsInstanceValid(prev))
+            {
+                _highlightedItem.OutlineOff();
+            }
             _highlightedItem = null;
         }
     }
@@ -657,6 +663,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (item == null) return;
 
         item.Thrower = this;
+        item.ResetImpact();
         item.Reparent(GetTree().CurrentScene);
         item.GlobalPosition = Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f);
         item.CollisionLayer = 1;

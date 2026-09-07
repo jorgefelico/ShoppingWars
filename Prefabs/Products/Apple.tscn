@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_ma4hh"]
 [ext_resource type="Texture2D" uid="uid://dtvh34hlalpvk" path="res://Icons/appleicon.png" id="2_ypfnt"]
 [ext_resource type="PackedScene" uid="uid://dn5xcn8e0ngbd" path="res://Models/apple.tscn" id="3_l77x7"]
+[ext_resource type="PackedScene" uid="uid://fruit_splat_generic" path="res://Prefabs/FruitSplatter.tscn" id="4_splatter"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
 radius = 0.07205643
@@ -36,6 +37,7 @@ Price = 3
 Damage = 20
 ScaleVariation = true
 Icon = ExtResource("2_ypfnt")
+ImpactEffect = ExtResource("4_splatter")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1420073300]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.002810806, 0.075, 0.0039351285)

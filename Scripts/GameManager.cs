@@ -91,7 +91,6 @@ public partial class GameManager : Node
         if (LobbyPlaylist.Count == 0)
         {
             if (LobbyMusic != null) LobbyPlaylist.Add(LobbyMusic);
-            AddTrackIfValid(LobbyPlaylist, "res://Sounds/Prime_Time_Jackpot.mp3");
             AddTrackIfValid(LobbyPlaylist, "res://Sounds/Velvet_Sunday.mp3");
         }
 

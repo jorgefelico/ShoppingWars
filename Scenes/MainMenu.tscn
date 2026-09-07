@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d42rdkb7q33t" path="res://Scripts/MainMenu.cs" id="1_853f1"]
 [ext_resource type="Texture2D" uid="uid://b2t037etmbow8" path="res://Textures/mainmenubg.png" id="1_tt5f1"]
+[ext_resource type="AudioStream" uid="uid://dy03qr0inis6c" path="res://Sounds/Prime_Time_Jackpot.mp3" id="3_8saeu"]
 
 [node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SoloButton", "JoinLocalButton", "InviteContainer", "StatusLabel")]
 layout_mode = 3
@@ -74,3 +75,8 @@ offset_right = 20.0
 offset_bottom = -209.0
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=322160361]
+stream = ExtResource("3_8saeu")
+volume_db = -32.0
+autoplay = true

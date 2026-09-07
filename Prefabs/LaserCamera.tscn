@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://binytewqbcqoh"]
+
+[ext_resource type="Script" uid="uid://chymogtpp58rm" path="res://Scripts/LaserCamera.cs" id="1_5ar2h"]
+[ext_resource type="Shader" uid="uid://bln8wa554de0x" path="res://Shaders/volumetric_cone.gdshader" id="1_shader"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_casing"]
+albedo_color = Color(0.85, 0.85, 0.88, 1)
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
+material = SubResource("StandardMaterial3D_casing")
+size = Vector3(0.3, 0.3, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lens"]
+albedo_color = Color(0.12, 0.12, 0.14, 1)
+metallic = 0.5
+roughness = 0.2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
+material = SubResource("StandardMaterial3D_lens")
+top_radius = 0.1
+bottom_radius = 0.1
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsm6l"]
+cull_mode = 2
+emission_enabled = true
+emission = Color(5.912981, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7oesd"]
+material = SubResource("StandardMaterial3D_nsm6l")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 22.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7oesd"]
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(5.912981, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pn41e"]
+material = SubResource("StandardMaterial3D_7oesd")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 0.05
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cvntc"]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/cone_color = Color(0.77909577, 0, 0, 0.024)
+shader_parameter/falloff_power = 2.0
+shader_parameter/end_fade_amount = 0.10000000149012
+shader_parameter/edge_softness = 0.88800004218
+shader_parameter/center_transparency = 0.5
+shader_parameter/proximity_fade_distance = 1.2
+shader_parameter/noise_strength = 0.15
+shader_parameter/invert_falloff = true
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_l8b7g"]
+material = SubResource("ShaderMaterial_cvntc")
+top_radius = 0.08
+bottom_radius = 11.25
+height = 22.5
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_y1t4u"]
+radius = 11.25
+
+[node name="LaserCamera" type="Area3D" unique_id=1524528257 node_paths=PackedStringArray("_lens", "_laser")]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_5ar2h")
+_lens = NodePath("CameraLens/MeshInstance3D")
+_laser = NodePath("CameraLens/Laser")
+TrackingSpeed = 8.0
+
+[node name="CameraBody" type="MeshInstance3D" parent="." unique_id=1819444243]
+mesh = SubResource("BoxMesh_y1t4u")
+
+[node name="CameraLens" type="MeshInstance3D" parent="." unique_id=1358892746]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, -0.35)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="Laser" type="MeshInstance3D" parent="CameraLens" unique_id=1126571009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.1341801, 4.9576585e-08)
+visible = false
+mesh = SubResource("CylinderMesh_7oesd")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CameraLens" unique_id=679522187]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0937292, 4.097034e-09)
+mesh = SubResource("CylinderMesh_pn41e")
+
+[node name="SpotLight3D" type="SpotLight3D" parent="." unique_id=106900409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.45)
+light_color = Color(0.78039217, 0, 0, 1)
+light_volumetric_fog_energy = 0.0
+shadow_enabled = true
+spot_range = 10.0
+spot_angle = 15.0
+
+[node name="VisionCone" type="MeshInstance3D" parent="." unique_id=1479617196]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, -11.725399)
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_l8b7g")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=871344321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.156073)
+shape = SubResource("SphereShape3D_y1t4u")

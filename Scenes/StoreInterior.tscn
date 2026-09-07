@@ -1684,6 +1684,9 @@ transform = Transform3D(0.9429872, -0.070194155, 0.3253432, -0.18301274, 0.70710
 [node name="LaserCamera3" parent="." unique_id=847184904 instance=ExtResource("41_r2yec")]
 transform = Transform3D(0.9429872, -0.070194155, 0.3253432, -0.18301274, 0.7071066, 0.68301284, -0.27799594, -0.7036141, 0.653946, -12.963591, 7.958404, 10.809114)
 
+[node name="LaserCamera4" parent="." unique_id=448707212 instance=ExtResource("41_r2yec")]
+transform = Transform3D(0.9429872, -0.070194155, 0.3253432, -0.18301274, 0.7071066, 0.68301284, -0.27799594, -0.7036141, 0.653946, -49.541763, 6.9000773, -25.226183)
+
 [node name="Avocados" type="Node" parent="." unique_id=626409833]
 
 [node name="Avocado" parent="Avocados" unique_id=18979626 instance=ExtResource("37_o3hkx")]

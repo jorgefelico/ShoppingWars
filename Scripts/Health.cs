@@ -5,11 +5,12 @@ public partial class Health : Node
 {
     [Export] public int MaxHealth = 100;
     [Export] HealthBar HealthBar;
-    public int CurrentHealth;
+    public int CurrentHealth = 100;
     public bool IsDead = false;
 
     public event Action Died;
     public event Action<int, int> HealthChanged;
+    public event Action<int> Damaged;
 
     public override void _EnterTree()
     {
@@ -41,15 +42,23 @@ public partial class Health : Node
 
     public void TakeDamage(int amount)
     {
-        if (!Multiplayer.IsServer()) return;
+        if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) return;
         int newHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
         bool isDead = newHealth <= 0;
-        Rpc(nameof(RpcSyncHealth), newHealth, isDead);
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncHealth), newHealth, isDead);
+        }
+        else
+        {
+            RpcSyncHealth(newHealth, isDead);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     private void RpcSyncHealth(int health, bool isDead)
     {
+        int damageTaken = CurrentHealth - health;
         CurrentHealth = health;
         bool justDied = isDead && !IsDead;
         IsDead = isDead;
@@ -60,6 +69,11 @@ public partial class Health : Node
         }
 
         HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+
+        if (damageTaken > 0)
+        {
+            Damaged?.Invoke(damageTaken);
+        }
 
         if (justDied)
         {

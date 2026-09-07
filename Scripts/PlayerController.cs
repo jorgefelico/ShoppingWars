@@ -14,6 +14,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private HealthBar HealthBar;
     [Export] public Health Health;
     [Export] private CanvasLayer DeathOverlay;
+    [Export] public DamageOverlay DamageOverlay;
     [Export] private Label3D NameCard;
     [Export] public SpotLight3D Flashlight;
     [Export] public MeshInstance3D MeshInstance;
@@ -29,6 +30,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public Vector3 SyncPosition = Vector3.Zero;
     [Export] public Vector3 SyncHeadRotation = Vector3.Zero;
     [Export] public Vector3 SyncCameraRotation = Vector3.Zero;
+    [Export] public float TraumaDecay = 2.5f;
+    [Export] public Vector3 MaxShakeTranslation = new Vector3(0.07f, 0.07f, 0.03f);
+    [Export] public Vector3 MaxShakeRotation = new Vector3(Mathf.DegToRad(3.5f), Mathf.DegToRad(2.0f), Mathf.DegToRad(5.5f));
     private string _playerName = "";
     [Export]
     public string PlayerName
@@ -50,6 +54,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     const float Sensitivity = 0.002f;
     const float Gravity = 9.8f;
     static readonly float MaxPitch = Mathf.DegToRad(85f);
+    private float _cameraPitch = 0f;
+    private Vector3 _cameraBasePosition = new Vector3(0f, 0.7f, 0f);
+    private float _cameraTrauma = 0f;
+    private Vector3 _currentShakeOffset = Vector3.Zero;
+    private Vector3 _currentShakeRotation = Vector3.Zero;
+    private FastNoiseLite _shakeNoise;
+    private float _shakeTime = 0f;
     bool IsRunning = false;
     public Product HeldItem { get; private set; }
     IInteractable _highlightedItem;
@@ -130,11 +141,27 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             }
         }
 
+        if (DamageOverlay == null) DamageOverlay = GetNodeOrNull<DamageOverlay>("DamageOverlay");
+
+        if (Camera != null)
+        {
+            _cameraBasePosition = Camera.Position;
+            _cameraPitch = Camera.Rotation.X;
+        }
+
+        _shakeNoise = new FastNoiseLite
+        {
+            NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
+            Frequency = 0.6f,
+            Seed = (int)GD.Randi()
+        };
+
         if (Flashlight == null) Flashlight = GetNodeOrNull<SpotLight3D>("Head/Camera/Flashlight");
         if (Flashlight != null) SetFlashlight(false);
         if (Health != null)
         {
             Health.Died += OnPlayerDied;
+            Health.Damaged += OnPlayerDamaged;
         }
 
         Money = StartingMoney;
@@ -145,6 +172,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (Health != null)
         {
             Health.Died -= OnPlayerDied;
+            Health.Damaged -= OnPlayerDamaged;
         }
         if (DeathOverlay is SpectatorHUD specHud)
         {
@@ -180,6 +208,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 UpdateSpectatingState();
                 return;
             }
+
+            UpdateCameraShake((float)delta);
         }
         else
         {
@@ -313,9 +343,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             if (InputDisabled) return;
             if (motion.Relative.Length() > 500f) return;
             Head.RotateY(-motion.Relative.X * Sensitivity);
-            float pitch = Camera.Rotation.X - motion.Relative.Y * Sensitivity;
-            pitch = Mathf.Clamp(pitch, -MaxPitch, MaxPitch);
-            Camera.Rotation = new Vector3(pitch, Camera.Rotation.Y, Camera.Rotation.Z);
+            _cameraPitch -= motion.Relative.Y * Sensitivity;
+            _cameraPitch = Mathf.Clamp(_cameraPitch, -MaxPitch, MaxPitch);
+            ApplyCameraTransform();
         }
 
         if (@event is InputEventMouseButton)
@@ -396,7 +426,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         SyncPosition = GlobalPosition;
         SyncHeadRotation = Head != null ? Head.Rotation : Vector3.Zero;
-        SyncCameraRotation = Camera != null ? Camera.Rotation : Vector3.Zero;
+        SyncCameraRotation = new Vector3(_cameraPitch, 0f, 0f);
 
         if (Multiplayer.HasMultiplayerPeer())
         {
@@ -973,6 +1003,73 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
+    private void OnPlayerDamaged(int damage)
+    {
+        if (!IsMultiplayerAuthority()) return;
+
+        TriggerCameraShake(damage);
+        TriggerDamageFlash(damage);
+    }
+
+    public void TriggerCameraShake(float damage = 20.0f)
+    {
+        if (!IsMultiplayerAuthority()) return;
+        // Scale trauma: 10 dmg -> ~0.42, 30 dmg -> ~0.75, 45+ dmg -> 1.0
+        float addedTrauma = Mathf.Clamp(0.25f + (damage / 45.0f) * 0.75f, 0.3f, 1.0f);
+        _cameraTrauma = Mathf.Clamp(_cameraTrauma + addedTrauma, 0.0f, 1.0f);
+    }
+
+    public void TriggerDamageFlash(float damage = 20.0f)
+    {
+        if (!IsMultiplayerAuthority()) return;
+        DamageOverlay?.Flash(damage);
+    }
+
+    private void UpdateCameraShake(float delta)
+    {
+        if (_cameraTrauma > 0.0f)
+        {
+            _cameraTrauma = Mathf.Max(0.0f, _cameraTrauma - TraumaDecay * delta);
+            _shakeTime += delta * 60.0f;
+
+            float shake = _cameraTrauma * _cameraTrauma;
+
+            float noiseX = _shakeNoise.GetNoise2D(_shakeTime, 0.0f);
+            float noiseY = _shakeNoise.GetNoise2D(0.0f, _shakeTime);
+            float noiseZ = _shakeNoise.GetNoise2D(_shakeTime, 25.0f);
+            float noisePitch = _shakeNoise.GetNoise2D(50.0f, _shakeTime);
+            float noiseYaw = _shakeNoise.GetNoise2D(75.0f, _shakeTime);
+            float noiseRoll = _shakeNoise.GetNoise2D(_shakeTime, 100.0f);
+
+            _currentShakeOffset = new Vector3(
+                noiseX * MaxShakeTranslation.X,
+                noiseY * MaxShakeTranslation.Y,
+                noiseZ * MaxShakeTranslation.Z
+            ) * shake;
+
+            _currentShakeRotation = new Vector3(
+                noisePitch * MaxShakeRotation.X,
+                noiseYaw * MaxShakeRotation.Y,
+                noiseRoll * MaxShakeRotation.Z
+            ) * shake;
+
+            ApplyCameraTransform();
+        }
+        else if (_currentShakeOffset != Vector3.Zero || _currentShakeRotation != Vector3.Zero)
+        {
+            _currentShakeOffset = Vector3.Zero;
+            _currentShakeRotation = Vector3.Zero;
+            ApplyCameraTransform();
+        }
+    }
+
+    private void ApplyCameraTransform()
+    {
+        if (Camera == null) return;
+        Camera.Position = _cameraBasePosition + _currentShakeOffset;
+        Camera.Rotation = new Vector3(_cameraPitch + _currentShakeRotation.X, _currentShakeRotation.Y, _currentShakeRotation.Z);
+    }
+
     private void OnPlayerDied()
     {
         CollisionLayer = 0;
@@ -980,6 +1077,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.SetDeferred("disabled", true);
         if (MeshInstance != null) MeshInstance.Visible = false;
         if (NameCard != null) NameCard.Visible = false;
+
+        _cameraTrauma = 0f;
+        _currentShakeOffset = Vector3.Zero;
+        _currentShakeRotation = Vector3.Zero;
+        ApplyCameraTransform();
 
         if (IsMultiplayerAuthority())
         {

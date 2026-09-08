@@ -20,6 +20,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public MeshInstance3D MeshInstance;
     [Export] public float PickUpRange = 2.75f;
     [Export] private float ThrowVelocity = 50.0f;
+    [Export] private float ThrowCooldown = 0.5f;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
     public float SpeedModifier { get; set; } = 1.0f;
@@ -63,6 +64,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private float _shakeTime = 0f;
     bool IsRunning = false;
     public Product HeldItem { get; private set; }
+    private float _throwCooldownTimer = 0f;
+    public float ThrowCooldownRemaining => _throwCooldownTimer;
     IInteractable _highlightedItem;
     bool InputDisabled = false;
     public bool IsSpectating { get; private set; } = false;
@@ -415,6 +418,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_throwCooldownTimer > 0f)
+        {
+            _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - (float)delta);
+        }
+
         if (!IsMultiplayerAuthority()) return;
         if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver) return;
         HandleThrow();
@@ -677,6 +685,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         // Throwing
         if (Input.IsActionJustPressed("fire") && HeldItem != null && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
         {
+            if (_throwCooldownTimer > 0f) return;
+            _throwCooldownTimer = ThrowCooldown;
+
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - HeldItem.GlobalPosition).Normalized();

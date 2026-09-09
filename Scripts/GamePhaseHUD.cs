@@ -58,8 +58,10 @@ public partial class GamePhaseHUD : CanvasLayer
             MainMenuButton.Pressed += OnMainMenuPressed;
         }
 
+        SettingsManager.Initialize();
         BuildTutorialModal();
         BuildPerkModal();
+        BuildPauseMenu();
 
         if (GameManager.Instance != null)
         {
@@ -90,7 +92,7 @@ public partial class GamePhaseHUD : CanvasLayer
 
     public override void _Process(double delta)
     {
-        if ((IsTutorialOpen || IsPerkModalOpen) && Input.MouseMode != Input.MouseModeEnum.Visible)
+        if (IsAnyModalOpen && Input.MouseMode != Input.MouseModeEnum.Visible)
         {
             Input.MouseMode = Input.MouseModeEnum.Visible;
         }
@@ -370,7 +372,10 @@ public partial class GamePhaseHUD : CanvasLayer
 
     private Control _tutorialModal;
     private Label _helpHintLabel;
+    private Control _pauseMenuModal;
     public bool IsTutorialOpen => _tutorialModal != null && _tutorialModal.Visible;
+    public bool IsPauseMenuOpen => _pauseMenuModal != null && _pauseMenuModal.Visible;
+    public bool IsAnyModalOpen => IsTutorialOpen || IsPerkModalOpen || IsPauseMenuOpen;
 
     public override void _UnhandledInput(InputEvent @event)
     {
@@ -388,7 +393,12 @@ public partial class GamePhaseHUD : CanvasLayer
             }
             else if (key.Keycode == Key.Escape)
             {
-                if (IsPerkModalOpen)
+                if (IsPauseMenuOpen)
+                {
+                    ClosePauseMenu();
+                    GetViewport().SetInputAsHandled();
+                }
+                else if (IsPerkModalOpen)
                 {
                     ClosePerkModal();
                     GetViewport().SetInputAsHandled();
@@ -396,6 +406,11 @@ public partial class GamePhaseHUD : CanvasLayer
                 else if (IsTutorialOpen)
                 {
                     CloseTutorial();
+                    GetViewport().SetInputAsHandled();
+                }
+                else if (GameManager.Instance?.CurrentPhase != GamePhase.GameOver)
+                {
+                    OpenPauseMenu();
                     GetViewport().SetInputAsHandled();
                 }
             }
@@ -406,6 +421,8 @@ public partial class GamePhaseHUD : CanvasLayer
     {
         if (_tutorialModal != null)
         {
+            if (IsPauseMenuOpen) ClosePauseMenu();
+            if (IsPerkModalOpen) ClosePerkModal();
             _tutorialModal.Visible = true;
             Input.MouseMode = Input.MouseModeEnum.Visible;
         }
@@ -416,7 +433,7 @@ public partial class GamePhaseHUD : CanvasLayer
         if (_tutorialModal != null)
         {
             _tutorialModal.Visible = false;
-            if (!IsPerkModalOpen &&
+            if (!IsAnyModalOpen &&
                 GameManager.Instance?.CurrentPhase != GamePhase.GameOver &&
                 GameManager.Instance?.CurrentPhase != GamePhase.RoundOver)
             {
@@ -434,6 +451,44 @@ public partial class GamePhaseHUD : CanvasLayer
         else
         {
             OpenTutorial();
+        }
+    }
+
+    public void OpenPauseMenu()
+    {
+        if (_pauseMenuModal != null)
+        {
+            if (IsTutorialOpen) CloseTutorial();
+            if (IsPerkModalOpen) ClosePerkModal();
+            RefreshPauseMenuSettings();
+            _pauseMenuModal.Visible = true;
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+    }
+
+    public void ClosePauseMenu()
+    {
+        if (_pauseMenuModal != null)
+        {
+            _pauseMenuModal.Visible = false;
+            if (!IsAnyModalOpen &&
+                GameManager.Instance?.CurrentPhase != GamePhase.GameOver &&
+                GameManager.Instance?.CurrentPhase != GamePhase.RoundOver)
+            {
+                Input.MouseMode = Input.MouseModeEnum.Captured;
+            }
+        }
+    }
+
+    public void TogglePauseMenu()
+    {
+        if (IsPauseMenuOpen)
+        {
+            ClosePauseMenu();
+        }
+        else
+        {
+            OpenPauseMenu();
         }
     }
 
@@ -581,7 +636,8 @@ public partial class GamePhaseHUD : CanvasLayer
             ("[ 1 - 6 / Wheel ]", "Select Inventory Slot"),
             ("[ P ]", "Choose Shopper Perk"),
             ("[ F ]", "Toggle Flashlight"),
-            ("[ H ]", "Open / Close this Guide Anytime")
+            ("[ H ]", "Open / Close this Guide Anytime"),
+            ("[ ESC ]", "Settings / Match Menu")
         };
 
         foreach (var ctrl in controls)
@@ -674,6 +730,7 @@ public partial class GamePhaseHUD : CanvasLayer
         if (_perkModal != null)
         {
             if (IsTutorialOpen) CloseTutorial();
+            if (IsPauseMenuOpen) ClosePauseMenu();
             UpdatePerkDisplay(PlayerController.Instance?.CurrentPerk ?? PlayerPerk.None);
             _perkModal.Visible = true;
             Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -685,7 +742,7 @@ public partial class GamePhaseHUD : CanvasLayer
         if (_perkModal != null)
         {
             _perkModal.Visible = false;
-            if (!IsTutorialOpen &&
+            if (!IsAnyModalOpen &&
                 GameManager.Instance?.CurrentPhase != GamePhase.GameOver &&
                 GameManager.Instance?.CurrentPhase != GamePhase.RoundOver)
             {
@@ -1020,5 +1077,334 @@ public partial class GamePhaseHUD : CanvasLayer
 
         AddChild(_perkModal);
         _perkModal.Visible = false;
+    }
+
+    private HSlider _masterSlider;
+    private Label _masterValLabel;
+    private HSlider _sfxSlider;
+    private Label _sfxValLabel;
+    private HSlider _musicSlider;
+    private Label _musicValLabel;
+    private HSlider _sensSlider;
+    private Label _sensValLabel;
+    private HSlider _fovSlider;
+    private Label _fovValLabel;
+    private Button _fullscreenBtn;
+    private Button _vsyncBtn;
+
+    private void RefreshPauseMenuSettings()
+    {
+        if (_masterSlider != null) _masterSlider.Value = (int)(SettingsManager.MasterVolume * 100);
+        if (_masterValLabel != null) _masterValLabel.Text = $"{(int)(SettingsManager.MasterVolume * 100)}%";
+        if (_sfxSlider != null) _sfxSlider.Value = (int)(SettingsManager.SfxVolume * 100);
+        if (_sfxValLabel != null) _sfxValLabel.Text = $"{(int)(SettingsManager.SfxVolume * 100)}%";
+        if (_musicSlider != null) _musicSlider.Value = (int)(SettingsManager.MusicVolume * 100);
+        if (_musicValLabel != null) _musicValLabel.Text = $"{(int)(SettingsManager.MusicVolume * 100)}%";
+        if (_sensSlider != null) _sensSlider.Value = SettingsManager.MouseSensitivity;
+        if (_sensValLabel != null) _sensValLabel.Text = $"{SettingsManager.MouseSensitivity:0.00}x";
+        if (_fovSlider != null) _fovSlider.Value = (int)SettingsManager.Fov;
+        if (_fovValLabel != null) _fovValLabel.Text = $"{(int)SettingsManager.Fov}°";
+        if (_fullscreenBtn != null) _fullscreenBtn.Text = SettingsManager.IsFullscreen ? "🖥️ Fullscreen: ON" : "🖥️ Fullscreen: OFF";
+        if (_vsyncBtn != null) _vsyncBtn.Text = SettingsManager.IsVsync ? "⚡ V-Sync: ON" : "⚡ V-Sync: OFF";
+    }
+
+    private void BuildPauseMenu()
+    {
+        _pauseMenuModal = new Panel();
+        _pauseMenuModal.Name = "PauseMenuModal";
+        _pauseMenuModal.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _pauseMenuModal.MouseFilter = Control.MouseFilterEnum.Stop;
+
+        var bgStyle = new StyleBoxFlat();
+        bgStyle.BgColor = new Color(0.03f, 0.04f, 0.07f, 0.90f);
+        _pauseMenuModal.AddThemeStyleboxOverride("panel", bgStyle);
+
+        var center = new CenterContainer();
+        center.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        center.MouseFilter = Control.MouseFilterEnum.Pass;
+        _pauseMenuModal.AddChild(center);
+
+        var card = new PanelContainer();
+        card.CustomMinimumSize = new Vector2(620, 560);
+        var cardStyle = new StyleBoxFlat();
+        cardStyle.BgColor = new Color(0.07f, 0.09f, 0.14f, 0.98f);
+        cardStyle.BorderWidthLeft = 3;
+        cardStyle.BorderWidthTop = 3;
+        cardStyle.BorderWidthRight = 3;
+        cardStyle.BorderWidthBottom = 3;
+        cardStyle.BorderColor = new Color(0.25f, 0.75f, 1.0f, 0.95f);
+        cardStyle.CornerRadiusTopLeft = 14;
+        cardStyle.CornerRadiusTopRight = 14;
+        cardStyle.CornerRadiusBottomLeft = 14;
+        cardStyle.CornerRadiusBottomRight = 14;
+        cardStyle.ExpandMarginLeft = 24;
+        cardStyle.ExpandMarginTop = 18;
+        cardStyle.ExpandMarginRight = 24;
+        cardStyle.ExpandMarginBottom = 18;
+        cardStyle.ShadowSize = 28;
+        cardStyle.ShadowColor = new Color(0, 0, 0, 0.8f);
+        card.AddThemeStyleboxOverride("panel", cardStyle);
+        center.AddChild(card);
+
+        var vbox = new VBoxContainer();
+        vbox.AddThemeConstantOverride("separation", 10);
+        card.AddChild(vbox);
+
+        // Header
+        var title = new Label();
+        title.Text = "⏸️ MATCH SETTINGS";
+        title.HorizontalAlignment = HorizontalAlignment.Center;
+        title.AddThemeColorOverride("font_color", new Color(0.3f, 0.9f, 1.0f));
+        title.AddThemeColorOverride("font_outline_color", Colors.Black);
+        title.AddThemeConstantOverride("outline_size", 4);
+        title.AddThemeFontSizeOverride("font_size", 24);
+        vbox.AddChild(title);
+
+        var subtitle = new Label();
+        subtitle.Text = "⚠️ Live multiplayer match in progress — gameplay does NOT pause!";
+        subtitle.HorizontalAlignment = HorizontalAlignment.Center;
+        subtitle.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.25f));
+        subtitle.AddThemeFontSizeOverride("font_size", 12);
+        vbox.AddChild(subtitle);
+
+        vbox.AddChild(new HSeparator());
+
+        // Audio Section
+        var audioHeader = new Label();
+        audioHeader.Text = "🔊 AUDIO SETTINGS";
+        audioHeader.AddThemeColorOverride("font_color", new Color(0.4f, 0.9f, 1.0f));
+        audioHeader.AddThemeFontSizeOverride("font_size", 13);
+        vbox.AddChild(audioHeader);
+
+        _masterSlider = CreateSliderRow(vbox, "Master Volume", (int)(SettingsManager.MasterVolume * 100), "%", out _masterValLabel);
+        _masterSlider.ValueChanged += (v) =>
+        {
+            SettingsManager.SetMasterVolume((float)v / 100f);
+            if (_masterValLabel != null) _masterValLabel.Text = $"{(int)v}%";
+        };
+
+        _sfxSlider = CreateSliderRow(vbox, "SFX & Hazards", (int)(SettingsManager.SfxVolume * 100), "%", out _sfxValLabel);
+        _sfxSlider.ValueChanged += (v) =>
+        {
+            SettingsManager.SetSfxVolume((float)v / 100f);
+            if (_sfxValLabel != null) _sfxValLabel.Text = $"{(int)v}%";
+        };
+
+        _musicSlider = CreateSliderRow(vbox, "Music & Ambience", (int)(SettingsManager.MusicVolume * 100), "%", out _musicValLabel);
+        _musicSlider.ValueChanged += (v) =>
+        {
+            SettingsManager.SetMusicVolume((float)v / 100f);
+            if (_musicValLabel != null) _musicValLabel.Text = $"{(int)v}%";
+        };
+
+        vbox.AddChild(new HSeparator());
+
+        // Controls & Camera Section
+        var controlsHeader = new Label();
+        controlsHeader.Text = "🎮 CONTROLS & CAMERA";
+        controlsHeader.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.2f));
+        controlsHeader.AddThemeFontSizeOverride("font_size", 13);
+        vbox.AddChild(controlsHeader);
+
+        _sensSlider = CreateFloatSliderRow(vbox, "Mouse Sensitivity", SettingsManager.MouseSensitivity, 0.2f, 3.0f, 0.05f, "x", out _sensValLabel);
+        _sensSlider.ValueChanged += (v) =>
+        {
+            SettingsManager.SetMouseSensitivity((float)v);
+            if (_sensValLabel != null) _sensValLabel.Text = $"{v:0.00}x";
+        };
+
+        _fovSlider = CreateSliderRow(vbox, "Field of View (FOV)", (int)SettingsManager.Fov, "°", out _fovValLabel, 70, 110);
+        _fovSlider.ValueChanged += (v) =>
+        {
+            SettingsManager.SetFov((float)v);
+            if (_fovValLabel != null) _fovValLabel.Text = $"{(int)v}°";
+        };
+
+        vbox.AddChild(new HSeparator());
+
+        // Display Section
+        var displayHeader = new Label();
+        displayHeader.Text = "🖥️ DISPLAY";
+        displayHeader.AddThemeColorOverride("font_color", new Color(0.8f, 0.85f, 1.0f));
+        displayHeader.AddThemeFontSizeOverride("font_size", 13);
+        vbox.AddChild(displayHeader);
+
+        var displayRow = new HBoxContainer();
+        displayRow.AddThemeConstantOverride("separation", 16);
+        vbox.AddChild(displayRow);
+
+        _fullscreenBtn = new Button();
+        _fullscreenBtn.Text = SettingsManager.IsFullscreen ? "🖥️ Fullscreen: ON" : "🖥️ Fullscreen: OFF";
+        _fullscreenBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _fullscreenBtn.CustomMinimumSize = new Vector2(0, 34);
+        _fullscreenBtn.AddThemeFontSizeOverride("font_size", 12);
+        _fullscreenBtn.Pressed += () =>
+        {
+            SettingsManager.SetFullscreen(!SettingsManager.IsFullscreen);
+            _fullscreenBtn.Text = SettingsManager.IsFullscreen ? "🖥️ Fullscreen: ON" : "🖥️ Fullscreen: OFF";
+        };
+        displayRow.AddChild(_fullscreenBtn);
+
+        _vsyncBtn = new Button();
+        _vsyncBtn.Text = SettingsManager.IsVsync ? "⚡ V-Sync: ON" : "⚡ V-Sync: OFF";
+        _vsyncBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _vsyncBtn.CustomMinimumSize = new Vector2(0, 34);
+        _vsyncBtn.AddThemeFontSizeOverride("font_size", 12);
+        _vsyncBtn.Pressed += () =>
+        {
+            SettingsManager.SetVsync(!SettingsManager.IsVsync);
+            _vsyncBtn.Text = SettingsManager.IsVsync ? "⚡ V-Sync: ON" : "⚡ V-Sync: OFF";
+        };
+        displayRow.AddChild(_vsyncBtn);
+
+        vbox.AddChild(new HSeparator());
+
+        // Actions Row
+        var actionsRow = new HBoxContainer();
+        actionsRow.AddThemeConstantOverride("separation", 12);
+        vbox.AddChild(actionsRow);
+
+        var resumeBtn = new Button();
+        resumeBtn.Text = "▶️ RESUME [Esc]";
+        resumeBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        resumeBtn.CustomMinimumSize = new Vector2(0, 40);
+        resumeBtn.AddThemeFontSizeOverride("font_size", 14);
+
+        var resumeStyle = new StyleBoxFlat();
+        resumeStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
+        resumeStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
+        resumeStyle.BorderWidthLeft = 2;
+        resumeStyle.BorderWidthTop = 2;
+        resumeStyle.BorderWidthRight = 2;
+        resumeStyle.BorderWidthBottom = 2;
+        resumeStyle.CornerRadiusTopLeft = 8;
+        resumeStyle.CornerRadiusTopRight = 8;
+        resumeStyle.CornerRadiusBottomLeft = 8;
+        resumeStyle.CornerRadiusBottomRight = 8;
+        resumeBtn.AddThemeStyleboxOverride("normal", resumeStyle);
+
+        var resumeHover = (StyleBoxFlat)resumeStyle.Duplicate();
+        resumeHover.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
+        resumeBtn.AddThemeStyleboxOverride("hover", resumeHover);
+        resumeBtn.Pressed += ClosePauseMenu;
+        actionsRow.AddChild(resumeBtn);
+
+        var guideBtn = new Button();
+        guideBtn.Text = "📖 GUIDE [H]";
+        guideBtn.CustomMinimumSize = new Vector2(110, 40);
+        guideBtn.AddThemeFontSizeOverride("font_size", 12);
+        guideBtn.Pressed += () =>
+        {
+            ClosePauseMenu();
+            OpenTutorial();
+        };
+        actionsRow.AddChild(guideBtn);
+
+        var perksBtn = new Button();
+        perksBtn.Text = "⭐ PERKS [P]";
+        perksBtn.CustomMinimumSize = new Vector2(110, 40);
+        perksBtn.AddThemeFontSizeOverride("font_size", 12);
+        perksBtn.Pressed += () =>
+        {
+            ClosePauseMenu();
+            OpenPerkModal();
+        };
+        actionsRow.AddChild(perksBtn);
+
+        var leaveBtn = new Button();
+        leaveBtn.Text = "🚪 LEAVE";
+        leaveBtn.CustomMinimumSize = new Vector2(100, 40);
+        leaveBtn.AddThemeFontSizeOverride("font_size", 12);
+
+        var leaveStyle = new StyleBoxFlat();
+        leaveStyle.BgColor = new Color(0.45f, 0.12f, 0.12f, 0.95f);
+        leaveStyle.BorderColor = new Color(0.95f, 0.3f, 0.3f, 0.9f);
+        leaveStyle.BorderWidthLeft = 2;
+        leaveStyle.BorderWidthTop = 2;
+        leaveStyle.BorderWidthRight = 2;
+        leaveStyle.BorderWidthBottom = 2;
+        leaveStyle.CornerRadiusTopLeft = 8;
+        leaveStyle.CornerRadiusTopRight = 8;
+        leaveStyle.CornerRadiusBottomLeft = 8;
+        leaveStyle.CornerRadiusBottomRight = 8;
+        leaveBtn.AddThemeStyleboxOverride("normal", leaveStyle);
+
+        var leaveHover = (StyleBoxFlat)leaveStyle.Duplicate();
+        leaveHover.BgColor = new Color(0.60f, 0.15f, 0.15f, 1.0f);
+        leaveBtn.AddThemeStyleboxOverride("hover", leaveHover);
+        leaveBtn.Pressed += () =>
+        {
+            NetworkManager.Instance?.ReturnToMainMenu();
+        };
+        actionsRow.AddChild(leaveBtn);
+
+        AddChild(_pauseMenuModal);
+        _pauseMenuModal.Visible = false;
+    }
+
+    private HSlider CreateSliderRow(VBoxContainer parent, string labelText, int initialValue, string unit, out Label valueLabel, int min = 0, int max = 100)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 12);
+        parent.AddChild(row);
+
+        var lbl = new Label();
+        lbl.Text = labelText;
+        lbl.CustomMinimumSize = new Vector2(160, 0);
+        lbl.AddThemeFontSizeOverride("font_size", 13);
+        lbl.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.95f));
+        row.AddChild(lbl);
+
+        var slider = new HSlider();
+        slider.MinValue = min;
+        slider.MaxValue = max;
+        slider.Step = 1;
+        slider.Value = initialValue;
+        slider.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        slider.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(slider);
+
+        valueLabel = new Label();
+        valueLabel.Text = $"{initialValue}{unit}";
+        valueLabel.CustomMinimumSize = new Vector2(55, 0);
+        valueLabel.HorizontalAlignment = HorizontalAlignment.Right;
+        valueLabel.AddThemeFontSizeOverride("font_size", 13);
+        valueLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.3f));
+        row.AddChild(valueLabel);
+
+        return slider;
+    }
+
+    private HSlider CreateFloatSliderRow(VBoxContainer parent, string labelText, float initialValue, float min, float max, float step, string unit, out Label valueLabel)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 12);
+        parent.AddChild(row);
+
+        var lbl = new Label();
+        lbl.Text = labelText;
+        lbl.CustomMinimumSize = new Vector2(160, 0);
+        lbl.AddThemeFontSizeOverride("font_size", 13);
+        lbl.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.95f));
+        row.AddChild(lbl);
+
+        var slider = new HSlider();
+        slider.MinValue = min;
+        slider.MaxValue = max;
+        slider.Step = step;
+        slider.Value = initialValue;
+        slider.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        slider.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(slider);
+
+        valueLabel = new Label();
+        valueLabel.Text = $"{initialValue:0.00}{unit}";
+        valueLabel.CustomMinimumSize = new Vector2(55, 0);
+        valueLabel.HorizontalAlignment = HorizontalAlignment.Right;
+        valueLabel.AddThemeFontSizeOverride("font_size", 13);
+        valueLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.3f));
+        row.AddChild(valueLabel);
+
+        return slider;
     }
 }

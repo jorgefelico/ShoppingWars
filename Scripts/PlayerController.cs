@@ -109,7 +109,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
             }
-            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
             {
                 Input.MouseMode = Input.MouseModeEnum.Visible;
             }
@@ -119,6 +119,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             }
             if (Camera != null)
             {
+                Camera.Fov = SettingsManager.Fov;
                 Camera.MakeCurrent();
                 GD.Print($"[PlayerController] Activated Camera for Local Authority Player '{Name}'");
             }
@@ -432,22 +433,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 Input.MouseMode = Input.MouseModeEnum.Visible;
             }
-            if (@event.IsActionPressed("ui_cancel"))
-            {
-                GetTree().Quit();
-            }
             return;
         }
 
         if (IsSpectating)
         {
-            if (@event.IsActionPressed("ui_cancel"))
-            {
-                if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
-                Input.MouseMode = Input.MouseModeEnum.Visible;
-                return;
-            }
-
             if (@event is InputEventMouseButton mouseButton && mouseButton.Pressed)
             {
                 if (mouseButton.ButtonIndex == MouseButton.Left)
@@ -486,30 +476,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             return;
         }
 
-        if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+        if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
         {
             return;
-        }
-
-        if (@event.IsActionPressed("ui_cancel"))
-        {
-            if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
-            Input.MouseMode = Input.MouseModeEnum.Visible;
         }
 
         if (@event is InputEventMouseMotion motion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             if (InputDisabled) return;
             if (motion.Relative.Length() > 500f) return;
-            Head.RotateY(-motion.Relative.X * Sensitivity);
-            _cameraPitch -= motion.Relative.Y * Sensitivity;
+            Head.RotateY(-motion.Relative.X * Sensitivity * SettingsManager.MouseSensitivity);
+            _cameraPitch -= motion.Relative.Y * Sensitivity * SettingsManager.MouseSensitivity;
             _cameraPitch = Mathf.Clamp(_cameraPitch, -MaxPitch, MaxPitch);
             ApplyCameraTransform();
         }
 
         if (@event is InputEventMouseButton)
         {
-            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
             {
                 return;
             }
@@ -588,7 +572,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         if (!IsMultiplayerAuthority()) return;
-        if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)) return;
+        if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)) return;
         HandleThrow();
         HandleMelee();
         HandleUseItem();

@@ -2437,3 +2437,4 @@ transform = Transform3D(-0.074454784, -0.8445872, 0.530216, 0.99613696, -0.08781
 
 [node name="Glizzy4" parent="." unique_id=1684553584 instance=ExtResource("53_u58hr")]
 transform = Transform3D(-0.07445477, -0.8445872, 0.530216, 0.99593455, -0.035942707, 0.082599044, -0.050704725, 0.5342103, 0.8438295, -58.449184, 1.4244859, -28.273035)
+ScaleVariation = true

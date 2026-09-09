@@ -96,7 +96,7 @@ public partial class ArenaZoneManager : Node3D
     {
         _hazardAudioPlayer = new AudioStreamPlayer();
         _hazardAudioPlayer.Name = "HazardAudioPlayer";
-        _hazardAudioPlayer.Bus = "Master";
+        _hazardAudioPlayer.Bus = "SFX";
         _hazardAudioPlayer.VolumeDb = -6.0f;
         _hazardAudioPlayer.Stream = CreateHazardWarningTone();
         AddChild(_hazardAudioPlayer);

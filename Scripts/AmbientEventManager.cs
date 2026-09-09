@@ -39,7 +39,7 @@ public partial class AmbientEventManager : Node
         Instance = this;
 
         _audioPlayer = new AudioStreamPlayer();
-        _audioPlayer.Bus = "Master";
+        _audioPlayer.Bus = "SFX";
         AddChild(_audioPlayer);
 
         if (BlackoutSound == null && ResourceLoader.Exists("res://Sounds/lights_out.wav"))

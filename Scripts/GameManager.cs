@@ -76,7 +76,7 @@ public partial class GameManager : Node
         Instance = this;
 
         _audioPlayer = new AudioStreamPlayer();
-        _audioPlayer.Bus = "Master";
+        _audioPlayer.Bus = "SFX";
         AddChild(_audioPlayer);
 
         if (TransitionChime == null)
@@ -128,7 +128,7 @@ public partial class GameManager : Node
         if (_ceilingSpeakers.Count == 0)
         {
             _musicPlayer = new AudioStreamPlayer();
-            _musicPlayer.Bus = "Master";
+            _musicPlayer.Bus = "Music";
             _musicPlayer.VolumeDb = MusicVolumeDb;
             _musicPlayer.Finished += OnMusicTrackFinished;
             AddChild(_musicPlayer);
@@ -1118,7 +1118,7 @@ public partial class GameManager : Node
 
     private void ConfigureSpeakerAudioPlayer(AudioStreamPlayer3D player)
     {
-        player.Bus = "Master";
+        player.Bus = "Music";
         player.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
         player.UnitSize = SpeakerUnitSize;
         player.MaxDistance = SpeakerMaxDistance;
@@ -1130,7 +1130,7 @@ public partial class GameManager : Node
 
     private void ConfigureSpeakerSFXPlayer(AudioStreamPlayer3D sfxPlayer)
     {
-        sfxPlayer.Bus = "Master";
+        sfxPlayer.Bus = "SFX";
         sfxPlayer.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
         sfxPlayer.UnitSize = SpeakerUnitSize + 2.0f;
         sfxPlayer.MaxDistance = SpeakerMaxDistance + 10.0f;

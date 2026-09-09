@@ -5,25 +5,42 @@ public partial class MainMenu : Control
 {
     [Export] private Button HostButton;
     [Export] private Button JoinButton;
+    [Export] private Button QuitButton;
     [Export] private VBoxContainer InviteContainer;
     [Export] private Label StatusLabel;
 
     public override void _Ready()
     {
-        HostButton.Pressed += OnHostPressed;
-        JoinButton.Pressed += OnJoinPressed;
+        if (HostButton != null) HostButton.Pressed += OnHostPressed;
+        if (JoinButton != null) JoinButton.Pressed += OnJoinPressed;
+
+        if (QuitButton == null) QuitButton = GetNodeOrNull<Button>("VBoxContainer/Quit");
+        if (QuitButton != null) QuitButton.Pressed += OnQuitPressed;
 
         if (SteamManager.Instance != null)
         {
             SteamManager.Instance.OnInviteReceived += OnInviteReceived;
         }
 
-        StatusLabel.Text = "Main Menu Ready";
+        if (StatusLabel != null) StatusLabel.Text = "Main Menu Ready";
+    }
+
+    public override void _ExitTree()
+    {
+        if (SteamManager.Instance != null)
+        {
+            SteamManager.Instance.OnInviteReceived -= OnInviteReceived;
+        }
+    }
+
+    private void OnQuitPressed()
+    {
+        GetTree().Quit();
     }
 
     private void OnInviteReceived(ulong lobbyId, string friendName)
     {
-        StatusLabel.Text = $"📩 Game Invite Received from {friendName}!";
+        if (StatusLabel != null) StatusLabel.Text = $"📩 Game Invite Received from {friendName}!";
 
         if (InviteContainer == null) return;
 
@@ -42,7 +59,7 @@ public partial class MainMenu : Control
         ulong targetLobby = lobbyId;
         inviteBtn.Pressed += () =>
         {
-            StatusLabel.Text = $"Joining {friendName}'s match...";
+            if (StatusLabel != null) StatusLabel.Text = $"Joining {friendName}'s match...";
             SteamManager.Instance?.JoinLobbyById(targetLobby);
         };
 
@@ -51,16 +68,15 @@ public partial class MainMenu : Control
 
     private void OnJoinPressed()
     {
-        StatusLabel.Text = "Opening Steam Overlay / Joining...";
+        if (StatusLabel != null) StatusLabel.Text = "Opening Steam Overlay / Joining...";
         if (!SteamManager.Instance.IsSteamInitialized) return;
         SteamManager.Instance.OpenFriendsInviteOverlay();
     }
 
     private void OnHostPressed()
     {
-
-        GD.Print( SteamManager.Instance.IsOnline());
-        StatusLabel.Text = "Creating Steam Lobby...";
+        GD.Print(SteamManager.Instance.IsOnline());
+        if (StatusLabel != null) StatusLabel.Text = "Creating Steam Lobby...";
         if (!SteamManager.Instance.IsSteamInitialized || !SteamManager.Instance.IsOnline()) return;
         SteamManager.Instance.HostLobby();
     }

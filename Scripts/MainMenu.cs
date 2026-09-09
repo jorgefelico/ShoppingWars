@@ -5,8 +5,6 @@ public partial class MainMenu : Control
 {
     [Export] private Button HostButton;
     [Export] private Button JoinButton;
-    [Export] private Button SoloButton;
-    [Export] private Button JoinLocalButton;
     [Export] private VBoxContainer InviteContainer;
     [Export] private Label StatusLabel;
 
@@ -14,8 +12,6 @@ public partial class MainMenu : Control
     {
         HostButton.Pressed += OnHostPressed;
         JoinButton.Pressed += OnJoinPressed;
-        SoloButton.Pressed += OnSoloPressed;
-        JoinLocalButton.Pressed += OnJoinLocalPressed;
 
         if (SteamManager.Instance != null)
         {
@@ -67,26 +63,5 @@ public partial class MainMenu : Control
         StatusLabel.Text = "Creating Steam Lobby...";
         if (!SteamManager.Instance.IsSteamInitialized || !SteamManager.Instance.IsOnline()) return;
         SteamManager.Instance.HostLobby();
-    }
-
-    private void OnSoloPressed()
-    {
-        StatusLabel.Text = "Starting Solo Game...";
-        if (NetworkManager.Instance != null)
-        {
-            NetworkManager.Instance.LoadLevel("res://Scenes/StoreInterior.tscn");
-        }
-        else
-        {
-            GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
-        }
-    }
-
-    private void OnJoinLocalPressed()
-    {
-        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
-        peer.CreateClient("127.0.0.1", 7000);
-        Multiplayer.MultiplayerPeer = peer;
-        GD.Print("[NetworkManager] Connected locally to 127.0.0.1");
     }
 }

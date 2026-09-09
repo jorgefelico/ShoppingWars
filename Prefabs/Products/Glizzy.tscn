@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bqo6tswn34s4n"]
+
+[ext_resource type="PackedScene" uid="uid://cq4tlwk60i7q1" path="res://Models/glizzy.glb" id="1_ur45q"]
+[ext_resource type="Script" uid="uid://bhp8ettaip1dt" path="res://Scripts/Product.cs" id="1_vmbql"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_y1t4u"]
+
+[node name="Glizzy" type="RigidBody3D" unique_id=1506678681]
+script = ExtResource("1_vmbql")
+DisplayName = &"Glizzy"
+Price = 30
+Damage = 40
+IsConsumable = true
+HealAmount = 100
+
+[node name="glizzy" parent="." unique_id=1846762134 instance=ExtResource("1_ur45q")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=296456930]
+shape = SubResource("ConvexPolygonShape3D_y1t4u")

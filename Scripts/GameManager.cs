@@ -7,15 +7,16 @@ public enum GamePhase
     Shopping,
     BattleTransition,
     BattleRoyale,
+    RoundOver,
     GameOver
 }
 
 public partial class GameManager : Node
 {
     public static GameManager Instance { get; private set; }
-    [Export] public float ShoppingTransitionDuration = 10.0f;
+    [Export] public float ShoppingTransitionDuration = 5.0f;
     [Export] public float ShoppingDuration = 30.0f;
-    [Export] public float BattleTransitionDuration = 10.0f;
+    [Export] public float BattleTransitionDuration = 5.0f;
     [Export] public float BattleDuration = 60.0f;
     [Export] private LightmapGI _lightmap;
     [Export] private WorldEnvironment _worldEnvironment;
@@ -61,6 +62,12 @@ public partial class GameManager : Node
     public float TimeRemaining { get; private set; }
     public string WinnerName { get; private set; } = "";
     public bool IsDraw { get; private set; } = false;
+
+    [Export] public int RoundsToWin = 2;
+    private System.Collections.Generic.Dictionary<int, int> _roundWins = new();
+    public int CurrentRound { get; private set; } = 1;
+    public System.Collections.Generic.Dictionary<int, int> RoundWins => _roundWins;
+
     private float _syncTimer = 0f;
     private const float SyncInterval = 0.25f; // Sync state 4 times per second
 
@@ -129,6 +136,13 @@ public partial class GameManager : Node
 
         PlayMusicForPhase(CurrentPhase);
 
+        if (ArenaZoneManager.Instance == null)
+        {
+            var zone = new ArenaZoneManager();
+            zone.Name = "ArenaZoneManager";
+            AddChild(zone);
+        }
+
         if (!Multiplayer.IsServer())
         {
             // Client requests current authoritative state from host immediately on load
@@ -192,6 +206,12 @@ public partial class GameManager : Node
             {
                 CheckBattleRoyaleOutcome();
             }
+            else if (CurrentPhase == GamePhase.RoundOver && TimeRemaining <= 0f)
+            {
+                TimeRemaining = 0f;
+                ResetForNewRound();
+                StartShoppingTransition();
+            }
         }
         else
         {
@@ -218,13 +238,13 @@ public partial class GameManager : Node
             if (livingPlayers.Count == 1)
             {
                 GD.Print($"[GameManager] BattleRoyale Last Shopper Standing: '{livingPlayers[0].PlayerName}' won! (Total players: {allPlayers.Count})");
-                EndGame(livingPlayers[0].PlayerName, false);
+                EndRound(livingPlayers[0].PlayerName, false);
                 return;
             }
             else if (livingPlayers.Count == 0)
             {
                 GD.Print($"[GameManager] BattleRoyale All Shoppers Eliminated (Draw). Total players: {allPlayers.Count}");
-                EndGame("", true);
+                EndRound("", true);
                 return;
             }
         }
@@ -233,7 +253,7 @@ public partial class GameManager : Node
             // Solo play / test mode
             if (livingPlayers.Count == 0)
             {
-                EndGame("", true);
+                EndRound("", true);
                 return;
             }
         }
@@ -245,7 +265,7 @@ public partial class GameManager : Node
 
             if (livingPlayers.Count == 1)
             {
-                EndGame(livingPlayers[0].PlayerName, false);
+                EndRound(livingPlayers[0].PlayerName, false);
             }
             else if (livingPlayers.Count > 1)
             {
@@ -272,16 +292,16 @@ public partial class GameManager : Node
 
                 if (tied)
                 {
-                    EndGame("TIE", true);
+                    EndRound("TIE", true);
                 }
                 else
                 {
-                    EndGame(highestHpPlayer.PlayerName, false);
+                    EndRound(highestHpPlayer.PlayerName, false);
                 }
             }
             else
             {
-                EndGame("", true);
+                EndRound("", true);
             }
         }
     }
@@ -379,6 +399,133 @@ public partial class GameManager : Node
         GD.Print($"[GameManager] PRE-PHASE 2: BATTLE ROYALE TRANSITION STARTED ({BattleTransitionDuration}s)!");
     }
 
+    public void EndRound(string winnerName, bool isDraw)
+    {
+        if (!Multiplayer.IsServer()) return;
+        if (CurrentPhase == GamePhase.RoundOver || CurrentPhase == GamePhase.GameOver) return;
+
+        // Immediately set phase and timer on server to prevent duplicate calls from physics/process frames
+        CurrentPhase = GamePhase.RoundOver;
+        TimeRemaining = 5.0f;
+        WinnerName = winnerName;
+        IsDraw = isDraw;
+
+        int winnerId = -1;
+        if (!isDraw)
+        {
+            var allPlayers = GetAllPlayers();
+            foreach (var p in allPlayers)
+            {
+                if (p.PlayerName == winnerName)
+                {
+                    if (int.TryParse(p.Name, out int id))
+                    {
+                        winnerId = id;
+                        break;
+                    }
+                }
+            }
+
+            if (winnerId == -1 && !string.IsNullOrEmpty(winnerName))
+            {
+                winnerId = 1;
+            }
+
+            if (winnerId != -1)
+            {
+                if (!_roundWins.ContainsKey(winnerId)) _roundWins[winnerId] = 0;
+                _roundWins[winnerId]++;
+                
+                SyncRoundState();
+
+                if (_roundWins[winnerId] >= RoundsToWin)
+                {
+                    EndGame(winnerName, false);
+                    return;
+                }
+            }
+        }
+        
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncState), (int)GamePhase.RoundOver, 5.0f, winnerName, isDraw);
+        }
+        else
+        {
+            RpcSyncState((int)GamePhase.RoundOver, 5.0f, winnerName, isDraw);
+        }
+        GD.Print($"[GameManager] ROUND {CurrentRound} OVER! Winner: '{(isDraw ? "DRAW" : winnerName)}'");
+    }
+
+    public void AdvanceToNextRound()
+    {
+        if (!Multiplayer.IsServer()) return;
+        if (CurrentPhase != GamePhase.RoundOver) return;
+
+        TimeRemaining = 0f;
+        ResetForNewRound();
+        StartShoppingTransition();
+    }
+
+    private void SyncRoundState()
+    {
+        var keys = new Godot.Collections.Array<int>();
+        var values = new Godot.Collections.Array<int>();
+        foreach(var kvp in _roundWins)
+        {
+            keys.Add(kvp.Key);
+            values.Add(kvp.Value);
+        }
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncRoundState), CurrentRound, keys, values);
+        }
+        else
+        {
+            RpcSyncRoundState(CurrentRound, keys, values);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncRoundState(int round, Godot.Collections.Array<int> keys, Godot.Collections.Array<int> values)
+    {
+        CurrentRound = round;
+        _roundWins.Clear();
+        for(int i = 0; i < keys.Count; i++)
+        {
+            _roundWins[keys[i]] = values[i];
+        }
+    }
+
+    public void ResetForNewRound()
+    {
+        CurrentRound++;
+        SyncRoundState();
+
+        AmbientEventManager.Instance?.ResetEvents();
+        ArenaZoneManager.Instance?.ResetZone();
+
+        Node3D spawnPointsNode = GetTree().CurrentScene?.GetNodeOrNull<Node3D>("SpawnPoints");
+        int spawnCount = (spawnPointsNode != null) ? spawnPointsNode.GetChildCount() : 0;
+
+        var allPlayers = GetAllPlayers();
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            PlayerController p = allPlayers[i];
+            Vector3 spawnPos = p.GlobalPosition;
+            if (spawnPointsNode != null && spawnCount > 0)
+            {
+                int spawnIdx = i % spawnCount;
+                if (spawnPointsNode.GetChild(spawnIdx) is Node3D marker)
+                {
+                    spawnPos = marker.GlobalPosition;
+                }
+            }
+            p.ResetForNewRound(spawnPos);
+        }
+    }
+
     public void StartBattleRoyalePhase()
     {
         if (!Multiplayer.IsServer()) return;
@@ -405,6 +552,8 @@ public partial class GameManager : Node
         if (!Multiplayer.IsServer()) return;
         if (CurrentPhase == GamePhase.GameOver) return;
 
+        CurrentPhase = GamePhase.GameOver;
+        TimeRemaining = 0f;
         WinnerName = winnerName;
         IsDraw = isDraw;
 
@@ -1128,6 +1277,10 @@ public partial class GameManager : Node
     {
         if (!Multiplayer.IsServer()) return;
         GD.Print("[GameManager] Restarting Game match...");
+        _roundWins.Clear();
+        CurrentRound = 1;
+        SyncRoundState();
+
         if (NetworkManager.Instance != null)
         {
             NetworkManager.Instance.RestartMatch();

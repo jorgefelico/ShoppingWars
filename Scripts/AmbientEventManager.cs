@@ -7,10 +7,10 @@ public partial class AmbientEventManager : Node
     public static AmbientEventManager Instance { get; private set; }
 
     [Export] public bool EnableRandomEvents = true;
-    [Export] public float MinEventInterval = 25.0f;
-    [Export] public float MaxEventInterval = 45.0f;
-    [Export] public float MinFirstEventDelay = 15.0f;
-    [Export] public float MaxFirstEventDelay = 35.0f;
+    [Export] public float MinEventInterval = 15.0f;
+    [Export] public float MaxEventInterval = 25.0f;
+    [Export] public float MinFirstEventDelay = 8.0f;
+    [Export] public float MaxFirstEventDelay = 15.0f;
     [Export] public bool TriggerInShoppingPhase = false;
     [Export] public bool TriggerInBattleRoyalePhase = true;
 
@@ -56,6 +56,8 @@ public partial class AmbientEventManager : Node
         RegisterEvent(new SpeedFrenzyAmbientEvent());
         RegisterEvent(new DenseFogAmbientEvent());
         RegisterEvent(new GroombaRageAmbientEvent());
+        RegisterEvent(new SprinklerAmbientEvent());
+        RegisterEvent(new ClearanceSaleAmbientEvent());
 
         if (GameManager.Instance != null)
         {
@@ -292,6 +294,8 @@ public partial class AmbientEventManager : Node
         SetVolumetricFog(false, 0f, Colors.White);
         PlayerController.SetGlobalSpeedModifier(1.0f);
         PlayerController.SetGlobalGravityModifier(1.0f, 1.0f);
+        PlayerController.SetGlobalFrictionModifier(1.0f);
+        PlayerController.GlobalDamageMultiplier = 1.0f;
         GetTree().CallGroup("PatrolEnemies", "SetSpeedMultiplier", 1.0f);
 
         ScheduleFirstEventDelay();

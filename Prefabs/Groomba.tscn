@@ -45,7 +45,7 @@ _smoke = NodePath("SmokeUp")
 NavAgent = NodePath("NavigationAgent3D")
 Health = NodePath("Health")
 ChaseSpeed = 6.0
-ContactDamage = 25
+ContactDamage = 15
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=417780725]
 

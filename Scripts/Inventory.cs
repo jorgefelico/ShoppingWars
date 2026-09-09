@@ -19,6 +19,30 @@ public partial class Inventory : Node
         }
     }
 
+    public void SetInventorySize(int newSize)
+    {
+        if (newSize == InventorySize || newSize <= 0) return;
+
+        var oldSlots = _slots;
+        InventorySize = newSize;
+        _slots = new List<Product>[InventorySize];
+        for (int i = 0; i < InventorySize; i++)
+        {
+            _slots[i] = (oldSlots != null && i < oldSlots.Length) ? oldSlots[i] : new List<Product>();
+        }
+
+        if (selectedItemIndex >= InventorySize)
+        {
+            selectedItemIndex = InventorySize - 1;
+        }
+
+        if (InventoryBar != null && GodotObject.IsInstanceValid(InventoryBar))
+        {
+            InventoryBar.EnsureSlots(InventorySize);
+            InventoryBar.Refresh(this, selectedItemIndex);
+        }
+    }
+
     public Product GetItem(int index)
     {
         if (index < 0 || index >= InventorySize || _slots == null) return null;
@@ -194,6 +218,23 @@ public partial class Inventory : Node
             _slots[i].Clear();
         }
         InventoryBar?.Refresh(this, 0);
+    }
+
+    public void ClearInventory()
+    {
+        if (_slots == null) return;
+        for (int i = 0; i < InventorySize; i++)
+        {
+            foreach (Product item in _slots[i])
+            {
+                if (item != null && GodotObject.IsInstanceValid(item))
+                {
+                    item.QueueFree();
+                }
+            }
+            _slots[i].Clear();
+        }
+        InventoryBar?.Refresh(this, selectedItemIndex);
     }
 
     public static bool IsSameKind(Product a, Product b)

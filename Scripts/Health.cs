@@ -3,9 +3,9 @@ using System;
 
 public partial class Health : Node
 {
-    [Export] public int MaxHealth = 100;
+    [Export] public int MaxHealth = 150;
     [Export] HealthBar HealthBar;
-    public int CurrentHealth = 100;
+    public int CurrentHealth = 150;
     public bool IsDead = false;
 
     public event Action Died;
@@ -52,6 +52,33 @@ public partial class Health : Node
         else
         {
             RpcSyncHealth(newHealth, isDead);
+        }
+    }
+
+    public void Heal(int amount)
+    {
+        if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) return;
+        int newHealth = Mathf.Clamp(CurrentHealth + amount, 0, MaxHealth);
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncHealth), newHealth, false);
+        }
+        else
+        {
+            RpcSyncHealth(newHealth, false);
+        }
+    }
+
+    public void ResetHealth()
+    {
+        if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) return;
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncHealth), MaxHealth, false);
+        }
+        else
+        {
+            RpcSyncHealth(MaxHealth, false);
         }
     }
 

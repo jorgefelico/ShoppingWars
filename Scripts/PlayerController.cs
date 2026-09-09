@@ -20,14 +20,22 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public MeshInstance3D MeshInstance;
     [Export] public float PickUpRange = 2.75f;
     [Export] private float ThrowVelocity = 50.0f;
-    [Export] private float ThrowCooldown = 0.5f;
+    [Export] private float ThrowCooldown = 0.35f;
+    [Export] private float MeleeCooldown = 0.40f;
+    [Export] private float MeleeRange = 2.4f;
+    private float _meleeCooldownTimer = 0f;
+    private bool _wasRmbPressed = false;
+    private bool _wasKey6Pressed = false;
     [Export] float WalkSpeed = 5.0f;
     [Export] float RunMultiplier = 1.5f;
     public float SpeedModifier { get; set; } = 1.0f;
     public float GravityModifier { get; set; } = 1.0f;
     public float JumpModifier { get; set; } = 1.0f;
-    [Export] int StartingMoney = 100;
+    public float FrictionModifier { get; set; } = 1.0f;
+    public static float GlobalDamageMultiplier { get; set; } = 1.0f;
+    [Export] int StartingMoney = 175;
     public int Money { get; private set; }
+    public PlayerPerk CurrentPerk { get; private set; } = PlayerPerk.None;
     [Export] public Vector3 SyncPosition = Vector3.Zero;
     [Export] public Vector3 SyncHeadRotation = Vector3.Zero;
     [Export] public Vector3 SyncCameraRotation = Vector3.Zero;
@@ -42,11 +50,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         set
         {
             _playerName = value;
-            if (NameCard == null) NameCard = GetNodeOrNull<Label3D>("NameCard");
-            if (NameCard != null && !string.IsNullOrEmpty(value))
-            {
-                NameCard.Text = value;
-            }
+            UpdateNameCardWithPerk();
         }
     }
     const float Accel = 30.0f;
@@ -70,6 +74,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     bool InputDisabled = false;
     public bool IsSpectating { get; private set; } = false;
     private PlayerController _currentSpectatedPlayer;
+    public PlayerController CurrentSpectatedPlayer => _currentSpectatedPlayer;
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
 
@@ -104,7 +109,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
             }
-            Input.MouseMode = Input.MouseModeEnum.Captured;
+            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+            {
+                Input.MouseMode = Input.MouseModeEnum.Visible;
+            }
+            else
+            {
+                Input.MouseMode = Input.MouseModeEnum.Captured;
+            }
             if (Camera != null)
             {
                 Camera.MakeCurrent();
@@ -193,6 +205,145 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (int.TryParse(Name, out int peerId))
         {
             SetMultiplayerAuthority(peerId);
+        }
+    }
+
+    public void ResetMoney()
+    {
+        Money = StartingMoney;
+    }
+
+    public void SetPerk(PlayerPerk perk)
+    {
+        CurrentPerk = perk;
+        ApplyCurrentPerk();
+
+        if (IsMultiplayerAuthority())
+        {
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                Rpc(nameof(RpcSyncPerk), (int)perk);
+            }
+            GamePhaseHUD.Instance?.UpdatePerkDisplay(perk);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncPerk(int perkInt)
+    {
+        CurrentPerk = (PlayerPerk)perkInt;
+        ApplyCurrentPerk();
+    }
+
+    public void ApplyCurrentPerk()
+    {
+        // Tank: +40 Max Health (190 HP instead of 150 HP)
+        if (Health != null)
+        {
+            int oldMax = Health.MaxHealth;
+            Health.MaxHealth = (CurrentPerk == PlayerPerk.Tank) ? 190 : 150;
+            if (GameManager.Instance?.CurrentPhase == GamePhase.Lobby || 
+                GameManager.Instance?.CurrentPhase == GamePhase.ShoppingTransition || 
+                GameManager.Instance?.CurrentPhase == GamePhase.Shopping ||
+                GameManager.Instance?.CurrentPhase == GamePhase.RoundOver)
+            {
+                Health.CurrentHealth = Health.MaxHealth;
+            }
+            else if (Health.MaxHealth > oldMax)
+            {
+                Health.CurrentHealth = Mathf.Min(Health.MaxHealth, Health.CurrentHealth + (Health.MaxHealth - oldMax));
+            }
+        }
+
+        // Sticky Fingers: 6 inventory slots instead of 5
+        if (Inventory != null)
+        {
+            int targetSlots = (CurrentPerk == PlayerPerk.StickyFingers) ? 6 : 5;
+            Inventory.SetInventorySize(targetSlots);
+        }
+
+        UpdateNameCardWithPerk();
+    }
+
+    public int GetDiscountedPrice(int originalPrice)
+    {
+        if (CurrentPerk == PlayerPerk.BargainHunter)
+        {
+            return Mathf.Max(1, Mathf.RoundToInt(originalPrice * 0.75f));
+        }
+        return originalPrice;
+    }
+
+    public void UpdateNameCardWithPerk()
+    {
+        if (NameCard == null) NameCard = GetNodeOrNull<Label3D>("NameCard");
+        if (NameCard != null)
+        {
+            string baseName = string.IsNullOrEmpty(_playerName) ? $"Player {Name}" : _playerName;
+            if (PerkDatabase.Perks.TryGetValue(CurrentPerk, out var def))
+            {
+                NameCard.Text = $"{def.Icon} {baseName}";
+            }
+            else
+            {
+                NameCard.Text = baseName;
+            }
+        }
+    }
+
+    public void ResetForNewRound(Vector3 spawnPosition = default)
+    {
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcResetForNewRound), spawnPosition);
+        }
+        else
+        {
+            RpcResetForNewRound(spawnPosition);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcResetForNewRound(Vector3 spawnPosition)
+    {
+        if (spawnPosition != Vector3.Zero)
+        {
+            GlobalPosition = spawnPosition;
+            SyncPosition = spawnPosition;
+        }
+        Velocity = Vector3.Zero;
+
+        ResetMoney();
+        ApplyCurrentPerk();
+        if (Health != null)
+        {
+            Health.ResetHealth();
+        }
+        
+        if (Inventory != null)
+        {
+            Inventory.ClearInventory();
+        }
+        
+        IsSpectating = false;
+        InputDisabled = false;
+        _isBeingSpectated = false;
+        
+        if (MeshInstance != null) MeshInstance.Visible = true;
+        if (NameCard != null && !IsMultiplayerAuthority()) NameCard.Visible = true;
+        
+        if (GetNodeOrNull<CollisionShape3D>("CollisionShape3D") is CollisionShape3D col)
+        {
+            col.Disabled = false;
+        }
+        
+        if (IsMultiplayerAuthority())
+        {
+            if (Camera != null) Camera.MakeCurrent();
+            if (DeathOverlay != null) DeathOverlay.Visible = false;
+            if (CrossHair != null) CrossHair.Visible = true;
+            if (InventoryBar != null) InventoryBar.Visible = true;
+            Input.MouseMode = Input.MouseModeEnum.Captured;
         }
     }
 
@@ -335,6 +486,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             return;
         }
 
+        if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+        {
+            return;
+        }
+
         if (@event.IsActionPressed("ui_cancel"))
         {
             if (Input.MouseMode == Input.MouseModeEnum.Visible) GetTree().Quit();
@@ -353,6 +509,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (@event is InputEventMouseButton)
         {
+            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)
+            {
+                return;
+            }
             if (Input.MouseMode == Input.MouseModeEnum.Visible)
             {
                 Input.MouseMode = Input.MouseModeEnum.Captured;
@@ -422,10 +582,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - (float)delta);
         }
+        if (_meleeCooldownTimer > 0f)
+        {
+            _meleeCooldownTimer = Mathf.Max(0f, _meleeCooldownTimer - (float)delta);
+        }
 
         if (!IsMultiplayerAuthority()) return;
-        if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver) return;
+        if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen)) return;
         HandleThrow();
+        HandleMelee();
+        HandleUseItem();
         UpdateTargeting();
         HandleInteract();
         HandleDropItem();
@@ -634,6 +800,20 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
+    public static void SetGlobalFrictionModifier(float modifier)
+    {
+        if (Engine.GetMainLoop() is SceneTree tree)
+        {
+            foreach (Node node in tree.GetNodesInGroup("Players"))
+            {
+                if (node is PlayerController pc)
+                {
+                    pc.FrictionModifier = modifier;
+                }
+            }
+        }
+    }
+
     private void HandleMovement(double delta)
     {
         if (InputDisabled) return;
@@ -664,7 +844,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         Vector2 movementAxis = Input.GetVector("move_left", "move_right", "move_back", "move_forward");
         Vector3 direction = new Vector3(movementAxis.X, 0, -movementAxis.Y);
         Vector3 worldDir = Head.GlobalBasis * direction;
-        Vector3 target = worldDir * WalkSpeed * SpeedModifier * (IsRunning ? RunMultiplier : 1);
+        float perkSpeedMultiplier = (CurrentPerk == PlayerPerk.SpeedDemon) ? 1.20f : 1.0f;
+        Vector3 target = worldDir * WalkSpeed * SpeedModifier * perkSpeedMultiplier * (IsRunning ? RunMultiplier : 1);
         float newX = Mathf.MoveToward(Velocity.X, target.X, Accel * (float)delta);
         float newZ = Mathf.MoveToward(Velocity.Z, target.Z, Accel * (float)delta);
         if (movementAxis != Vector2.Zero)
@@ -673,11 +854,64 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
         else
         {
-            newX = Mathf.MoveToward(Velocity.X, 0, Friction * (float)delta);
-            newZ = Mathf.MoveToward(Velocity.Z, 0, Friction * (float)delta);
+            float effectiveFriction = Friction * FrictionModifier;
+            newX = Mathf.MoveToward(Velocity.X, 0, effectiveFriction * (float)delta);
+            newZ = Mathf.MoveToward(Velocity.Z, 0, effectiveFriction * (float)delta);
             Velocity = new Vector3(newX, Velocity.Y, newZ);
         }
         MoveAndSlide();
+    }
+
+    private bool _wasUseKeyPressed = false;
+    private void HandleUseItem()
+    {
+        bool isUseKeyPressed = Input.IsKeyPressed(Key.R);
+        
+        if (isUseKeyPressed && !_wasUseKeyPressed)
+        {
+            if (HeldItem != null && HeldItem.IsConsumable && HeldItem.HealAmount > 0)
+            {
+                if (Health != null && Health.CurrentHealth < Health.MaxHealth)
+                {
+                    Health.Heal(HeldItem.HealAmount);
+                    _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.1f, 0f, 1f);
+                    Rpc(nameof(RpcConsumeItem), HeldItem.GetPath());
+                }
+            }
+        }
+        _wasUseKeyPressed = isUseKeyPressed;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcConsumeItem(NodePath itemPath)
+    {
+        Product item = GetNodeOrNull<Product>(itemPath);
+        if (item == null) return;
+        
+        if (IsMultiplayerAuthority())
+        {
+            Inventory.RemoveItem(item);
+            UpdateHandItemVisibility();
+            NodePath activePath = HeldItem != null ? HeldItem.GetPath() : new NodePath();
+            Rpc(nameof(RpcSyncActiveHeldItem), activePath);
+        }
+        
+        item.QueueFree();
+        
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcConsumeItem), itemPath);
+                    }
+                }
+            }
+        }
     }
 
     private void HandleThrow()
@@ -691,7 +925,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Vector3 camForward = -Camera.GlobalBasis.Z;
             Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
             Vector3 dir = (aimPoint - HeldItem.GlobalPosition).Normalized();
-            float speed = ThrowVelocity * HeldItem.ThrowMultiplier;
+            float perkThrowMultiplier = (CurrentPerk == PlayerPerk.PowerArm) ? 1.30f : 1.0f;
+            float speed = ThrowVelocity * HeldItem.ThrowMultiplier * perkThrowMultiplier;
             NodePath itemPath = HeldItem.GetPath();
             Rpc(nameof(RpcThrowItem), itemPath, dir * speed);
         }
@@ -738,6 +973,109 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
+    private void HandleMelee()
+    {
+        bool isAltPressed = Input.IsActionJustPressed("alt_fire") || (Input.IsMouseButtonPressed(MouseButton.Right) && !_wasRmbPressed);
+        _wasRmbPressed = Input.IsMouseButtonPressed(MouseButton.Right);
+
+        if (isAltPressed && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
+        {
+            if (_meleeCooldownTimer > 0f) return;
+            _meleeCooldownTimer = MeleeCooldown;
+
+            // Visual punch/swing animation on ItemHand
+            if (ItemHand != null)
+            {
+                Vector3 origPos = ItemHand.Position;
+                Tween tween = CreateTween();
+                tween.TweenProperty(ItemHand, "position", origPos + new Vector3(0.08f, -0.04f, -0.28f), 0.08f);
+                tween.TweenProperty(ItemHand, "position", origPos, 0.12f);
+            }
+
+            int damage = 12; // Base bare-fist punch
+            bool shouldBreak = false;
+            Product swingItem = HeldItem;
+
+            if (swingItem != null)
+            {
+                damage = Mathf.Max(15, (int)(swingItem.Damage * 0.6f));
+                swingItem.CurrentDurability--;
+                if (swingItem.CurrentDurability <= 0)
+                {
+                    shouldBreak = true;
+                }
+            }
+
+            if (CurrentPerk == PlayerPerk.PowerArm)
+            {
+                damage = (int)(damage * 1.25f);
+            }
+
+            // Raycast forward from camera
+            var spaceState = GetWorld3D().DirectSpaceState;
+            Vector3 from = Camera.GlobalPosition;
+            Vector3 to = from - Camera.GlobalBasis.Z * MeleeRange;
+            var query = PhysicsRayQueryParameters3D.Create(from, to);
+            query.CollisionMask = 3; // World (1) and Player (2)
+            query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+
+            var result = spaceState.IntersectRay(query);
+            if (result.Count > 0)
+            {
+                Node collider = result["collider"].As<Node>();
+                Vector3 hitPos = result["position"].As<Vector3>();
+
+                _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.2f, 0f, 1f);
+
+                if (collider is IDamageable target)
+                {
+                    if (Multiplayer.IsServer())
+                    {
+                        target.TakeDamage(damage, this);
+                    }
+                    else if (Multiplayer.HasMultiplayerPeer())
+                    {
+                        RpcId(1, nameof(RpcRequestMeleeDamage), (collider as Node3D).GetPath(), damage);
+                    }
+                }
+
+                Rpc(nameof(RpcOnMeleeSwing), hitPos, true);
+            }
+            else
+            {
+                _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.05f, 0f, 1f);
+                Rpc(nameof(RpcOnMeleeSwing), Camera.GlobalPosition - Camera.GlobalBasis.Z * 1.5f, false);
+            }
+
+            if (shouldBreak && swingItem != null)
+            {
+                Inventory?.RemoveItem(swingItem);
+                UpdateHandItemVisibility();
+                swingItem.QueueFree();
+            }
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcRequestMeleeDamage(NodePath targetPath, int damage)
+    {
+        if (!Multiplayer.IsServer()) return;
+        Node target = GetNodeOrNull(targetPath);
+        if (target is IDamageable damageable)
+        {
+            damageable.TakeDamage(damage, this);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcOnMeleeSwing(Vector3 hitPos, bool didHit)
+    {
+        if (didHit && IsMultiplayerAuthority())
+        {
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.15f, 0f, 1f);
+        }
+    }
+
     private void HandleInventoryActions()
     {
         if (Input.IsActionJustPressed("slot1"))
@@ -760,6 +1098,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             SwitchInventorySlot(4);
         }
+        if ((Input.IsActionJustPressed("slot6") || (Input.IsKeyPressed(Key.Key6) && !_wasKey6Pressed)) && Inventory.InventorySize >= 6)
+        {
+            SwitchInventorySlot(5);
+        }
+        _wasKey6Pressed = Input.IsKeyPressed(Key.Key6);
         if (Input.IsActionJustPressed("scroll_up"))
         {
             SwitchInventorySlot(Inventory.SelectNextItem());
@@ -815,6 +1158,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         return true;
     }
 
+    public void AddMoney(int amount)
+    {
+        Money += amount;
+        GD.Print($"[Store] Earned ${amount}! Total money: ${Money}");
+    }
+
     public void TakeDamage(int amount, Node3D source = null)
     {
         if (!Multiplayer.IsServer())
@@ -827,7 +1176,56 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         if (Health == null) Health = GetNodeOrNull<Health>("Health");
-        Health?.TakeDamage(amount);
+        if (Health != null)
+        {
+            bool wasDead = Health.IsDead;
+            Health.TakeDamage(amount);
+            if (!wasDead && Health.IsDead)
+            {
+                // Fatal elimination! Reward the killer if it was another player
+                if (source is PlayerController killer && killer != this && GodotObject.IsInstanceValid(killer))
+                {
+                    killer.OnEliminatedEnemy(this);
+                }
+            }
+        }
+    }
+
+    public void OnEliminatedEnemy(PlayerController victim)
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        // Reward the killer: Heal 35 HP, bonus $50 cash, and 4s speed boost!
+        Health?.Heal(35);
+        AddMoney(50);
+        SpeedModifier = 1.35f;
+
+        GetTree().CreateTimer(4.0).Timeout += () =>
+        {
+            if (GodotObject.IsInstanceValid(this))
+            {
+                SpeedModifier = 1.0f;
+            }
+        };
+
+        string killerName = PlayerName;
+        string victimName = victim != null ? victim.PlayerName : "Shopper";
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncElimination), killerName, victimName);
+        }
+        else
+        {
+            RpcSyncElimination(killerName, victimName);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncElimination(string killerName, string victimName)
+    {
+        GD.Print($"[Elimination] {killerName} eliminated {victimName}!");
+        GamePhaseHUD.Instance?.ShowEliminationNotification(killerName, victimName);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]

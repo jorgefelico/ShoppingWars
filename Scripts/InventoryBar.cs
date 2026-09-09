@@ -1,13 +1,31 @@
 using Godot;
+using System.Collections.Generic;
 
 public partial class InventoryBar : CanvasLayer
 {
+    public List<PanelContainer> GetSlotPanels()
+    {
+        var list = new List<PanelContainer>();
+        var hBox = GetNodeOrNull<HBoxContainer>("HBoxContainer");
+        if (hBox != null)
+        {
+            foreach (Node child in hBox.GetChildren())
+            {
+                if (child is PanelContainer pc && !pc.IsQueuedForDeletion())
+                {
+                    list.Add(pc);
+                }
+            }
+        }
+        return list;
+    }
+
     public void Refresh(Inventory inventory, int currentSelectedItem)
     {
-        Godot.Collections.Array<Node> panels = FindChildren("*", "PanelContainer");
+        var panels = GetSlotPanels();
         for (int i = 0; i < panels.Count; i++)
         {
-            PanelContainer panel = (PanelContainer)panels[i];
+            PanelContainer panel = panels[i];
             StyleBoxFlat style = (panel.GetThemeStylebox("panel") as StyleBoxFlat).Duplicate() as StyleBoxFlat;
             if (currentSelectedItem == i)
             {
@@ -68,10 +86,10 @@ public partial class InventoryBar : CanvasLayer
 
     public void Refresh(Product[] products, int currentSelectedItem)
     {
-        Godot.Collections.Array<Node> panels = FindChildren("*", "PanelContainer");
+        var panels = GetSlotPanels();
         for (int i = 0; i < panels.Count; i++)
         {
-            PanelContainer panel = (PanelContainer)panels[i];
+            PanelContainer panel = panels[i];
             StyleBoxFlat style = (panel.GetThemeStylebox("panel") as StyleBoxFlat).Duplicate() as StyleBoxFlat;
             if (currentSelectedItem == i)
             {
@@ -123,6 +141,39 @@ public partial class InventoryBar : CanvasLayer
                 if (textureRect != null) textureRect.Texture = null;
                 countLabel.Text = "";
             }
+        }
+    }
+
+    public void EnsureSlots(int count)
+    {
+        var hBox = GetNodeOrNull<HBoxContainer>("HBoxContainer");
+        if (hBox == null) return;
+
+        var panels = GetSlotPanels();
+        while (panels.Count < count && panels.Count > 0)
+        {
+            int newIndex = panels.Count;
+            PanelContainer template = panels[panels.Count - 1];
+            if (template == null) break;
+
+            PanelContainer newPanel = template.Duplicate() as PanelContainer;
+            newPanel.Name = $"Slot{newIndex + 1}";
+            Label label = newPanel.GetNodeOrNull<Label>("Label");
+            if (label != null) label.Text = (newIndex + 1).ToString();
+            TextureRect tr = newPanel.GetNodeOrNull<TextureRect>("TextureRect");
+            if (tr != null) tr.Texture = null;
+            Label countLbl = newPanel.GetNodeOrNull<Label>("CountLabel");
+            if (countLbl != null) countLbl.Text = "";
+            hBox.AddChild(newPanel);
+            panels.Add(newPanel);
+        }
+
+        while (panels.Count > count && panels.Count > 0)
+        {
+            PanelContainer extra = panels[panels.Count - 1];
+            panels.RemoveAt(panels.Count - 1);
+            hBox.RemoveChild(extra);
+            extra.QueueFree();
         }
     }
 }

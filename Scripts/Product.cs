@@ -12,6 +12,10 @@ public partial class Product : RigidBody3D, IInteractable
     [Export] public bool IsForSale = true;
     [Export] public PackedScene ImpactEffect;
     [Export] public bool DestroyOnImpact = true;
+    [Export] public bool IsConsumable = false;
+    [Export] public int HealAmount = 0;
+    [Export] public int MeleeDurability = 4;
+    public int CurrentDurability = 4;
     public bool CanBePickedUp = true;
     public bool WasBought = false;
     public string HoverText { get; set; } = "Buy";
@@ -61,8 +65,11 @@ public partial class Product : RigidBody3D, IInteractable
             RandomNumberGenerator rand = new RandomNumberGenerator();
             Scale = Vector3.One * rand.RandfRange(1f, 1.15f);
         }
-
         HoverText = $"{HoverText} ${Price}";
+        if (IsConsumable && HealAmount > 0)
+        {
+            HoverText += $" (Heals {HealAmount} HP)";
+        }
 
        
 
@@ -124,7 +131,9 @@ public partial class Product : RigidBody3D, IInteractable
 
         if (body is IDamageable target)
         {
-            target.TakeDamage(Damage, Thrower);
+            float perkDmgMult = (Thrower is PlayerController pc && pc.CurrentPerk == PlayerPerk.PowerArm) ? 1.25f : 1.0f;
+            int actualDamage = (int)(Damage * PlayerController.GlobalDamageMultiplier * perkDmgMult);
+            target.TakeDamage(actualDamage, Thrower);
         }
 
         if (Multiplayer.HasMultiplayerPeer())
@@ -220,11 +229,26 @@ public partial class Product : RigidBody3D, IInteractable
 
             if (IsForSale)
             {
-                if (GameManager.Instance.CurrentPhase != GamePhase.Shopping) return;
-
-                if (!player.TryDeductMoney(Price))
+                if (GameManager.Instance.CurrentPhase == GamePhase.Shopping)
                 {
-                    GD.Print($"[Store] Cannot afford {DisplayName}! Costs ${Price}, you have ${player.Money}");
+                    int effectivePrice = player.GetDiscountedPrice(Price);
+                    if (!player.TryDeductMoney(effectivePrice))
+                    {
+                        GD.Print($"[Store] Cannot afford {DisplayName}! Costs ${effectivePrice}, you have ${player.Money}");
+                        return;
+                    }
+                }
+                else if (GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
+                {
+                    if (player.CurrentPerk != PlayerPerk.Scavenger)
+                    {
+                        GD.Print($"[Store] Cannot scavenge shelf item {DisplayName} without Scavenger perk!");
+                        return;
+                    }
+                    GD.Print($"[Store] Scavenged {DisplayName} during Battle Royale!");
+                }
+                else
+                {
                     return;
                 }
             }
@@ -236,31 +260,91 @@ public partial class Product : RigidBody3D, IInteractable
             IsForSale = false;
             WasBought = true;
 
-            if(HoverLabel != null) HoverLabel.Visible = false;
+            if (HoverLabel != null) HoverLabel.Visible = false;
 
             player.Rpc(nameof(player.RPCPickupItem), GetPath());
+        }
+    }
+
+    public void OutlineOn()
+    {
+        if (Outline != null) Outline.Visible = true;
+        if (HoverLabel != null)
+        {
+            UpdateHoverLabelForPlayer(PlayerController.Instance);
+            HoverLabel.Visible = true;
+        }
+    }
+
+    public void OutlineOff()
+    {
+        if (Outline != null) Outline.Visible = false;
+        if (HoverLabel != null) HoverLabel.Visible = false;
+    }
+
+    public void UpdateHoverLabelForPlayer(PlayerController player)
+    {
+        if (HoverLabel == null) return;
+
+        string name = (DisplayName != null && !string.IsNullOrEmpty(DisplayName.ToString())) ? DisplayName.ToString() : Name.ToString();
+
+        if (IsForSale)
+        {
+            var phase = GameManager.Instance?.CurrentPhase;
+            if (phase == GamePhase.Shopping)
+            {
+                int effectivePrice = player != null ? player.GetDiscountedPrice(Price) : Price;
+                string discountTag = (player != null && player.CurrentPerk == PlayerPerk.BargainHunter) ? " (Bargain -25%)" : "";
+                string healTag = (IsConsumable && HealAmount > 0) ? $" (+{HealAmount} HP)" : "";
+                HoverLabel.Text = $"[E] Buy {name} - ${effectivePrice}{discountTag}{healTag}";
+            }
+            else if (phase == GamePhase.BattleRoyale)
+            {
+                if (player != null && player.CurrentPerk == PlayerPerk.Scavenger)
+                {
+                    HoverLabel.Text = $"[E] 🎒 Scavenge {name}";
+                }
+                else
+                {
+                    HoverLabel.Text = $"🔒 Locked: {name}";
+                }
+            }
+            else if (phase == GamePhase.BattleTransition)
+            {
+                HoverLabel.Text = $"🔒 Locked: {name}";
+            }
+            else
+            {
+                HoverLabel.Text = $"{name} - ${Price}";
+            }
+        }
+        else
+        {
+            string healTag = (IsConsumable && HealAmount > 0) ? $" (+{HealAmount} HP)" : "";
+            HoverLabel.Text = $"[E] Pick Up {name}{healTag}";
         }
     }
 
     private void OnGamePhaseChanged()
     {
         if (GameManager.Instance == null) return;
-        if (GameManager.Instance.CurrentPhase != GamePhase.BattleTransition && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
 
-        if (!WasBought)
+        if (GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
         {
-            CanBePickedUp = false;
-            Outline?.QueueFree();
-            Outline = null;
+            CanBePickedUp = true;
         }
-
-        HoverLabel?.QueueFree();
-        HoverLabel = null;
+        else if (GameManager.Instance.CurrentPhase == GamePhase.BattleTransition)
+        {
+            if (HoverLabel != null && GodotObject.IsInstanceValid(HoverLabel))
+            {
+                HoverLabel.Visible = false;
+            }
+        }
     }
 
     public override void _ExitTree()
     {
-        if(GameManager.Instance != null)
+        if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
         }

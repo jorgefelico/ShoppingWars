@@ -40,7 +40,10 @@ public partial class Product : RigidBody3D, IInteractable
         AngularVelocity = Vector3.Zero;
 
         BodyEntered += OnBodyEntered;
-        GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
+        }
 
         if (ImpactEffect == null)
         {

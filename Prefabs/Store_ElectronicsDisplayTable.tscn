@@ -2,6 +2,7 @@
 
 [ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
 [ext_resource type="Material" path="res://Materials/signage_navy.tres" id="2_navy"]
+[ext_resource type="Script" path="res://Scripts/ProceduralShelfFiller.cs" id="3_filler"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_Elec_Base"]
 material = ExtResource("1_dark")
@@ -33,3 +34,7 @@ mesh = SubResource("BoxMesh_Elec_Sign")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("BoxShape_Elec_Table")
+
+[node name="ShelfFiller" type="Node3D" parent="."]
+script = ExtResource("3_filler")
+Category = 8

@@ -325,6 +325,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             Inventory.ClearInventory();
         }
+
+        if (_currentSpectatedPlayer != null && GodotObject.IsInstanceValid(_currentSpectatedPlayer))
+        {
+            _currentSpectatedPlayer.SetSpectateTargetActive(false);
+            _currentSpectatedPlayer = null;
+        }
         
         IsSpectating = false;
         InputDisabled = false;
@@ -333,15 +339,20 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (MeshInstance != null) MeshInstance.Visible = true;
         if (NameCard != null && !IsMultiplayerAuthority()) NameCard.Visible = true;
         
+        CollisionLayer = 2; // Layer 2: Player
+        CollisionMask = 1;  // Layer 1: World
         if (GetNodeOrNull<CollisionShape3D>("CollisionShape3D") is CollisionShape3D col)
         {
             col.Disabled = false;
+            col.SetDeferred("disabled", false);
         }
         
         if (IsMultiplayerAuthority())
         {
             if (Camera != null) Camera.MakeCurrent();
+            GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
             if (DeathOverlay != null) DeathOverlay.Visible = false;
+            if (HealthBar != null) HealthBar.Visible = true;
             if (CrossHair != null) CrossHair.Visible = true;
             if (InventoryBar != null) InventoryBar.Visible = true;
             Input.MouseMode = Input.MouseModeEnum.Captured;

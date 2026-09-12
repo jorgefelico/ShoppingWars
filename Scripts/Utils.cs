@@ -45,4 +45,12 @@ public static class Utils
 
        return HoverLabel;
     }
+
+    public static Node3D GetSpawnPoints(Node scene)
+    {
+        if (scene == null) return null;
+        return scene.GetNodeOrNull<Node3D>("SpawnPoints")
+            ?? scene.GetNodeOrNull<Node3D>("RootEntities/SpawnPoints")
+            ?? scene.FindChild("SpawnPoints", true, false) as Node3D;
+    }
 }

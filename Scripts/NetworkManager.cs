@@ -76,12 +76,12 @@ public partial class NetworkManager : Node
         }
 
         // 2. Determine spawn point for the new player
-        Vector3 newPlayerSpawnPos = Vector3.Zero;
-        Node3D spawnPointsNode = GetTree().CurrentScene?.GetNodeOrNull<Node3D>("SpawnPoints");
+        Vector3 newPlayerSpawnPos = new Vector3(0, 2.5f, 0);
+        Node3D spawnPointsNode = Utils.GetSpawnPoints(GetTree().CurrentScene);
         if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
         {
             int count = spawnPointsNode.GetChildCount();
-            int index = (int)(Mathf.Abs(senderId) % count);
+            int index = _spawnedPlayers.Count % count;
             Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(index);
             if (spawnPoint != null)
             {
@@ -121,9 +121,15 @@ public partial class NetworkManager : Node
         if (existing != null)
         {
             GD.Print($"[NetworkManager] Player {peerId} already exists in scene. Updating name and position.");
-            if (existing is PlayerController existingPc)
+            if (existing is CharacterBody3D existingCb)
             {
-                existingPc.PlayerName = playerName;
+                existingCb.GlobalPosition = spawnPosition;
+                existingCb.Velocity = Vector3.Zero;
+                if (existingCb is PlayerController existingPc)
+                {
+                    existingPc.PlayerName = playerName;
+                    existingPc.SyncPosition = spawnPosition;
+                }
             }
             return;
         }
@@ -141,6 +147,7 @@ public partial class NetworkManager : Node
         }
 
         GetTree().CurrentScene.AddChild(player);
+        player.GlobalPosition = spawnPosition;
 
         if (Multiplayer.IsServer())
         {
@@ -189,13 +196,11 @@ public partial class NetworkManager : Node
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-            Vector3 hostSpawnPos = Vector3.Zero;
-            Node3D spawnPointsNode = GetTree().CurrentScene.GetNodeOrNull<Node3D>("SpawnPoints");
+            Vector3 hostSpawnPos = new Vector3(0, 2.5f, 0);
+            Node3D spawnPointsNode = Utils.GetSpawnPoints(GetTree().CurrentScene);
             if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
             {
-                int count = spawnPointsNode.GetChildCount();
-                int hostIndex = (int)(Mathf.Abs(Multiplayer.GetUniqueId()) % count);
-                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(hostIndex);
+                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(0);
                 if (spawnPoint != null)
                 {
                     hostSpawnPos = spawnPoint.GlobalPosition;
@@ -227,13 +232,11 @@ public partial class NetworkManager : Node
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-            Vector3 hostSpawnPos = Vector3.Zero;
-            Node3D spawnPointsNode = GetTree().CurrentScene.GetNodeOrNull<Node3D>("SpawnPoints");
+            Vector3 hostSpawnPos = new Vector3(0, 2.5f, 0);
+            Node3D spawnPointsNode = Utils.GetSpawnPoints(GetTree().CurrentScene);
             if (spawnPointsNode != null && spawnPointsNode.GetChildCount() > 0)
             {
-                int count = spawnPointsNode.GetChildCount();
-                int hostIndex = (int)(Mathf.Abs(Multiplayer.GetUniqueId()) % count);
-                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(hostIndex);
+                Marker3D spawnPoint = spawnPointsNode.GetChild<Marker3D>(0);
                 if (spawnPoint != null)
                 {
                     hostSpawnPos = spawnPoint.GlobalPosition;

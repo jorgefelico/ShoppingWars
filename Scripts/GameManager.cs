@@ -506,14 +506,14 @@ public partial class GameManager : Node
         AmbientEventManager.Instance?.ResetEvents();
         ArenaZoneManager.Instance?.ResetZone();
 
-        Node3D spawnPointsNode = GetTree().CurrentScene?.GetNodeOrNull<Node3D>("SpawnPoints");
+        Node3D spawnPointsNode = Utils.GetSpawnPoints(GetTree().CurrentScene);
         int spawnCount = (spawnPointsNode != null) ? spawnPointsNode.GetChildCount() : 0;
 
         var allPlayers = GetAllPlayers();
         for (int i = 0; i < allPlayers.Count; i++)
         {
             PlayerController p = allPlayers[i];
-            Vector3 spawnPos = p.GlobalPosition;
+            Vector3 spawnPos = new Vector3(0, 2.5f, 0);
             if (spawnPointsNode != null && spawnCount > 0)
             {
                 int spawnIdx = i % spawnCount;

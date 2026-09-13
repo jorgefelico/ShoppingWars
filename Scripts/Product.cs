@@ -276,12 +276,37 @@ public partial class Product : RigidBody3D, IInteractable
         }
         else
         {
-            CombatHitEffect.Spawn(this, spawnPos);
+            SpawnSpecializedSplatter(spawnPos);
         }
 
         if (DestroyOnImpact)
         {
             QueueFree();
+        }
+    }
+
+    private void SpawnSpecializedSplatter(Vector3 spawnPos)
+    {
+        string pName = (DisplayName != null && !string.IsNullOrEmpty(DisplayName.ToString())) ? DisplayName.ToString() : Name.ToString();
+        if (pName.Contains("Bleach", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Detergent", System.StringComparison.OrdinalIgnoreCase))
+        {
+            SpecialSplatters.SpawnSoap(this, spawnPos);
+        }
+        else if (pName.Contains("Soda", System.StringComparison.OrdinalIgnoreCase))
+        {
+            SpecialSplatters.SpawnSoda(this, spawnPos);
+        }
+        else if (pName.Contains("Cereal", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Bread", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Pizza", System.StringComparison.OrdinalIgnoreCase))
+        {
+            SpecialSplatters.SpawnCrumbs(this, spawnPos);
+        }
+        else if (pName.Contains("TV", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Drill", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Toaster", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Blender", System.StringComparison.OrdinalIgnoreCase))
+        {
+            SpecialSplatters.SpawnZap(this, spawnPos);
+        }
+        else
+        {
+            CombatHitEffect.Spawn(this, spawnPos);
         }
     }
 

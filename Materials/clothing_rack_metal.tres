@@ -1,6 +1,13 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cw20jrehywe1q"]
 
 [resource]
+diffuse_mode = 3
+specular_mode = 1
 albedo_color = Color(0.85, 0.85, 0.87, 1)
-metallic = 0.9
-roughness = 0.2
+metallic = 0.6
+roughness = 0.25
+rim_enabled = true
+rim = 0.3
+rim_tint = 0.4
+stencil_flags = 2
+stencil_outline_thickness = 0.012

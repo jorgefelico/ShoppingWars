@@ -32,7 +32,7 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
 [ext_resource type="PackedScene" uid="uid://c47mufmp5i703" path="res://Prefabs/Products/Apple.tscn" id="P_Apple"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_WarehouseDoors.tscn" id="P_BOHDoors"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_CartCorral.tscn" id="P_CartCorral"]
+[ext_resource type="PackedScene" uid="uid://ciwfh2ihbkj6i" path="res://Prefabs/Store_CartCorral.tscn" id="P_CartCorral"]
 [ext_resource type="PackedScene" uid="uid://cavvmg6hkxcwv" path="res://Prefabs/CeilingSpeaker.tscn" id="P_CeilingSpeaker"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CheckoutLane.tscn" id="P_Checkout"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CircularClothingRack.tscn" id="P_ClothRack"]
@@ -44,7 +44,7 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsDisplayTable.tscn" id="P_ElecTable"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_EmergencyBeacon.tscn" id="P_EmergencyBeacon"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FittingRoomDivider.tscn" id="P_Fitting"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight.tscn" id="P_FluorescentLight"]
+[ext_resource type="PackedScene" uid="uid://dtpkw3fn2u452" path="res://Prefabs/Store_FluorescentLight.tscn" id="P_FluorescentLight"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight_Flickering.tscn" id="P_FluorescentLight_Flickering"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FoldedApparelTable.tscn" id="P_FoldTable"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FreezerBunker.tscn" id="P_Freezer"]
@@ -64,29 +64,25 @@ sky_material = SubResource("ProceduralSkyMaterial_0fj1v")
 sky = SubResource("Sky_7oesd")
 ambient_light_source = 1
 tonemap_mode = 3
-tonemap_exposure = 1.5
-tonemap_white = 4.0
+tonemap_exposure = 1.35
+tonemap_white = 3.5
 ssr_enabled = true
 ssr_max_steps = 48
 ssao_enabled = true
-ssao_intensity = 1.2
+ssao_intensity = 1.25
 ssil_enabled = true
-sdfgi_use_occlusion = true
-sdfgi_read_sky_light = false
-sdfgi_cascades = 4
-sdfgi_min_cell_size = 0.5
-sdfgi_energy = 1.2
-sdfgi_normal_bias = 1.5
 glow_enabled = true
-glow_normalized = true
+glow_intensity = 0.55
+glow_bloom = 0.12
+glow_blend_mode = 0
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.003
-volumetric_fog_albedo = Color(0.72156864, 0.7607843, 0.8, 1)
+volumetric_fog_density = 0.0025
+volumetric_fog_albedo = Color(0.75, 0.78, 0.85, 1)
 volumetric_fog_anisotropy = 0.65
 volumetric_fog_length = 100.0
 adjustment_enabled = true
-adjustment_contrast = 1.08
-adjustment_saturation = 1.15
+adjustment_contrast = 1.12
+adjustment_saturation = 1.22
 
 [sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_p8oww"]
 auto_exposure_min_exposure_value = 0.5
@@ -224,8 +220,9 @@ _spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq
 spawn_path = NodePath("../SpawnedProjectiles")
 
 [node name="LightmapGI" type="LightmapGI" parent="." unique_id=1960108528]
-quality = 2
-bounces = 5
+quality = 3
+bounces = 8
+directional = true
 interior = true
 light_data = ExtResource("1_7u461")
 

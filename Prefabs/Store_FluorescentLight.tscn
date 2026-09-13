@@ -1,37 +1,35 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dtpkw3fn2u452"]
 
-[ext_resource type="Script" path="res://Scripts/StoreFluorescentLight.cs" id="1_script"]
 [ext_resource type="Material" uid="uid://gfiufhmghujx" path="res://Materials/fluorescent_light.tres" id="1_light"]
-[ext_resource type="Material" path="res://Materials/hvac_metal.tres" id="2_metal"]
+[ext_resource type="Script" uid="uid://d3aj1pib30s6s" path="res://Scripts/StoreFluorescentLight.cs" id="1_script"]
+[ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="2_metal"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_Housing"]
-material = ExtResource("2_metal")
 lightmap_size_hint = Vector2i(32, 16)
+material = ExtResource("2_metal")
 add_uv2 = true
 size = Vector3(0.42, 0.1, 5.05)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Tube"]
-material = ExtResource("1_light")
 lightmap_size_hint = Vector2i(30, 16)
+material = ExtResource("1_light")
 add_uv2 = true
 size = Vector3(0.35, 0.04, 4.95)
 
-[node name="Store_FluorescentLight" type="Node3D"]
+[node name="Store_FluorescentLight" type="Node3D" unique_id=1432540336]
 script = ExtResource("1_script")
 
-[node name="Housing" type="MeshInstance3D" parent="."]
-gi_mode = 1
+[node name="Housing" type="MeshInstance3D" parent="." unique_id=1387136907]
 mesh = SubResource("BoxMesh_Housing")
 
-[node name="Tube" type="MeshInstance3D" parent="."]
+[node name="Tube" type="MeshInstance3D" parent="." unique_id=565473383]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
-gi_mode = 1
 mesh = SubResource("BoxMesh_Tube")
 
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=325847275]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 light_color = Color(0.96, 0.98, 1, 1)
 light_energy = 3.5
 light_bake_mode = 1
+shadow_enabled = true
 omni_range = 18.0
-omni_attenuation = 1.0

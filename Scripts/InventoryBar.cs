@@ -20,20 +20,43 @@ public partial class InventoryBar : CanvasLayer
         return list;
     }
 
+    private int _lastSelectedSlot = -1;
+
     public void Refresh(Inventory inventory, int currentSelectedItem)
     {
         var panels = GetSlotPanels();
         for (int i = 0; i < panels.Count; i++)
         {
             PanelContainer panel = panels[i];
+            panel.PivotOffset = panel.Size / 2f;
             StyleBoxFlat style = (panel.GetThemeStylebox("panel") as StyleBoxFlat).Duplicate() as StyleBoxFlat;
             if (currentSelectedItem == i)
             {
-                style.BorderColor = Color.Color8(255, 223, 0);
+                style.BorderColor = Color.Color8(255, 223, 0); // Gold
+                style.BorderWidthBottom = 3;
+                style.BorderWidthTop = 3;
+                style.BorderWidthLeft = 3;
+                style.BorderWidthRight = 3;
+
+                if (_lastSelectedSlot != currentSelectedItem)
+                {
+                    Tween tween = CreateTween();
+                    tween.TweenProperty(panel, "scale", new Vector2(1.18f, 1.18f), 0.06f);
+                    tween.TweenProperty(panel, "scale", new Vector2(1.05f, 1.05f), 0.12f);
+                }
+                else
+                {
+                    panel.Scale = new Vector2(1.05f, 1.05f);
+                }
             }
             else
             {
                 style.BorderColor = Color.Color8(0, 0, 0);
+                style.BorderWidthBottom = 1;
+                style.BorderWidthTop = 1;
+                style.BorderWidthLeft = 1;
+                style.BorderWidthRight = 1;
+                panel.Scale = Vector2.One;
             }
             panel.AddThemeStyleboxOverride("panel", style);
 
@@ -82,6 +105,7 @@ public partial class InventoryBar : CanvasLayer
                 countLabel.Text = "";
             }
         }
+        _lastSelectedSlot = currentSelectedItem;
     }
 
     public void Refresh(Product[] products, int currentSelectedItem)

@@ -78,6 +78,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
     private HitMarker _hitMarker;
+    private PlayerAudio _playerAudio;
+    private float _stepTimer = 0f;
+    private bool _isLeftFoot = true;
+    private bool _wasOnFloor = true;
+    private float _lastVerticalVelocity = 0f;
     private float _networkSyncTimer = 0f;
     private const float NetworkSyncInterval = 0.033f; // ~30 Hz sync rate
     private Vector3 _lastSentPos = Vector3.Zero;
@@ -94,6 +99,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (MeshInstance == null) MeshInstance = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
         if (Health == null) Health = GetNodeOrNull<Health>("Health");
         if (Inventory == null) Inventory = GetNodeOrNull<Inventory>("Inventory");
+
+        _playerAudio = GetNodeOrNull<PlayerAudio>("PlayerAudio");
+        if (_playerAudio == null)
+        {
+            _playerAudio = new PlayerAudio { Name = "PlayerAudio" };
+            AddChild(_playerAudio);
+        }
 
         if (int.TryParse(Name, out int peerId))
         {
@@ -433,6 +445,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 GlobalPosition = GlobalPosition.Lerp(SyncPosition, lerpFactor);
             }
 
+            // Spatial 3D footsteps for remote players
+            if (distance > 0.06f && (Health == null || !Health.IsDead))
+            {
+                _stepTimer += (float)delta;
+                bool isRunning = distance > 0.22f;
+                float stepInterval = isRunning ? 0.28f : 0.42f;
+                if (_stepTimer >= stepInterval)
+                {
+                    _stepTimer = 0f;
+                    _playerAudio?.PlayFootstep(isRunning, _isLeftFoot);
+                    _isLeftFoot = !_isLeftFoot;
+                }
+            }
+            else
+            {
+                _stepTimer = 0.14f;
+            }
+
             float rotLerpFactor = 1.0f - Mathf.Exp(-22.0f * (float)delta);
             if (Head != null)
             {
@@ -742,6 +772,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.Position = Vector3.Zero;
         item.Visible = false;
 
+        _playerAudio?.PlayPickupChime();
+
         if (IsMultiplayerAuthority())
         {
             Inventory.AddItem(item);
@@ -874,6 +906,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (Input.IsActionJustPressed("jump") && IsOnFloor())
         {
             Velocity = new Vector3(Velocity.X, JumpVelocity * JumpModifier, Velocity.Z);
+            _playerAudio?.PlayJump();
         }
 
         Vector2 movementAxis = Input.GetVector("move_left", "move_right", "move_back", "move_forward");
@@ -895,6 +928,48 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Velocity = new Vector3(newX, Velocity.Y, newZ);
         }
         MoveAndSlide();
+
+        // Landing impact audio
+        if (!_wasOnFloor && IsOnFloor())
+        {
+            if (_lastVerticalVelocity < -1.8f)
+            {
+                _playerAudio?.PlayLand(Mathf.Abs(_lastVerticalVelocity));
+            }
+        }
+        _wasOnFloor = IsOnFloor();
+        _lastVerticalVelocity = Velocity.Y;
+
+        // Dynamic footstep audio
+        if (IsOnFloor() && movementAxis != Vector2.Zero)
+        {
+            _stepTimer += (float)delta;
+            float stepInterval = IsRunning ? 0.28f : 0.42f;
+            if (_stepTimer >= stepInterval)
+            {
+                _stepTimer = 0f;
+                _playerAudio?.PlayFootstep(IsRunning, _isLeftFoot);
+                _isLeftFoot = !_isLeftFoot;
+            }
+        }
+        else
+        {
+            _stepTimer = 0.14f;
+        }
+
+        if (Camera != null && IsMultiplayerAuthority())
+        {
+            float targetFov = 75.0f;
+            if (IsRunning && movementAxis != Vector2.Zero && IsOnFloor())
+            {
+                targetFov = 85.0f;
+            }
+            if (SpeedModifier > 1.2f)
+            {
+                targetFov += 8.0f;
+            }
+            Camera.Fov = Mathf.Lerp(Camera.Fov, targetFov, (float)delta * 7.0f);
+        }
     }
 
     private bool _wasUseKeyPressed = false;
@@ -983,6 +1058,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.ActivatePhysicsAndSync();
         item.Visible = true;
         item.LinearVelocity = launchVelocity;
+        _playerAudio?.PlayThrowWhoosh();
 
         if (IsMultiplayerAuthority())
         {
@@ -1184,7 +1260,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void SwitchInventorySlot(int index)
     {
+        if (Inventory == null) return;
+        int prevSlot = Inventory.selectedItemIndex;
         Inventory.SetCurrentSelectedItem(index);
+        if (prevSlot != Inventory.selectedItemIndex)
+        {
+            _playerAudio?.PlayItemSwitch();
+        }
         UpdateHandItemVisibility();
 
         NodePath activeItemPath = HeldItem != null ? HeldItem.GetPath() : new NodePath();

@@ -143,6 +143,10 @@ public partial class GameManager : Node
             AddChild(zone);
         }
 
+        var dressing = new SupermarketDressing();
+        dressing.Name = "SupermarketDressing";
+        AddChild(dressing);
+
         if (!Multiplayer.IsServer())
         {
             // Client requests current authoritative state from host immediately on load

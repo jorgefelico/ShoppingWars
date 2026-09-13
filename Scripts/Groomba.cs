@@ -15,6 +15,8 @@ public partial class Groomba : PatrolEnemy
     private AudioStreamPlayer3D _audioPlayer;
     private bool _isDestroyed = false;
     StandardMaterial3D RingMat;
+    private Label3D _faceDisplay;
+    private CpuParticles3D _vacuumDust;
     private float _networkSyncTimer = 0f;
     private const float NetworkSyncInterval = 0.05f; // 20 Hz sync rate
     private Vector3 _lastSentPos = Vector3.Zero;
@@ -65,6 +67,50 @@ public partial class Groomba : PatrolEnemy
             RingMesh.MaterialOverride = RingMat;
         }
 
+        // Initialize expressive LED digital face
+        _faceDisplay = new Label3D
+        {
+            Name = "FaceDisplay",
+            Text = "^ ‿ ^",
+            FontSize = 42,
+            OutlineSize = 10,
+            OutlineModulate = Colors.Black,
+            Modulate = Constants.PATROL_GREEN,
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            Position = new Vector3(0, 0.42f, 0),
+            PixelSize = 0.0055f,
+            RenderPriority = 6
+        };
+        AddChild(_faceDisplay);
+
+        // Subtle rear vacuum exhaust dust trail
+        _vacuumDust = new CpuParticles3D
+        {
+            Name = "VacuumDust",
+            Emitting = true,
+            Amount = 14,
+            Lifetime = 0.45f,
+            Direction = new Vector3(0, 0.25f, 1.0f),
+            Spread = 30.0f,
+            InitialVelocityMin = 0.6f,
+            InitialVelocityMax = 1.4f,
+            Gravity = new Vector3(0, 0.2f, 0),
+            Position = new Vector3(0, 0.06f, 0.38f)
+        };
+        var dustMat = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.92f, 0.92f, 0.94f, 0.3f),
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded
+        };
+        _vacuumDust.Mesh = new SphereMesh
+        {
+            Radius = 0.05f,
+            Height = 0.1f,
+            Material = dustMat
+        };
+        AddChild(_vacuumDust);
+
         UpdateRingEmission(PatrolState);
 
         if (Health != null)
@@ -84,18 +130,39 @@ public partial class Groomba : PatrolEnemy
 
     public void UpdateRingEmission(PatrolEntityState state)
     {
-        if (RingMat == null) return;
-        switch (state)
+        if (RingMat != null)
         {
-            case PatrolEntityState.Patrol:
-                RingMat.Emission = Constants.PATROL_GREEN;
-                break;
-            case PatrolEntityState.Attack:
-                RingMat.Emission = Constants.PATROL_RED;
-                break;
-            case PatrolEntityState.Search:
-                RingMat.Emission = Constants.PATROL_YELLOW;
-                break;
+            switch (state)
+            {
+                case PatrolEntityState.Patrol:
+                    RingMat.Emission = Constants.PATROL_GREEN;
+                    break;
+                case PatrolEntityState.Attack:
+                    RingMat.Emission = Constants.PATROL_RED;
+                    break;
+                case PatrolEntityState.Search:
+                    RingMat.Emission = Constants.PATROL_YELLOW;
+                    break;
+            }
+        }
+
+        if (_faceDisplay != null)
+        {
+            switch (state)
+            {
+                case PatrolEntityState.Patrol:
+                    _faceDisplay.Text = "^ ‿ ^";
+                    _faceDisplay.Modulate = Constants.PATROL_GREEN;
+                    break;
+                case PatrolEntityState.Attack:
+                    _faceDisplay.Text = "> 皿 <";
+                    _faceDisplay.Modulate = Constants.PATROL_RED;
+                    break;
+                case PatrolEntityState.Search:
+                    _faceDisplay.Text = "⊙ _ ⊙";
+                    _faceDisplay.Modulate = Constants.PATROL_YELLOW;
+                    break;
+            }
         }
     }
 
@@ -238,6 +305,18 @@ public partial class Groomba : PatrolEnemy
         }
 
         base.TakeDamage(amount, source);
+
+        if (_faceDisplay != null)
+        {
+            _faceDisplay.Text = "> <";
+            GetTree().CreateTimer(0.35).Timeout += () =>
+            {
+                if (GodotObject.IsInstanceValid(this) && !_isDestroyed)
+                {
+                    UpdateRingEmission(PatrolState);
+                }
+            };
+        }
 
         if (Health != null && Health.CurrentHealth <= Health.MaxHealth / 2 && _smoke != null && !_smoke.Emitting)
         {
@@ -419,6 +498,7 @@ public partial class Groomba : PatrolEnemy
     {
         _isDestroyed = true;
         if (_smoke != null) _smoke.Emitting = false;
+        FloatingDamageNumber.SpawnText(this, GlobalPosition + Vector3.Up * 0.8f, "K.O.!", new Color(1.0f, 0.2f, 0.2f), 54);
         SpawnExplosion();
         QueueFree();
     }

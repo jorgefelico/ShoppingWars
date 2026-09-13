@@ -21,6 +21,33 @@ public partial class GamePhaseHUD : CanvasLayer
     public static GamePhaseHUD Instance { get; private set; }
     private Label _killFeedLabel;
     private float _killFeedTimer = 0f;
+    private int _lastDisplayedMoney = -1;
+
+    private void UpdateMoneyDisplay()
+    {
+        if (MoneyLabel == null) return;
+        int currentMoney = PlayerController.Instance != null ? PlayerController.Instance.Money : 0;
+        MoneyLabel.Text = $"💵 ${currentMoney:N0}";
+
+        if (_lastDisplayedMoney != -1 && _lastDisplayedMoney != currentMoney)
+        {
+            // Cash register punch animation!
+            MoneyLabel.PivotOffset = MoneyLabel.Size / 2f;
+            Tween tween = CreateTween();
+            tween.TweenProperty(MoneyLabel, "scale", new Vector2(1.28f, 1.28f), 0.08f);
+            tween.TweenProperty(MoneyLabel, "scale", Vector2.One, 0.15f);
+
+            MoneyLabel.Modulate = currentMoney > _lastDisplayedMoney 
+                ? new Color(0.2f, 1.0f, 0.4f)  // Green on money gained
+                : new Color(1.0f, 0.85f, 0.2f); // Gold on money spent
+        }
+        else if (_lastDisplayedMoney == -1)
+        {
+            MoneyLabel.Modulate = currentMoney > 0 ? new Color(0.25f, 0.95f, 0.35f) : Colors.White;
+        }
+
+        _lastDisplayedMoney = currentMoney;
+    }
 
     public override void _Ready()
     {
@@ -41,6 +68,13 @@ public partial class GamePhaseHUD : CanvasLayer
         if (EventContainer != null)
         {
             EventContainer.Visible = false;
+        }
+
+        if (MoneyLabel != null)
+        {
+            MoneyLabel.AddThemeFontSizeOverride("font_size", 28);
+            MoneyLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+            MoneyLabel.AddThemeConstantOverride("outline_size", 6);
         }
 
         if (GameOverPanel != null)
@@ -117,16 +151,14 @@ public partial class GamePhaseHUD : CanvasLayer
                 PhaseLabel.Text = "SHOPPING PHASE";
                 PhaseLabel.Modulate = Colors.Cyan;
                 MoneyLabel.Visible = true;
-                MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
-                MoneyLabel.Modulate = PlayerController.Instance?.Money != 0 ? Colors.Green : Colors.Red;
+                UpdateMoneyDisplay();
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.BattleTransition:
                 PhaseLabel.Text = "STORE LOCKDOWN - PREPARE FOR BATTLE!";
                 PhaseLabel.Modulate = Colors.OrangeRed;
                 MoneyLabel.Visible = true;
-                MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
-                MoneyLabel.Modulate = PlayerController.Instance?.Money > 0 ? Colors.Green : Colors.White;
+                UpdateMoneyDisplay();
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.BattleRoyale:
@@ -167,8 +199,7 @@ public partial class GamePhaseHUD : CanvasLayer
                     PhaseLabel.Modulate = Colors.Red;
                 }
                 MoneyLabel.Visible = true;
-                MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
-                MoneyLabel.Modulate = PlayerController.Instance?.Money > 0 ? Colors.Green : Colors.White;
+                UpdateMoneyDisplay();
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.RoundOver:

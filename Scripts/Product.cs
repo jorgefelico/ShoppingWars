@@ -137,6 +137,20 @@ public partial class Product : RigidBody3D, IInteractable
             float perkDmgMult = (Thrower is PlayerController pc && pc.CurrentPerk == PlayerPerk.PowerArm) ? 1.25f : 1.0f;
             int actualDamage = (int)(Damage * PlayerController.GlobalDamageMultiplier * perkDmgMult);
             target.TakeDamage(actualDamage, Thrower);
+
+            // Confirm hit to Thrower for hit marker & audio tick
+            if (Thrower is PlayerController throwerPlayer && GodotObject.IsInstanceValid(throwerPlayer))
+            {
+                bool isKill = (target is PlayerController victimPlayer && victimPlayer.Health != null && victimPlayer.Health.CurrentHealth <= 0);
+                if (throwerPlayer.IsMultiplayerAuthority())
+                {
+                    throwerPlayer.TriggerHitMarker(isKill);
+                }
+                else if (int.TryParse(throwerPlayer.Name, out int throwerPeerId) && Multiplayer.HasMultiplayerPeer())
+                {
+                    throwerPlayer.RpcId(throwerPeerId, nameof(PlayerController.RpcConfirmHit), actualDamage, isKill);
+                }
+            }
         }
 
         if (Multiplayer.HasMultiplayerPeer())
@@ -188,6 +202,10 @@ public partial class Product : RigidBody3D, IInteractable
                     fruitSplatter.SetSplatColor(GetFruitSplatColor());
                 }
             }
+        }
+        else
+        {
+            CombatHitEffect.Spawn(this, spawnPos);
         }
 
         if (DestroyOnImpact)
@@ -243,12 +261,20 @@ public partial class Product : RigidBody3D, IInteractable
                 }
                 else if (GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
                 {
-                    if (player.CurrentPerk != PlayerPerk.Scavenger)
+                    if (player.CurrentPerk == PlayerPerk.Scavenger)
                     {
-                        GD.Print($"[Store] Cannot scavenge shelf item {DisplayName} without Scavenger perk!");
-                        return;
+                        GD.Print($"[Store] Scavenged {DisplayName} during Battle Royale!");
                     }
-                    GD.Print($"[Store] Scavenged {DisplayName} during Battle Royale!");
+                    else
+                    {
+                        int effectivePrice = player.GetDiscountedPrice(Price);
+                        if (!player.TryDeductMoney(effectivePrice))
+                        {
+                            GD.Print($"[Store] Cannot afford {DisplayName}! Costs ${effectivePrice}, you have ${player.Money}");
+                            return;
+                        }
+                        GD.Print($"[Store] Purchased {DisplayName} during Battle Royale for ${effectivePrice}!");
+                    }
                 }
                 else
                 {
@@ -305,11 +331,14 @@ public partial class Product : RigidBody3D, IInteractable
             {
                 if (player != null && player.CurrentPerk == PlayerPerk.Scavenger)
                 {
-                    HoverLabel.Text = $"[E] 🎒 Scavenge {name}";
+                    HoverLabel.Text = $"[E] 🎒 Scavenge {name} (FREE)";
                 }
                 else
                 {
-                    HoverLabel.Text = $"🔒 Locked: {name}";
+                    int effectivePrice = player != null ? player.GetDiscountedPrice(Price) : Price;
+                    string discountTag = (player != null && player.CurrentPerk == PlayerPerk.BargainHunter) ? " (Bargain -25%)" : "";
+                    string healTag = (IsConsumable && HealAmount > 0) ? $" (+{HealAmount} HP)" : "";
+                    HoverLabel.Text = $"[E] Buy {name} - ${effectivePrice}{discountTag}{healTag}";
                 }
             }
             else if (phase == GamePhase.BattleTransition)

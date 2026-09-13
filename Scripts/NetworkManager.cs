@@ -217,6 +217,9 @@ public partial class NetworkManager : Node
         if (Multiplayer.IsServer())
         {
             GD.Print("[NetworkManager] Host initiating match restart...");
+            int newMatchSeed = (int)GD.Randi();
+            ProceduralShelfFiller.CurrentMatchSeed = newMatchSeed;
+            ProceduralShelfFiller.ResetGlobalSpawnCounts();
             _spawnedPlayers.Clear();
             Node oldScene = GetTree().CurrentScene;
             GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
@@ -248,15 +251,17 @@ public partial class NetworkManager : Node
 
             if (Multiplayer.HasMultiplayerPeer())
             {
-                Rpc(nameof(RpcClientRestartMatch));
+                Rpc(nameof(RpcClientRestartMatch), newMatchSeed);
             }
         }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private async void RpcClientRestartMatch()
+    private async void RpcClientRestartMatch(int matchSeed)
     {
-        GD.Print("[NetworkManager] Received RpcClientRestartMatch from Host! Reloading scene...");
+        GD.Print($"[NetworkManager] Received RpcClientRestartMatch from Host with seed {matchSeed}! Reloading scene...");
+        ProceduralShelfFiller.CurrentMatchSeed = matchSeed;
+        ProceduralShelfFiller.ResetGlobalSpawnCounts();
         Node oldScene = GetTree().CurrentScene;
         Error err = GetTree().ChangeSceneToFile("res://Scenes/StoreInterior.tscn");
         if (err != Error.Ok)

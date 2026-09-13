@@ -124,7 +124,9 @@ public partial class GamePhaseHUD : CanvasLayer
             case GamePhase.BattleTransition:
                 PhaseLabel.Text = "STORE LOCKDOWN - PREPARE FOR BATTLE!";
                 PhaseLabel.Modulate = Colors.OrangeRed;
-                MoneyLabel.Visible = false;
+                MoneyLabel.Visible = true;
+                MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
+                MoneyLabel.Modulate = PlayerController.Instance?.Money > 0 ? Colors.Green : Colors.White;
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.BattleRoyale:
@@ -164,7 +166,9 @@ public partial class GamePhaseHUD : CanvasLayer
                     PhaseLabel.Text = "BATTLE ROYALE - FIGHT!";
                     PhaseLabel.Modulate = Colors.Red;
                 }
-                MoneyLabel.Visible = false;
+                MoneyLabel.Visible = true;
+                MoneyLabel.Text = $"${PlayerController.Instance?.Money}";
+                MoneyLabel.Modulate = PlayerController.Instance?.Money > 0 ? Colors.Green : Colors.White;
                 if (GameOverPanel != null) GameOverPanel.Visible = false;
                 break;
             case GamePhase.RoundOver:

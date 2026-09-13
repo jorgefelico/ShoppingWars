@@ -77,6 +77,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public PlayerController CurrentSpectatedPlayer => _currentSpectatedPlayer;
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
+    private HitMarker _hitMarker;
 
     public override void _Ready()
     {
@@ -129,6 +130,13 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 specHud.PreviousRequested += SpectatePreviousPlayer;
                 specHud.NextRequested += SpectateNextPlayer;
+            }
+
+            if (CrossHair == null) CrossHair = GetNodeOrNull<CanvasLayer>("CrossHair");
+            if (CrossHair != null)
+            {
+                _hitMarker = new HitMarker();
+                CrossHair.AddChild(_hitMarker);
             }
         }
         else
@@ -1024,6 +1032,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
                 if (collider is IDamageable target)
                 {
+                    bool isFatal = target is PlayerController pc && pc.Health != null && (pc.Health.CurrentHealth - damage <= 0);
+                    TriggerHitMarker(isFatal);
+
                     if (Multiplayer.IsServer())
                     {
                         target.TakeDamage(damage, this);
@@ -1034,6 +1045,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                     }
                 }
 
+                CombatHitEffect.Spawn(this, hitPos);
                 Rpc(nameof(RpcOnMeleeSwing), hitPos, true);
             }
             else
@@ -1065,10 +1077,39 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     private void RpcOnMeleeSwing(Vector3 hitPos, bool didHit)
     {
-        if (didHit && IsMultiplayerAuthority())
+        if (didHit)
         {
-            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.15f, 0f, 1f);
+            if (IsMultiplayerAuthority())
+            {
+                _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.15f, 0f, 1f);
+            }
+            else
+            {
+                CombatHitEffect.Spawn(this, hitPos);
+            }
         }
+    }
+
+    public void TriggerHitMarker(bool isKill = false)
+    {
+        if (!IsMultiplayerAuthority()) return;
+        _hitMarker?.Flash(isKill);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcConfirmHit(int damage, bool isFatal)
+    {
+        if (!IsMultiplayerAuthority()) return;
+        TriggerHitMarker(isFatal);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcOnDamagedFromSource(int amount, Vector3 sourcePos)
+    {
+        if (!IsMultiplayerAuthority()) return;
+        TriggerCameraShake(amount);
+        TriggerDamageFlash(amount);
+        DamageOverlay?.AddDirectionalHit(sourcePos);
     }
 
     private void HandleInventoryActions()
@@ -1175,6 +1216,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             bool wasDead = Health.IsDead;
             Health.TakeDamage(amount);
+
+            Vector3 sourcePos = source != null ? source.GlobalPosition : (GlobalPosition - GlobalTransform.Basis.Z * 2.0f);
+            if (int.TryParse(Name, out int targetPeerId))
+            {
+                if (Multiplayer.HasMultiplayerPeer())
+                {
+                    RpcId(targetPeerId, nameof(RpcOnDamagedFromSource), amount, sourcePos);
+                }
+                else
+                {
+                    RpcOnDamagedFromSource(amount, sourcePos);
+                }
+            }
+            else
+            {
+                RpcOnDamagedFromSource(amount, sourcePos);
+            }
+
             if (!wasDead && Health.IsDead)
             {
                 // Fatal elimination! Reward the killer if it was another player

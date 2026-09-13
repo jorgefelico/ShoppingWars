@@ -100,6 +100,10 @@ public partial class Health : Node
         if (damageTaken > 0)
         {
             Damaged?.Invoke(damageTaken);
+            if (GetParent() is Node3D parent3D && GodotObject.IsInstanceValid(parent3D))
+            {
+                FloatingDamageNumber.Spawn(this, parent3D.GlobalPosition, damageTaken);
+            }
         }
 
         if (justDied)

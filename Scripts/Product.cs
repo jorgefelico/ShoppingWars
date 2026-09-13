@@ -15,6 +15,8 @@ public partial class Product : RigidBody3D, IInteractable
     [Export] public bool IsConsumable = false;
     [Export] public int HealAmount = 0;
     [Export] public int MeleeDurability = 4;
+    [Export] public bool EnableToonStyle = true;
+    [Export] public float ToonOutlineWidth = 0.0028f;
     public int CurrentDurability = 4;
     public bool CanBePickedUp = true;
     public bool WasBought = false;
@@ -25,6 +27,8 @@ public partial class Product : RigidBody3D, IInteractable
     public Label3D HoverLabel { get; set; }
     private MeshInstance3D mesh;
     private bool _hasImpacted = false;
+    private MultiplayerSynchronizer _synchronizer;
+    private float _settleTimer = 0f;
 
     public void ResetImpact()
     {
@@ -38,6 +42,17 @@ public partial class Product : RigidBody3D, IInteractable
         FreezeMode = FreezeModeEnum.Static;
         LinearVelocity = Vector3.Zero;
         AngularVelocity = Vector3.Zero;
+
+        // Shelf performance: disable contact monitoring & CCD while sitting dormant on shelf
+        ContactMonitor = false;
+        MaxContactsReported = 0;
+        ContinuousCd = false;
+
+        _synchronizer = GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer");
+        if (_synchronizer != null && IsForSale && Freeze)
+        {
+            _synchronizer.ProcessMode = ProcessModeEnum.Disabled;
+        }
 
         BodyEntered += OnBodyEntered;
         if (GameManager.Instance != null)
@@ -74,14 +89,51 @@ public partial class Product : RigidBody3D, IInteractable
             HoverText += $" (Heals {HealAmount} HP)";
         }
 
-       
+        if (EnableToonStyle)
+        {
+            StylizationHelper.ApplyToonStylization(this, ToonOutlineWidth);
+        }
 
         mesh = Utils.FindMeshInstance(this);
-        
-        HoverLabel = Utils.CreateHoverLabel(HoverText);
-        AddChild(HoverLabel);
+    }
 
-        if (mesh != null)
+    public void ActivatePhysicsAndSync()
+    {
+        if (_synchronizer != null && GodotObject.IsInstanceValid(_synchronizer))
+        {
+            _synchronizer.ProcessMode = ProcessModeEnum.Inherit;
+        }
+        ContactMonitor = true;
+        MaxContactsReported = 4;
+        ContinuousCd = true;
+    }
+
+    public void DeactivatePhysicsAndSync()
+    {
+        if (_synchronizer != null && GodotObject.IsInstanceValid(_synchronizer))
+        {
+            _synchronizer.ProcessMode = ProcessModeEnum.Disabled;
+        }
+        ContactMonitor = false;
+        MaxContactsReported = 0;
+        ContinuousCd = false;
+    }
+
+    private void EnsureOutlineAndLabel()
+    {
+        if (HoverLabel == null)
+        {
+            HoverLabel = Utils.CreateHoverLabel(HoverText);
+            HoverLabel.Visible = false;
+            AddChild(HoverLabel);
+        }
+
+        if (mesh == null)
+        {
+            mesh = Utils.FindMeshInstance(this);
+        }
+
+        if (Outline == null && mesh != null)
         {
             ShaderMaterial outlineMaterial = new()
             {
@@ -100,7 +152,6 @@ public partial class Product : RigidBody3D, IInteractable
             }
             mesh.AddChild(Outline);
         }
-
     }
 
     public override void _PhysicsProcess(double delta)
@@ -110,6 +161,25 @@ public partial class Product : RigidBody3D, IInteractable
             if ((WasBought || Thrower != null || !IsForSale) && LinearVelocity.LengthSquared() > 0.1f)
             {
                 Freeze = false;
+                ActivatePhysicsAndSync();
+            }
+        }
+        else
+        {
+            // Settle check for thrown/dropped items at rest on ground
+            if (!IsForSale && !Freeze && Thrower == null && LinearVelocity.LengthSquared() < 0.01f && AngularVelocity.LengthSquared() < 0.01f)
+            {
+                _settleTimer += (float)delta;
+                if (_settleTimer > 2.0f)
+                {
+                    Freeze = true;
+                    FreezeMode = FreezeModeEnum.Static;
+                    DeactivatePhysicsAndSync();
+                }
+            }
+            else if (!Freeze)
+            {
+                _settleTimer = 0f;
             }
         }
 
@@ -173,6 +243,7 @@ public partial class Product : RigidBody3D, IInteractable
         Freeze = true;
         CollisionLayer = 0;
         CollisionMask = 0;
+        DeactivatePhysicsAndSync();
 
         if (Multiplayer.IsServer())
         {
@@ -297,6 +368,7 @@ public partial class Product : RigidBody3D, IInteractable
 
     public void OutlineOn()
     {
+        EnsureOutlineAndLabel();
         if (Outline != null) Outline.Visible = true;
         if (HoverLabel != null)
         {

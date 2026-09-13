@@ -208,6 +208,7 @@ public partial class Inventory : Node
                     item.Reparent(GetTree().CurrentScene, true);
                 }
                 item.Freeze = false;
+                item.ActivatePhysicsAndSync();
                 item.CollisionLayer = 1;
                 item.CollisionMask = 3;
                 item.Visible = true;

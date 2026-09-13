@@ -78,6 +78,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
     private HitMarker _hitMarker;
+    private float _networkSyncTimer = 0f;
+    private const float NetworkSyncInterval = 0.033f; // ~30 Hz sync rate
+    private Vector3 _lastSentPos = Vector3.Zero;
+    private Vector3 _lastSentHeadRot = Vector3.Zero;
+    private float _lastSentPitch = 0f;
+    private float _heartbeatTimer = 0f;
 
     public override void _Ready()
     {
@@ -106,6 +112,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
 
             if (NameCard != null) NameCard.Visible = false;
+            if (MeshInstance != null) MeshInstance.Visible = false;
             if (string.IsNullOrEmpty(PlayerName))
             {
                 PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
@@ -153,6 +160,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 {
                     NameCard.Text = PlayerName;
                 }
+            }
+
+            if (MeshInstance != null)
+            {
+                MeshInstance.Visible = true;
+                StylizationHelper.ApplyToonStylization(MeshInstance, 0.0035f);
             }
 
             // Delete UI elements on remote player clones so their UI never renders locally!
@@ -605,9 +618,26 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         SyncHeadRotation = Head != null ? Head.Rotation : Vector3.Zero;
         SyncCameraRotation = new Vector3(_cameraPitch, 0f, 0f);
 
-        if (Multiplayer.HasMultiplayerPeer())
+        _networkSyncTimer += (float)delta;
+        _heartbeatTimer += (float)delta;
+
+        if (_networkSyncTimer >= NetworkSyncInterval && Multiplayer.HasMultiplayerPeer())
         {
-            Rpc(nameof(RpcSyncTransform), SyncPosition, SyncHeadRotation, SyncCameraRotation);
+            bool posChanged = GlobalPosition.DistanceSquaredTo(_lastSentPos) > 0.0004f;
+            bool headChanged = (Head != null) && Head.Rotation.DistanceSquaredTo(_lastSentHeadRot) > 0.0004f;
+            bool pitchChanged = Mathf.Abs(_cameraPitch - _lastSentPitch) > 0.015f;
+            bool heartbeat = _heartbeatTimer >= 0.35f;
+
+            if (posChanged || headChanged || pitchChanged || heartbeat)
+            {
+                _networkSyncTimer = 0f;
+                _heartbeatTimer = 0f;
+                _lastSentPos = GlobalPosition;
+                _lastSentHeadRot = Head != null ? Head.Rotation : Vector3.Zero;
+                _lastSentPitch = _cameraPitch;
+
+                Rpc(nameof(RpcSyncTransform), SyncPosition, SyncHeadRotation, SyncCameraRotation);
+            }
         }
     }
 
@@ -707,6 +737,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.CollisionLayer = 0;
         item.CollisionMask = 0;
         item.Freeze = true;
+        item.DeactivatePhysicsAndSync();
         item.Reparent(ItemHand);
         item.Position = Vector3.Zero;
         item.Visible = false;
@@ -745,6 +776,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
         item.Freeze = false;
+        item.ActivatePhysicsAndSync();
         item.Visible = true;
 
         if (IsMultiplayerAuthority())
@@ -948,6 +980,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
         item.Freeze = false;
+        item.ActivatePhysicsAndSync();
         item.Visible = true;
         item.LinearVelocity = launchVelocity;
 
@@ -1587,6 +1620,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                     product.Reparent(GetTree().CurrentScene, true);
                     product.GlobalPosition = GlobalPosition + new Vector3(0, 0.5f, 0);
                     product.Freeze = false;
+                    product.ActivatePhysicsAndSync();
                     product.CollisionLayer = 1;
                     product.CollisionMask = 3;
                     product.Visible = true;

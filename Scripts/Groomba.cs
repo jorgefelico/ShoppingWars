@@ -15,6 +15,11 @@ public partial class Groomba : PatrolEnemy
     private AudioStreamPlayer3D _audioPlayer;
     private bool _isDestroyed = false;
     StandardMaterial3D RingMat;
+    private float _networkSyncTimer = 0f;
+    private const float NetworkSyncInterval = 0.05f; // 20 Hz sync rate
+    private Vector3 _lastSentPos = Vector3.Zero;
+    private Vector3 _lastSentRot = Vector3.Zero;
+    private float _heartbeatTimer = 0f;
 
     public override void _Ready()
     {
@@ -38,6 +43,19 @@ public partial class Groomba : PatrolEnemy
         _audioPlayer.VolumeDb = -2.0f;
         _audioPlayer.Bus = "Master";
         AddChild(_audioPlayer);
+
+        var bodyMesh = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
+        if (bodyMesh != null)
+        {
+            var bodyMat = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(0.18f, 0.19f, 0.22f),
+                Metallic = 0.25f,
+                Roughness = 0.35f
+            };
+            bodyMesh.MaterialOverride = bodyMat;
+            StylizationHelper.ApplyToonStylization(bodyMesh, 0.0035f);
+        }
         
         Material activeMat = RingMesh?.GetActiveMaterial(0) ?? (RingMesh?.Mesh is PrimitiveMesh pm ? pm.Material : null);
         if (activeMat is StandardMaterial3D material)
@@ -138,9 +156,23 @@ public partial class Groomba : PatrolEnemy
         SyncPosition = GlobalPosition;
         SyncRotation = Rotation;
 
-        if (Multiplayer.HasMultiplayerPeer())
+        _networkSyncTimer += (float)delta;
+        _heartbeatTimer += (float)delta;
+
+        if (_networkSyncTimer >= NetworkSyncInterval && Multiplayer.HasMultiplayerPeer())
         {
-            Rpc(nameof(RpcSyncTransform), SyncPosition, SyncRotation);
+            bool moved = GlobalPosition.DistanceSquaredTo(_lastSentPos) > 0.0004f;
+            bool turned = Rotation.DistanceSquaredTo(_lastSentRot) > 0.0004f;
+            bool heartbeat = _heartbeatTimer >= 0.4f;
+
+            if (moved || turned || heartbeat)
+            {
+                _networkSyncTimer = 0f;
+                _heartbeatTimer = 0f;
+                _lastSentPos = GlobalPosition;
+                _lastSentRot = Rotation;
+                Rpc(nameof(RpcSyncTransform), SyncPosition, SyncRotation);
+            }
         }
     }
 

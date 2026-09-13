@@ -43,6 +43,13 @@ public partial class LaserCamera : Area3D
     [Export] private SpotLight3D _spotLight;
     [Export] private MeshInstance3D _visionCone;
 
+    private float _networkSyncTimer = 0f;
+    private const float NetworkSyncInterval = 0.066f; // ~15 Hz sync rate
+    private Quaternion _lastSentRotation = Quaternion.Identity;
+    private bool _lastSentLaserActive = false;
+    private float _lastSentBeamLength = 0f;
+    private float _heartbeatTimer = 0f;
+
     public bool IsActivePhase()
     {
         if (!OnlyActiveInBattlePhase || GameManager.Instance == null) return true;
@@ -132,7 +139,7 @@ public partial class LaserCamera : Area3D
             {
                 GlobalBasis = GlobalBasis.Slerp(_initialTransform.Basis, (float)(delta * RestReturnSpeed));
             }
-            SyncToClients();
+            SyncToClients((float)delta);
             return;
         }
 
@@ -161,7 +168,7 @@ public partial class LaserCamera : Area3D
             else
             {
                 TrackPlayer(_currentTarget, targetPos, delta);
-                SyncToClients();
+                SyncToClients((float)delta);
                 return;
             }
         }
@@ -217,7 +224,7 @@ public partial class LaserCamera : Area3D
             }
         }
 
-        SyncToClients();
+        SyncToClients((float)delta);
     }
 
     private void UpdateScan(double delta)
@@ -330,12 +337,32 @@ public partial class LaserCamera : Area3D
         }
     }
 
-    private void SyncToClients()
+    private void SyncToClients(float delta)
     {
-        if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer())
+        if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer()) return;
+
+        _networkSyncTimer += delta;
+        _heartbeatTimer += delta;
+
+        if (_networkSyncTimer < NetworkSyncInterval) return;
+
+        Quaternion curRot = GlobalTransform.Basis.GetRotationQuaternion();
+        bool laserActive = _laser != null && _laser.Visible;
+
+        bool rotChanged = curRot.AngleTo(_lastSentRotation) > 0.015f;
+        bool stateChanged = laserActive != _lastSentLaserActive;
+        bool lengthChanged = Mathf.Abs(_currentBeamLength - _lastSentBeamLength) > 0.1f;
+        bool heartbeat = _heartbeatTimer >= 0.5f;
+
+        if (rotChanged || stateChanged || lengthChanged || (heartbeat && (laserActive || rotChanged)))
         {
-            bool laserActive = _laser != null && _laser.Visible;
-            Rpc(nameof(RpcSyncCameraState), GlobalTransform.Basis.GetRotationQuaternion(), laserActive, _currentBeamLength);
+            _networkSyncTimer = 0f;
+            _heartbeatTimer = 0f;
+            _lastSentRotation = curRot;
+            _lastSentLaserActive = laserActive;
+            _lastSentBeamLength = _currentBeamLength;
+
+            Rpc(nameof(RpcSyncCameraState), curRot, laserActive, _currentBeamLength);
         }
     }
 

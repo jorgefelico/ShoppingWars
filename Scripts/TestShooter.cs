@@ -28,6 +28,11 @@ public partial class TestShooter : Node3D
         Node targetContainer = GetTree().CurrentScene.GetNodeOrNull("SpawnedProjectiles") ?? GetTree().CurrentScene;
         targetContainer.AddChild(instance);
         instance.LinearVelocity = Vector3.Forward * 40;
+        instance.Freeze = false;
+        if (instance is Product prod)
+        {
+            prod.ActivatePhysicsAndSync();
+        }
 
         // Auto-cleanup test projectile after 4 seconds to prevent unbounded network object accumulation
         GetTree().CreateTimer(4.0f).Timeout += () =>

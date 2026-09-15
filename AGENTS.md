@@ -220,7 +220,8 @@ Configured in `project.godot`:
 |`Textures/`|UI, floor textures, and prototype grid textures|
 |`Icons/`|UI hotbar icons for items (`appleicon.png`, `watermelon.png`, etc.)|
 |`Shaders/`|`outline.gdshader` (hover interactable outline), `ink_outline.gdshader` (comic ink outline), `damage_flash.gdshader` (damage vignette), `volumetric_cone.gdshader` (camera cone), `toon_post_process.gdshader`|
-|`Sounds/`|Sound effects library: `Footsteps/` (concrete walk/run steps), `Player/` (jump, land, throw, pickup)|
+|`Sounds/`|Sound effects library: `Music/` (soundtrack MP3s), `Footsteps/` (concrete walk/run steps), `Player/` (jump, land, throw, pickup)|
+|`Reports/`|HTML project improvement, audit, and performance reports|
 |`addons/godotsteam/`|GodotSteam GDExtension native plugin binaries (Windows, Linux, macOS, Android)|
 |`.godot/`|**Git-ignored.** Editor cache, imported binaries, shader cache, and .NET build output (`.godot/mono/temp/`)|
 

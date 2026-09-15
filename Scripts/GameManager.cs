@@ -98,14 +98,14 @@ public partial class GameManager : Node
         if (LobbyPlaylist.Count == 0)
         {
             if (LobbyMusic != null) LobbyPlaylist.Add(LobbyMusic);
-            AddTrackIfValid(LobbyPlaylist, "res://Sounds/Velvet_Sunday.mp3");
+            AddTrackIfValid(LobbyPlaylist, "res://Sounds/Music/Velvet_Sunday.mp3");
         }
 
         // Populate default Battle Royale playlist if empty
         if (BattleRoyalePlaylist.Count == 0)
         {
             if (BattleRoyaleMusic != null) BattleRoyalePlaylist.Add(BattleRoyaleMusic);
-            AddTrackIfValid(BattleRoyalePlaylist, "res://Sounds/Overdrive_Takedown.mp3");
+            AddTrackIfValid(BattleRoyalePlaylist, "res://Sounds/Music/Overdrive_Takedown.mp3");
         }
 
         foreach (var stream in LobbyPlaylist) DisableStreamLoop(stream);

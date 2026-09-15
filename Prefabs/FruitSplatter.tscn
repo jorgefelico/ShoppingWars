@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://kjd8mseqq8my" path="res://Textures/particles/dirt_01.png" id="3_splat"]
 [ext_resource type="Texture2D" uid="uid://dn8sbooqkh4sj" path="res://Textures/particles/dirt_02.png" id="4_chunks"]
 [ext_resource type="Texture2D" uid="uid://dufnh2sv514mf" path="res://Textures/particles/circle_05.png" id="5_spray"]
-[ext_resource type="AudioStream" uid="uid://cm40ki5ct0ll5" path="res://Sounds/wartermelon_splash.wav" id="6_sound"]
+[ext_resource type="AudioStream" uid="uid://cm40ki5ct0ll5" path="res://Sounds/watermelon_splash.wav" id="6_sound"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_common"]
 

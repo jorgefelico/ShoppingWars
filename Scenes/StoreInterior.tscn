@@ -619,9 +619,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0, -58)
 [node name="PickupToday_Tower" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=188364340 instance=ExtResource("P_Pickup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, -58)
 
-[node name="CartCorral_Grocery" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=97796781 instance=ExtResource("P_CartCorral")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.5, 0, -66)
-
 [node name="CartCorral_GM" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=622130044 instance=ExtResource("P_CartCorral")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.5, 0, -66)
 
@@ -1722,18 +1719,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.982451, 1.6246089, -13.043
 [node name="SodaCan10" parent="RootEntities" unique_id=1101528868 instance=ExtResource("52_u58hr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.982451, 1.6246089, -12.90634)
 
+[node name="Glizzy" parent="RootEntities/SodaCan10" unique_id=1506678681 instance=ExtResource("53_u58hr")]
+transform = Transform3D(-0.08579135, -0.973185, 0.21342681, 0.99613696, -0.08781468, 0, 0.018742008, 0.21260233, 0.97695905, -69.43163, -0.3255998, -15.610413)
+
+[node name="Glizzy2" parent="RootEntities/SodaCan10" unique_id=782651284 instance=ExtResource("53_u58hr")]
+transform = Transform3D(-0.08409121, -0.9538993, -0.28810585, 0.99613696, -0.08781468, 1.819728e-09, -0.025299918, -0.28699285, 0.95759857, -69.43163, -0.3255998, -15.041855)
+
+[node name="Glizzy3" parent="RootEntities/SodaCan10" unique_id=1649886929 instance=ExtResource("53_u58hr")]
+transform = Transform3D(-0.074454784, -0.8445872, 0.530216, 0.99613696, -0.087814674, 4.002345e-09, 0.046560742, 0.5281677, 0.84786254, -69.43163, -0.3255998, -14.514383)
+
+[node name="Glizzy4" parent="RootEntities/SodaCan10" unique_id=1684553584 instance=ExtResource("53_u58hr")]
+transform = Transform3D(-0.07445477, -0.8445872, 0.530216, 0.99593455, -0.035942707, 0.082599044, -0.050704725, 0.5342103, 0.8438295, -69.43163, -0.20012295, -15.366695)
+ScaleVariation = true
+
 [node name="ReadyUp" parent="." unique_id=1398623995 instance=ExtResource("29_t3mvi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.14164, 1.4286656, -69.6)
-
-[node name="Glizzy" parent="." unique_id=1506678681 instance=ExtResource("53_u58hr")]
-transform = Transform3D(-0.08579135, -0.973185, 0.21342681, 0.99613696, -0.08781468, 0, 0.018742008, 0.21260233, 0.97695905, -58.449184, 1.2990091, -28.516752)
-
-[node name="Glizzy2" parent="." unique_id=782651284 instance=ExtResource("53_u58hr")]
-transform = Transform3D(-0.08409121, -0.9538993, -0.28810585, 0.99613696, -0.08781468, 1.819728e-09, -0.025299918, -0.28699285, 0.95759857, -58.449184, 1.2990091, -27.948195)
-
-[node name="Glizzy3" parent="." unique_id=1649886929 instance=ExtResource("53_u58hr")]
-transform = Transform3D(-0.074454784, -0.8445872, 0.530216, 0.99613696, -0.087814674, 4.002345e-09, 0.046560742, 0.5281677, 0.84786254, -58.449184, 1.2990091, -27.420723)
-
-[node name="Glizzy4" parent="." unique_id=1684553584 instance=ExtResource("53_u58hr")]
-transform = Transform3D(-0.07445477, -0.8445872, 0.530216, 0.99593455, -0.035942707, 0.082599044, -0.050704725, 0.5342103, 0.8438295, -58.449184, 1.4244859, -28.273035)
-ScaleVariation = true

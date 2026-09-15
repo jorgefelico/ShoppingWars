@@ -1,3 +1,40 @@
-# Godot 4+ specific ignores
+# Godot 4+ engine ignores
 .godot/
 /android/
+
+# .NET / C# build outputs and IDE cache
+bin/
+obj/
+*.user
+*.userosv
+*.suo
+*.userprefs
+*.sln.docstates
+.vs/
+.idea/
+*.DotSettings.user
+packages/
+*.nupkg
+
+# Log & debug files
+*.log
+debug.log
+
+# 3D DCC tools (Blender backup files & UV unwrap caches)
+*.blend1
+*.blend2
+*.blend@
+*.blend@@
+*.unwrap_cache
+*.autosave
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+._*
+
+# Game export outputs
+builds/
+export/

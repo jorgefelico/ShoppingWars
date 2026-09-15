@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://b2rgfj52kvdqo"]
 
 [ext_resource type="PackedScene" uid="uid://ci0p6pidrn4b8" path="res://Models/watermelon.blend" id="1_8u76s"]
-[ext_resource type="Texture2D" uid="uid://cgq6nbl4bd7kb" path="res://Models/watermelon_watermelon.jpg" id="2_eeodo"]
+[ext_resource type="Texture2D" uid="uid://cgq6nbl4bd7kb" path="res://Textures/watermelon_watermelon.jpg" id="2_eeodo"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o3p5l"]
 resource_name = "lambert2SG"

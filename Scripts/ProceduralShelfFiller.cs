@@ -86,13 +86,17 @@ public partial class ProceduralShelfFiller : Node3D
 
     public static int CurrentMatchSeed = 0;
     public static int TotalGlobalSpawned = 0;
-    public static int MaxTotalStoreProducts = 150;
+    public static int MaxTotalStoreProducts = 450;
     private static readonly Dictionary<string, int> _globalSpawnCounts = new();
+    private static readonly Queue<ProceduralShelfFiller> _generationQueue = new();
+    private static bool _queueRunnerActive = false;
 
     public static void ResetGlobalSpawnCounts()
     {
         _globalSpawnCounts.Clear();
         TotalGlobalSpawned = 0;
+        _generationQueue.Clear();
+        _queueRunnerActive = false;
     }
 
     public static int GetGlobalSpawnCount(string productName)
@@ -105,62 +109,101 @@ public partial class ProceduralShelfFiller : Node3D
         _globalSpawnCounts[productName] = GetGlobalSpawnCount(productName) + 1;
     }
 
+    private static void EnqueueForGeneration(ProceduralShelfFiller filler)
+    {
+        _generationQueue.Enqueue(filler);
+        if (!_queueRunnerActive)
+        {
+            _queueRunnerActive = true;
+            Callable.From(ProcessGenerationQueue).CallDeferred();
+        }
+    }
+
+    private static async void ProcessGenerationQueue()
+    {
+        const int BatchSize = 6;
+
+        while (_generationQueue.Count > 0)
+        {
+            int processed = 0;
+            SceneTree tree = null;
+
+            while (_generationQueue.Count > 0 && processed < BatchSize)
+            {
+                var filler = _generationQueue.Dequeue();
+                if (GodotObject.IsInstanceValid(filler) && filler.IsInsideTree())
+                {
+                    filler.GenerateStock();
+                    tree ??= filler.GetTree();
+                    processed++;
+                }
+            }
+
+            if (_generationQueue.Count > 0 && tree != null && GodotObject.IsInstanceValid(tree))
+            {
+                await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+            }
+        }
+
+        _queueRunnerActive = false;
+    }
+
     private static readonly List<ProductEntry> Catalog = new()
     {
         // Grocery
-        new() { Name = "CerealBox", ScenePath = "res://Prefabs/Products/CerealBox.tscn", Height = 0.27f, Width = 0.19f, Depth = 0.06f, Spacing = 0.32f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 10 },
-        new() { Name = "ChipsBag", ScenePath = "res://Prefabs/Products/ChipsBag.tscn", Height = 0.26f, Width = 0.18f, Depth = 0.08f, Spacing = 0.35f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 10 },
-        new() { Name = "SodaCan", ScenePath = "res://Prefabs/Products/SodaCan.tscn", Height = 0.12f, Width = 0.07f, Depth = 0.07f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 80, MaxStoreCount = 14 },
-        new() { Name = "MilkGallon", ScenePath = "res://Prefabs/Products/MilkGallon.tscn", Height = 0.26f, Width = 0.16f, Depth = 0.16f, Spacing = 0.38f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 45, MaxStoreCount = 8 },
-        new() { Name = "FrozenPizza", ScenePath = "res://Prefabs/Products/FrozenPizza.tscn", Height = 0.06f, Width = 0.30f, Depth = 0.30f, Spacing = 0.45f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Bakery, ShelfCategory.MixedMarket }, Weight = 40, MaxStoreCount = 8 },
+        new() { Name = "CerealBox", ScenePath = "res://Prefabs/Products/CerealBox.tscn", Height = 0.27f, Width = 0.19f, Depth = 0.06f, Spacing = 0.32f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 18 },
+        new() { Name = "ChipsBag", ScenePath = "res://Prefabs/Products/ChipsBag.tscn", Height = 0.26f, Width = 0.18f, Depth = 0.08f, Spacing = 0.35f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 18 },
+        new() { Name = "SodaCan", ScenePath = "res://Prefabs/Products/SodaCan.tscn", Height = 0.12f, Width = 0.07f, Depth = 0.07f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 80, MaxStoreCount = 24 },
+        new() { Name = "MilkGallon", ScenePath = "res://Prefabs/Products/MilkGallon.tscn", Height = 0.26f, Width = 0.16f, Depth = 0.16f, Spacing = 0.38f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 45, MaxStoreCount = 14 },
+        new() { Name = "FrozenPizza", ScenePath = "res://Prefabs/Products/FrozenPizza.tscn", Height = 0.06f, Width = 0.30f, Depth = 0.30f, Spacing = 0.45f, Categories = new[] { ShelfCategory.Grocery, ShelfCategory.Bakery, ShelfCategory.MixedMarket }, Weight = 40, MaxStoreCount = 14 },
 
         // Produce
-        new() { Name = "Apple", ScenePath = "res://Prefabs/Products/Apple.tscn", Height = 0.14f, Width = 0.14f, Depth = 0.14f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 75, MaxStoreCount = 12 },
-        new() { Name = "Avocado", ScenePath = "res://Prefabs/Products/Avocado.tscn", Height = 0.12f, Width = 0.12f, Depth = 0.12f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 55, MaxStoreCount = 8 },
-        new() { Name = "Banana", ScenePath = "res://Prefabs/Products/Banana.tscn", Height = 0.20f, Width = 0.10f, Depth = 0.10f, Spacing = 0.26f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 65, MaxStoreCount = 10 },
-        new() { Name = "Lemon", ScenePath = "res://Prefabs/Products/Lemon.tscn", Height = 0.10f, Width = 0.10f, Depth = 0.10f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 65, MaxStoreCount = 8 },
-        new() { Name = "Onion", ScenePath = "res://Prefabs/Products/Onion.tscn", Height = 0.11f, Width = 0.11f, Depth = 0.11f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 8 },
-        new() { Name = "SweetPotato", ScenePath = "res://Prefabs/Products/SweetPotato.tscn", Height = 0.16f, Width = 0.10f, Depth = 0.10f, Spacing = 0.25f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 50, MaxStoreCount = 8 },
-        new() { Name = "Watermelon", ScenePath = "res://Prefabs/Products/Watermelon.tscn", Height = 0.77f, Width = 0.58f, Depth = 0.58f, Spacing = 0.70f, Categories = new[] { ShelfCategory.Produce }, Weight = 18, MaxStoreCount = 4 },
+        new() { Name = "Apple", ScenePath = "res://Prefabs/Products/Apple.tscn", Height = 0.14f, Width = 0.14f, Depth = 0.14f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 75, MaxStoreCount = 20 },
+        new() { Name = "Avocado", ScenePath = "res://Prefabs/Products/Avocado.tscn", Height = 0.12f, Width = 0.12f, Depth = 0.12f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 55, MaxStoreCount = 16 },
+        new() { Name = "Banana", ScenePath = "res://Prefabs/Products/Banana.tscn", Height = 0.20f, Width = 0.10f, Depth = 0.10f, Spacing = 0.26f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 65, MaxStoreCount = 18 },
+        new() { Name = "Lemon", ScenePath = "res://Prefabs/Products/Lemon.tscn", Height = 0.10f, Width = 0.10f, Depth = 0.10f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 65, MaxStoreCount = 16 },
+        new() { Name = "Onion", ScenePath = "res://Prefabs/Products/Onion.tscn", Height = 0.11f, Width = 0.11f, Depth = 0.11f, Spacing = 0.22f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 16 },
+        new() { Name = "SweetPotato", ScenePath = "res://Prefabs/Products/SweetPotato.tscn", Height = 0.16f, Width = 0.10f, Depth = 0.10f, Spacing = 0.25f, Categories = new[] { ShelfCategory.Produce, ShelfCategory.MixedMarket }, Weight = 50, MaxStoreCount = 16 },
+        new() { Name = "Watermelon", ScenePath = "res://Prefabs/Products/Watermelon.tscn", Height = 0.77f, Width = 0.58f, Depth = 0.58f, Spacing = 0.70f, Categories = new[] { ShelfCategory.Produce }, Weight = 18, MaxStoreCount = 10 },
 
         // Bakery
-        new() { Name = "Baguette", ScenePath = "res://Prefabs/Products/Baguette.tscn", Height = 0.55f, Width = 0.10f, Depth = 0.10f, Spacing = 0.32f, Categories = new[] { ShelfCategory.Bakery }, Weight = 50, MaxStoreCount = 6 },
-        new() { Name = "ChocolateCake", ScenePath = "res://Prefabs/Products/ChocolateCake.tscn", Height = 0.12f, Width = 0.24f, Depth = 0.24f, Spacing = 0.38f, Categories = new[] { ShelfCategory.Bakery, ShelfCategory.Grocery }, Weight = 35, MaxStoreCount = 6 },
-        new() { Name = "Glizzy", ScenePath = "res://Prefabs/Products/Glizzy.tscn", Height = 1.15f, Width = 0.12f, Depth = 0.12f, Spacing = 0.35f, Categories = new[] { ShelfCategory.Bakery }, Weight = 45, MaxStoreCount = 6 },
+        new() { Name = "Baguette", ScenePath = "res://Prefabs/Products/Baguette.tscn", Height = 0.55f, Width = 0.10f, Depth = 0.10f, Spacing = 0.32f, Categories = new[] { ShelfCategory.Bakery }, Weight = 50, MaxStoreCount = 14 },
+        new() { Name = "ChocolateCake", ScenePath = "res://Prefabs/Products/ChocolateCake.tscn", Height = 0.12f, Width = 0.24f, Depth = 0.24f, Spacing = 0.38f, Categories = new[] { ShelfCategory.Bakery, ShelfCategory.Grocery }, Weight = 35, MaxStoreCount = 12 },
+        new() { Name = "Glizzy", ScenePath = "res://Prefabs/Products/Glizzy.tscn", Height = 1.15f, Width = 0.12f, Depth = 0.12f, Spacing = 0.35f, Categories = new[] { ShelfCategory.Bakery }, Weight = 45, MaxStoreCount = 12 },
 
         // Beverages
-        new() { Name = "WineBottle", ScenePath = "res://Prefabs/Products/WineBottle.tscn", Height = 0.32f, Width = 0.08f, Depth = 0.08f, Spacing = 0.26f, Categories = new[] { ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 30, MaxStoreCount = 6 },
+        new() { Name = "WineBottle", ScenePath = "res://Prefabs/Products/WineBottle.tscn", Height = 0.32f, Width = 0.08f, Depth = 0.08f, Spacing = 0.26f, Categories = new[] { ShelfCategory.Beverages, ShelfCategory.MixedMarket }, Weight = 30, MaxStoreCount = 12 },
 
         // Household & Cleaning
-        new() { Name = "DetergentJug", ScenePath = "res://Prefabs/Products/DetergentJug.tscn", Height = 0.28f, Width = 0.18f, Depth = 0.12f, Spacing = 0.35f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.MixedMarket }, Weight = 40, MaxStoreCount = 6 },
-        new() { Name = "SprayPaint", ScenePath = "res://Prefabs/Products/SprayPaint.tscn", Height = 0.20f, Width = 0.07f, Depth = 0.07f, Spacing = 0.25f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.HardwareTools }, Weight = 45, MaxStoreCount = 8 },
-        new() { Name = "WetFloorSign", ScenePath = "res://Prefabs/Products/WetFloorSign.tscn", Height = 0.62f, Width = 0.35f, Depth = 0.30f, Spacing = 0.50f, Categories = new[] { ShelfCategory.HouseholdCleaning }, Weight = 25, MaxStoreCount = 4 },
-        new() { Name = "RubberDuck", ScenePath = "res://Prefabs/Products/RubberDuck.tscn", Height = 0.10f, Width = 0.12f, Depth = 0.10f, Spacing = 0.24f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.SportingToys }, Weight = 55, MaxStoreCount = 8 },
+        new() { Name = "DetergentJug", ScenePath = "res://Prefabs/Products/DetergentJug.tscn", Height = 0.28f, Width = 0.18f, Depth = 0.12f, Spacing = 0.35f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.MixedMarket }, Weight = 40, MaxStoreCount = 14 },
+        new() { Name = "SprayPaint", ScenePath = "res://Prefabs/Products/SprayPaint.tscn", Height = 0.20f, Width = 0.07f, Depth = 0.07f, Spacing = 0.25f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.HardwareTools }, Weight = 45, MaxStoreCount = 14 },
+        new() { Name = "WetFloorSign", ScenePath = "res://Prefabs/Products/WetFloorSign.tscn", Height = 0.62f, Width = 0.35f, Depth = 0.30f, Spacing = 0.50f, Categories = new[] { ShelfCategory.HouseholdCleaning }, Weight = 25, MaxStoreCount = 8 },
+        new() { Name = "RubberDuck", ScenePath = "res://Prefabs/Products/RubberDuck.tscn", Height = 0.10f, Width = 0.12f, Depth = 0.10f, Spacing = 0.24f, Categories = new[] { ShelfCategory.HouseholdCleaning, ShelfCategory.SportingToys }, Weight = 55, MaxStoreCount = 14 },
 
         // Kitchenware
-        new() { Name = "CookingPot", ScenePath = "res://Prefabs/Products/CookingPot.tscn", Height = 0.18f, Width = 0.28f, Depth = 0.28f, Spacing = 0.42f, Categories = new[] { ShelfCategory.Kitchenware, ShelfCategory.MixedMarket }, Weight = 35, MaxStoreCount = 6 },
-        new() { Name = "FryingPan", ScenePath = "res://Prefabs/Products/FryingPan.tscn", Height = 0.08f, Width = 0.40f, Depth = 0.27f, Spacing = 0.46f, Categories = new[] { ShelfCategory.Kitchenware }, Weight = 35, MaxStoreCount = 6 },
-        new() { Name = "Toaster", ScenePath = "res://Prefabs/Products/Toaster.tscn", Height = 0.17f, Width = 0.24f, Depth = 0.14f, Spacing = 0.36f, Categories = new[] { ShelfCategory.Kitchenware, ShelfCategory.Electronics }, Weight = 30, MaxStoreCount = 6 },
+        new() { Name = "CookingPot", ScenePath = "res://Prefabs/Products/CookingPot.tscn", Height = 0.18f, Width = 0.28f, Depth = 0.28f, Spacing = 0.42f, Categories = new[] { ShelfCategory.Kitchenware, ShelfCategory.MixedMarket }, Weight = 35, MaxStoreCount = 12 },
+        new() { Name = "FryingPan", ScenePath = "res://Prefabs/Products/FryingPan.tscn", Height = 0.08f, Width = 0.40f, Depth = 0.27f, Spacing = 0.46f, Categories = new[] { ShelfCategory.Kitchenware }, Weight = 35, MaxStoreCount = 12 },
+        new() { Name = "Toaster", ScenePath = "res://Prefabs/Products/Toaster.tscn", Height = 0.17f, Width = 0.24f, Depth = 0.14f, Spacing = 0.36f, Categories = new[] { ShelfCategory.Kitchenware, ShelfCategory.Electronics }, Weight = 30, MaxStoreCount = 12 },
 
         // Hardware & Tools - Contested Power Weapons!
-        new() { Name = "PowerDrill", ScenePath = "res://Prefabs/Products/PowerDrill.tscn", Height = 0.28f, Width = 0.27f, Depth = 0.09f, Spacing = 0.38f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 14, MaxStoreCount = 4 },
-        new() { Name = "Crowbar", ScenePath = "res://Prefabs/Products/Crowbar.tscn", Height = 0.60f, Width = 0.10f, Depth = 0.05f, Spacing = 0.30f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 14, MaxStoreCount = 4 },
-        new() { Name = "PipeWrench", ScenePath = "res://Prefabs/Products/PipeWrench.tscn", Height = 0.48f, Width = 0.12f, Depth = 0.06f, Spacing = 0.30f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 16, MaxStoreCount = 4 },
-        new() { Name = "Sledgehammer", ScenePath = "res://Prefabs/Products/Sledgehammer.tscn", Height = 0.85f, Width = 0.24f, Depth = 0.10f, Spacing = 0.45f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 6, MaxStoreCount = 2 },
-        new() { Name = "PropaneTank", ScenePath = "res://Prefabs/Products/PropaneTank.tscn", Height = 0.48f, Width = 0.30f, Depth = 0.30f, Spacing = 0.45f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 5, MaxStoreCount = 2 },
-        new() { Name = "FireExtinguisher", ScenePath = "res://Prefabs/Products/FireExtinguisher.tscn", Height = 0.44f, Width = 0.16f, Depth = 0.16f, Spacing = 0.38f, Categories = new[] { ShelfCategory.HardwareTools, ShelfCategory.HouseholdCleaning }, Weight = 18, MaxStoreCount = 4 },
+        new() { Name = "PowerDrill", ScenePath = "res://Prefabs/Products/PowerDrill.tscn", Height = 0.28f, Width = 0.27f, Depth = 0.09f, Spacing = 0.38f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 14, MaxStoreCount = 10 },
+        new() { Name = "Crowbar", ScenePath = "res://Prefabs/Products/Crowbar.tscn", Height = 0.60f, Width = 0.10f, Depth = 0.05f, Spacing = 0.30f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 14, MaxStoreCount = 10 },
+        new() { Name = "PipeWrench", ScenePath = "res://Prefabs/Products/PipeWrench.tscn", Height = 0.48f, Width = 0.12f, Depth = 0.06f, Spacing = 0.30f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 16, MaxStoreCount = 10 },
+        new() { Name = "Sledgehammer", ScenePath = "res://Prefabs/Products/Sledgehammer.tscn", Height = 0.85f, Width = 0.24f, Depth = 0.10f, Spacing = 0.45f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 6, MaxStoreCount = 6 },
+        new() { Name = "PropaneTank", ScenePath = "res://Prefabs/Products/PropaneTank.tscn", Height = 0.48f, Width = 0.30f, Depth = 0.30f, Spacing = 0.45f, Categories = new[] { ShelfCategory.HardwareTools }, Weight = 5, MaxStoreCount = 6 },
+        new() { Name = "FireExtinguisher", ScenePath = "res://Prefabs/Products/FireExtinguisher.tscn", Height = 0.44f, Width = 0.16f, Depth = 0.16f, Spacing = 0.38f, Categories = new[] { ShelfCategory.HardwareTools, ShelfCategory.HouseholdCleaning }, Weight = 18, MaxStoreCount = 10 },
 
         // Electronics
-        new() { Name = "FlatScreenTV", ScenePath = "res://Prefabs/Products/FlatScreenTV.tscn", Height = 0.46f, Width = 0.68f, Depth = 0.18f, Spacing = 0.75f, Categories = new[] { ShelfCategory.Electronics }, Weight = 7, MaxStoreCount = 2 },
-        new() { Name = "Boombox", ScenePath = "res://Prefabs/Products/Boombox.tscn", Height = 0.26f, Width = 0.45f, Depth = 0.14f, Spacing = 0.50f, Categories = new[] { ShelfCategory.Electronics }, Weight = 18, MaxStoreCount = 3 },
-        new() { Name = "AlarmClock", ScenePath = "res://Prefabs/Products/AlarmClock.tscn", Height = 0.16f, Width = 0.16f, Depth = 0.08f, Spacing = 0.30f, Categories = new[] { ShelfCategory.Electronics, ShelfCategory.HouseholdCleaning }, Weight = 40, MaxStoreCount = 6 },
+        new() { Name = "FlatScreenTV", ScenePath = "res://Prefabs/Products/FlatScreenTV.tscn", Height = 0.46f, Width = 0.68f, Depth = 0.18f, Spacing = 0.75f, Categories = new[] { ShelfCategory.Electronics }, Weight = 7, MaxStoreCount = 6 },
+        new() { Name = "Boombox", ScenePath = "res://Prefabs/Products/Boombox.tscn", Height = 0.26f, Width = 0.45f, Depth = 0.14f, Spacing = 0.50f, Categories = new[] { ShelfCategory.Electronics }, Weight = 18, MaxStoreCount = 8 },
+        new() { Name = "AlarmClock", ScenePath = "res://Prefabs/Products/AlarmClock.tscn", Height = 0.16f, Width = 0.16f, Depth = 0.08f, Spacing = 0.30f, Categories = new[] { ShelfCategory.Electronics, ShelfCategory.HouseholdCleaning }, Weight = 40, MaxStoreCount = 14 },
 
         // Pharmacy
-        new() { Name = "PillBottle", ScenePath = "res://Prefabs/Products/PillBottle.tscn", Height = 0.09f, Width = 0.06f, Depth = 0.06f, Spacing = 0.18f, Categories = new[] { ShelfCategory.Pharmacy, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 10 },
+        new() { Name = "PillBottle", ScenePath = "res://Prefabs/Products/PillBottle.tscn", Height = 0.09f, Width = 0.06f, Depth = 0.06f, Spacing = 0.18f, Categories = new[] { ShelfCategory.Pharmacy, ShelfCategory.MixedMarket }, Weight = 60, MaxStoreCount = 20 },
 
         // Sporting & Toys
-        new() { Name = "BaseballBat", ScenePath = "res://Prefabs/Products/BaseballBat.tscn", Height = 0.80f, Width = 0.08f, Depth = 0.08f, Spacing = 0.32f, Categories = new[] { ShelfCategory.SportingToys }, Weight = 15, MaxStoreCount = 4 },
-        new() { Name = "Football", ScenePath = "res://Prefabs/Products/Football.tscn", Height = 0.24f, Width = 0.24f, Depth = 0.24f, Spacing = 0.38f, Categories = new[] { ShelfCategory.SportingToys }, Weight = 40, MaxStoreCount = 6 },
+        new() { Name = "BaseballBat", ScenePath = "res://Prefabs/Products/BaseballBat.tscn", Height = 0.80f, Width = 0.08f, Depth = 0.08f, Spacing = 0.32f, Categories = new[] { ShelfCategory.SportingToys }, Weight = 15, MaxStoreCount = 10 },
+        new() { Name = "Football", ScenePath = "res://Prefabs/Products/Football.tscn", Height = 0.24f, Width = 0.24f, Depth = 0.24f, Spacing = 0.38f, Categories = new[] { ShelfCategory.SportingToys }, Weight = 40, MaxStoreCount = 12 },
     };
 
     private static readonly Dictionary<string, PackedScene> LoadedScenes = new();
@@ -191,7 +234,7 @@ public partial class ProceduralShelfFiller : Node3D
             Node existingContainer = GetNodeOrNull("StockContainer");
             if (existingContainer == null || AlwaysRegenerateAtRuntime || existingContainer.GetChildCount() == 0)
             {
-                GenerateStock();
+                EnqueueForGeneration(this);
             }
         }
     }

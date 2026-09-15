@@ -1,8 +1,21 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://bhvs1dym76hnn"]
 
+[ext_resource type="Texture2D" uid="uid://cr3vf5h6averv" path="res://Textures/Poliigon_MetalSteelBrushed_7174_BaseColor.jpg" id="1_lm1ub"]
+[ext_resource type="Texture2D" uid="uid://n353fy4s2n0w" path="res://Textures/Poliigon_MetalSteelBrushed_7174_AmbientOcclusion.jpg" id="2_oaheq"]
+[ext_resource type="Texture2D" uid="uid://b2dj1a05nmxqo" path="res://Textures/Poliigon_MetalSteelBrushed_7174_Metallic.jpg" id="3_gkmcp"]
+[ext_resource type="Texture2D" uid="uid://cajurqsj2ryuw" path="res://Textures/Poliigon_MetalSteelBrushed_7174_Normal.png" id="4_qcxau"]
+[ext_resource type="Texture2D" uid="uid://clj8q6v30ivmg" path="res://Textures/Poliigon_MetalSteelBrushed_7174_Roughness.jpg" id="5_ln7fd"]
+
 [resource]
-albedo_color = Color(0.68, 0.72, 0.76, 1)
-metallic = 0.3
-metallic_specular = 0.3
-roughness = 0.7
+albedo_texture = ExtResource("1_lm1ub")
+metallic = 0.5
+metallic_texture = ExtResource("3_gkmcp")
+roughness = 0.5
+roughness_texture = ExtResource("5_ln7fd")
+normal_enabled = true
+normal_scale = 0.5
+normal_texture = ExtResource("4_qcxau")
+ao_enabled = true
+ao_light_affect = 0.5
+ao_texture = ExtResource("2_oaheq")
 texture_filter = 4

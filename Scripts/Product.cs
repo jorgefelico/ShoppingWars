@@ -35,6 +35,25 @@ public partial class Product : RigidBody3D, IInteractable
         _hasImpacted = false;
     }
 
+    private static PackedScene _cachedWatermelonSplatter;
+    private static PackedScene _cachedFruitSplatter;
+    private static bool _splatterChecked = false;
+
+    private static void EnsureSplattersLoaded()
+    {
+        if (_splatterChecked) return;
+        _splatterChecked = true;
+
+        if (ResourceLoader.Exists("res://Prefabs/WatermelonSplatter.tscn"))
+        {
+            _cachedWatermelonSplatter = GD.Load<PackedScene>("res://Prefabs/WatermelonSplatter.tscn");
+        }
+        if (ResourceLoader.Exists("res://Prefabs/FruitSplatter.tscn"))
+        {
+            _cachedFruitSplatter = GD.Load<PackedScene>("res://Prefabs/FruitSplatter.tscn");
+        }
+    }
+
     public override void _Ready()
     {
         // Freeze physics on start so products stay safely in place on shelves without rolling off
@@ -62,19 +81,14 @@ public partial class Product : RigidBody3D, IInteractable
 
         if (ImpactEffect == null)
         {
+            EnsureSplattersLoaded();
             if (DisplayName == "Watermelon" || Name.ToString().Contains("Watermelon"))
             {
-                if (ResourceLoader.Exists("res://Prefabs/WatermelonSplatter.tscn") || FileAccess.FileExists("res://Prefabs/WatermelonSplatter.tscn"))
-                {
-                    ImpactEffect = GD.Load<PackedScene>("res://Prefabs/WatermelonSplatter.tscn");
-                }
+                ImpactEffect = _cachedWatermelonSplatter;
             }
             else if (IsFruitProduct())
             {
-                if (ResourceLoader.Exists("res://Prefabs/FruitSplatter.tscn") || FileAccess.FileExists("res://Prefabs/FruitSplatter.tscn"))
-                {
-                    ImpactEffect = GD.Load<PackedScene>("res://Prefabs/FruitSplatter.tscn");
-                }
+                ImpactEffect = _cachedFruitSplatter;
             }
         }
 

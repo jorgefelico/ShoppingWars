@@ -49,8 +49,8 @@ public static class PerkDatabase
             Perk = PlayerPerk.Tank,
             Name = "Tank",
             Icon = "🛡️",
-            Tagline = "190 Max HP (+40 Health)",
-            Description = "Heavily fortified shopper! Start every round with 190 HP instead of 150 HP, shrugging off hits and surviving lethal skirmishes.",
+            Tagline = "260 Max HP (+60 Health)",
+            Description = "Heavily fortified shopper! Start every round with 260 HP instead of 200 HP, shrugging off hits and surviving lethal skirmishes.",
             ThemeColor = new Color(0.35f, 0.7f, 1.0f)
         },
         [PlayerPerk.Scavenger] = new PerkDefinition

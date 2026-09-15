@@ -11,7 +11,7 @@ height = 1.1514648
 script = ExtResource("1_vmbql")
 DisplayName = &"Glizzy"
 Price = 30
-Damage = 40
+Damage = 18
 IsConsumable = true
 HealAmount = 100
 

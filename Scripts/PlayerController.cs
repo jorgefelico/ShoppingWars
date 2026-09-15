@@ -18,10 +18,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] private Label3D NameCard;
     [Export] public SpotLight3D Flashlight;
     [Export] public MeshInstance3D MeshInstance;
+    [Export] public Node3D CharacterModel;
+    [Export] public AnimationTree AnimTree;
     [Export] public float PickUpRange = 2.75f;
-    [Export] private float ThrowVelocity = 50.0f;
-    [Export] private float ThrowCooldown = 0.35f;
-    [Export] private float MeleeCooldown = 0.40f;
+    [Export] private float ThrowVelocity = 26.0f;
+    [Export] private float ThrowCooldown = 0.65f;
+    [Export] private float MeleeCooldown = 0.55f;
     [Export] private float MeleeRange = 2.4f;
     private float _meleeCooldownTimer = 0f;
     private bool _wasRmbPressed = false;
@@ -42,6 +44,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public float TraumaDecay = 2.5f;
     [Export] public Vector3 MaxShakeTranslation = new Vector3(0.07f, 0.07f, 0.03f);
     [Export] public Vector3 MaxShakeRotation = new Vector3(Mathf.DegToRad(3.5f), Mathf.DegToRad(2.0f), Mathf.DegToRad(5.5f));
+
     private string _playerName = "";
     [Export]
     public string PlayerName
@@ -89,6 +92,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private Vector3 _lastSentHeadRot = Vector3.Zero;
     private float _lastSentPitch = 0f;
     private float _heartbeatTimer = 0f;
+    private float _remoteMoveTimer = 0f;
 
     public override void _Ready()
     {
@@ -97,6 +101,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (Head == null) Head = GetNode<Node3D>("Head");
         if (Camera == null) Camera = GetNode<Camera3D>("Head/Camera");
         if (MeshInstance == null) MeshInstance = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
+        if (CharacterModel == null) CharacterModel = GetNodeOrNull<Node3D>("Sketchfab_Scene");
+        if (AnimTree == null) AnimTree = GetNodeOrNull<AnimationTree>("Sketchfab_Scene/AnimationTree");
+        if (AnimTree != null)
+        {
+            AnimTree.Active = true;
+            EnsureAnimationsLoop();
+        }
+        UpdateCharacterModelRotation();
         if (Health == null) Health = GetNodeOrNull<Health>("Health");
         if (Inventory == null) Inventory = GetNodeOrNull<Inventory>("Inventory");
 
@@ -125,11 +137,15 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             if (NameCard != null) NameCard.Visible = false;
             if (MeshInstance != null) MeshInstance.Visible = false;
+            if (CharacterModel != null) CharacterModel.Visible = false;
             if (string.IsNullOrEmpty(PlayerName))
             {
                 PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
             }
-            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
+            bool shouldShowMouse = (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
+                                 || GameManager.Instance == null
+                                 || GameManager.Instance.CurrentPhase == GamePhase.Lobby;
+            if (shouldShowMouse)
             {
                 Input.MouseMode = Input.MouseModeEnum.Visible;
             }
@@ -178,6 +194,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 MeshInstance.Visible = true;
                 StylizationHelper.ApplyToonStylization(MeshInstance, 0.0035f);
+            }
+            if (CharacterModel != null)
+            {
+                CharacterModel.Visible = true;
+                StylizationHelper.ApplyToonStylization(CharacterModel, 0.0035f);
             }
 
             // Delete UI elements on remote player clones so their UI never renders locally!
@@ -271,11 +292,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public void ApplyCurrentPerk()
     {
-        // Tank: +40 Max Health (190 HP instead of 150 HP)
+        // Tank: +60 Max Health (260 HP instead of 200 HP)
         if (Health != null)
         {
             int oldMax = Health.MaxHealth;
-            Health.MaxHealth = (CurrentPerk == PlayerPerk.Tank) ? 190 : 150;
+            Health.MaxHealth = (CurrentPerk == PlayerPerk.Tank) ? 260 : 200;
             if (GameManager.Instance?.CurrentPhase == GamePhase.Lobby || 
                 GameManager.Instance?.CurrentPhase == GamePhase.ShoppingTransition || 
                 GameManager.Instance?.CurrentPhase == GamePhase.Shopping ||
@@ -369,7 +390,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         InputDisabled = false;
         _isBeingSpectated = false;
         
-        if (MeshInstance != null) MeshInstance.Visible = true;
+        if (MeshInstance != null) MeshInstance.Visible = !IsMultiplayerAuthority();
+        if (CharacterModel != null) CharacterModel.Visible = !IsMultiplayerAuthority();
         if (NameCard != null && !IsMultiplayerAuthority()) NameCard.Visible = true;
         
         CollisionLayer = 2; // Layer 2: Player
@@ -382,6 +404,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         
         if (IsMultiplayerAuthority())
         {
+            if (MeshInstance != null) MeshInstance.Visible = false;
+            if (CharacterModel != null) CharacterModel.Visible = false;
             if (Camera != null) Camera.MakeCurrent();
             GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
             if (DeathOverlay != null) DeathOverlay.Visible = false;
@@ -415,6 +439,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             if (Health != null && Health.IsDead)
             {
                 if (MeshInstance != null && MeshInstance.Visible) MeshInstance.Visible = false;
+                if (CharacterModel != null && CharacterModel.Visible) CharacterModel.Visible = false;
                 if (NameCard != null && NameCard.Visible) NameCard.Visible = false;
             }
             else if (!_isBeingSpectated)
@@ -430,6 +455,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 if (MeshInstance != null && !MeshInstance.Visible)
                 {
                     MeshInstance.Visible = true;
+                }
+                if (CharacterModel != null && !CharacterModel.Visible)
+                {
+                    CharacterModel.Visible = true;
                 }
             }
 
@@ -481,7 +510,27 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                     Mathf.LerpAngle(Camera.Rotation.Z, SyncCameraRotation.Z, rotLerpFactor)
                 );
             }
+
+            if (AnimTree != null)
+            {
+                if (distance > 0.05f)
+                {
+                    _remoteMoveTimer = 0.30f;
+                }
+                else
+                {
+                    _remoteMoveTimer = Mathf.Max(0f, _remoteMoveTimer - (float)delta);
+                }
+
+                bool isMoving = _remoteMoveTimer > 0f;
+                bool isRunning = distance > 0.18f;
+                float targetBlend = !isMoving ? 0.0f : (isRunning ? 1.0f : 0.5f);
+                float currentBlend = (float)AnimTree.Get("parameters/blend_position");
+                AnimTree.Set("parameters/blend_position", Mathf.MoveToward(currentBlend, targetBlend, (float)delta * 5.0f));
+            }
         }
+
+        UpdateCharacterModelRotation();
     }
 
 
@@ -538,7 +587,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             return;
         }
 
-        if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
+        bool isModalOpen = (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
+                         || (GameManager.Instance?.CurrentPhase == GamePhase.Lobby && GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsTutorialOpen);
+        if (isModalOpen)
         {
             return;
         }
@@ -551,11 +602,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             _cameraPitch -= motion.Relative.Y * Sensitivity * SettingsManager.MouseSensitivity;
             _cameraPitch = Mathf.Clamp(_cameraPitch, -MaxPitch, MaxPitch);
             ApplyCameraTransform();
+            UpdateCharacterModelRotation();
         }
 
-        if (@event is InputEventMouseButton)
+        if (@event is InputEventMouseButton mouseBtn && mouseBtn.Pressed)
         {
-            if (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)
+            if (isModalOpen || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen))
             {
                 return;
             }
@@ -883,7 +935,15 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void HandleMovement(double delta)
     {
-        if (InputDisabled) return;
+        if (InputDisabled)
+        {
+            if (AnimTree != null)
+            {
+                float currentBlend = (float)AnimTree.Get("parameters/blend_position");
+                AnimTree.Set("parameters/blend_position", Mathf.MoveToward(currentBlend, 0.0f, (float)delta * 6.0f));
+            }
+            return;
+        }
         if (Input.IsActionPressed("sprint"))
         {
             IsRunning = true;
@@ -928,6 +988,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Velocity = new Vector3(newX, Velocity.Y, newZ);
         }
         MoveAndSlide();
+
+        if (AnimTree != null)
+        {
+            float targetBlend = 0.0f;
+            if (movementAxis != Vector2.Zero)
+            {
+                targetBlend = IsRunning ? 1.0f : 0.5f;
+            }
+            float currentBlend = (float)AnimTree.Get("parameters/blend_position");
+            float newBlend = Mathf.MoveToward(currentBlend, targetBlend, (float)delta * 6.0f);
+            AnimTree.Set("parameters/blend_position", newBlend);
+        }
 
         // Landing impact audio
         if (!_wasOnFloor && IsOnFloor())
@@ -1433,13 +1505,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public void SetSpectateTargetActive(bool isBeingSpectated)
     {
         _isBeingSpectated = isBeingSpectated;
+        bool shouldBeVisible = !isBeingSpectated && (Health == null || !Health.IsDead);
         if (MeshInstance != null)
         {
-            MeshInstance.Visible = !isBeingSpectated && (Health == null || !Health.IsDead);
+            MeshInstance.Visible = shouldBeVisible;
+        }
+        if (CharacterModel != null)
+        {
+            CharacterModel.Visible = shouldBeVisible;
         }
         if (NameCard != null)
         {
-            NameCard.Visible = !isBeingSpectated && (Health == null || !Health.IsDead);
+            NameCard.Visible = shouldBeVisible;
         }
     }
 
@@ -1479,6 +1556,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         CollisionMask = 0;
         GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.SetDeferred("disabled", true);
         if (MeshInstance != null) MeshInstance.Visible = false;
+        if (CharacterModel != null) CharacterModel.Visible = false;
         if (NameCard != null) NameCard.Visible = false;
 
         var livingPlayers = GetLivingPlayers();
@@ -1654,6 +1732,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         CollisionMask = 0;
         GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.SetDeferred("disabled", true);
         if (MeshInstance != null) MeshInstance.Visible = false;
+        if (CharacterModel != null) CharacterModel.Visible = false;
         if (NameCard != null) NameCard.Visible = false;
 
         _cameraTrauma = 0f;
@@ -1722,5 +1801,38 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Inventory.DropLoot();
         }
         HeldItem = null;
+    }
+
+    private void UpdateCharacterModelRotation()
+    {
+        if (CharacterModel == null || Head == null) return;
+        // Align character model yaw to Head look direction (with 180 deg / Pi offset since model faces backwards by default)
+        CharacterModel.Rotation = new Vector3(0f, Head.Rotation.Y + Mathf.Pi, 0f);
+    }
+
+    private void EnsureAnimationsLoop()
+    {
+        if (AnimTree == null) return;
+        var animPlayer = AnimTree.GetNodeOrNull<AnimationPlayer>(AnimTree.AnimPlayer);
+        if (animPlayer == null && CharacterModel != null)
+        {
+            animPlayer = CharacterModel.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+        }
+        if (animPlayer != null)
+        {
+            foreach (StringName libName in animPlayer.GetAnimationLibraryList())
+            {
+                var lib = animPlayer.GetAnimationLibrary(libName);
+                if (lib == null) continue;
+                foreach (StringName animName in lib.GetAnimationList())
+                {
+                    var anim = lib.GetAnimation(animName);
+                    if (anim != null)
+                    {
+                        anim.LoopMode = Animation.LoopModeEnum.Linear;
+                    }
+                }
+            }
+        }
     }
 }

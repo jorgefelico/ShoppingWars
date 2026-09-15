@@ -39,7 +39,7 @@ ScaleVariation = true
 Icon = ExtResource("2_icon")
 ThrowMultiplier = 1.3
 IsConsumable = true
-HealAmount = 25
+HealAmount = 35
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045, 0)

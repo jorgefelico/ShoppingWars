@@ -34,12 +34,12 @@ max_contacts_reported = 4
 script = ExtResource("1_script")
 DisplayName = &"Soda Can"
 Price = 4
-Damage = 25
+Damage = 14
 ScaleVariation = true
 Icon = ExtResource("2_icon")
 ThrowMultiplier = 1.05
 IsConsumable = true
-HealAmount = 10
+HealAmount = 20
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)

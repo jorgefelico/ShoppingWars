@@ -353,6 +353,9 @@ public partial class GameManager : Node
         WinnerName = "";
         IsDraw = false;
 
+        // Scatter/teleport players to spread-out department spawn points across the store so they don't start packed at ReadyUp!
+        ScatterPlayersToSpawnPoints();
+
         if (Multiplayer.HasMultiplayerPeer())
         {
             Rpc(nameof(RpcSyncState), (int)GamePhase.ShoppingTransition, ShoppingTransitionDuration, "", false);
@@ -502,14 +505,8 @@ public partial class GameManager : Node
         }
     }
 
-    public void ResetForNewRound()
+    public void ScatterPlayersToSpawnPoints()
     {
-        CurrentRound++;
-        SyncRoundState();
-
-        AmbientEventManager.Instance?.ResetEvents();
-        ArenaZoneManager.Instance?.ResetZone();
-
         Node3D spawnPointsNode = Utils.GetSpawnPoints(GetTree().CurrentScene);
         int spawnCount = (spawnPointsNode != null) ? spawnPointsNode.GetChildCount() : 0;
 
@@ -528,6 +525,17 @@ public partial class GameManager : Node
             }
             p.ResetForNewRound(spawnPos);
         }
+    }
+
+    public void ResetForNewRound()
+    {
+        CurrentRound++;
+        SyncRoundState();
+
+        AmbientEventManager.Instance?.ResetEvents();
+        ArenaZoneManager.Instance?.ResetZone();
+
+        ScatterPlayersToSpawnPoints();
     }
 
     public void StartBattleRoyalePhase()

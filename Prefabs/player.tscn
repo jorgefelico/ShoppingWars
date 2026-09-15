@@ -7,6 +7,10 @@
 [ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="5_fkybt"]
 [ext_resource type="PackedScene" uid="uid://b0t48eul7ppob" path="res://Prefabs/Death.tscn" id="6_x3wgy"]
 [ext_resource type="PackedScene" path="res://Prefabs/DamageOverlay.tscn" id="7_dmg"]
+[ext_resource type="PackedScene" uid="uid://djo12gpef67m0" path="res://Prefabs/PlayerModel.tscn" id="8_4qbli"]
+[ext_resource type="Animation" uid="uid://npdotnrqcp2q" path="res://Animations/idle.anim" id="9_2xbkd"]
+[ext_resource type="Animation" uid="uid://bd4b2syj2u4ay" path="res://Animations/walk.anim" id="9_08u7w"]
+[ext_resource type="Animation" uid="uid://c7p3yablepk2n" path="res://Animations/run.anim" id="9_kgmex"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
 
@@ -23,14 +27,36 @@ border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ve40"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_player"]
-albedo_color = Color(0.2, 0.55, 0.95, 1)
-roughness = 0.5
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_kgmex"]
+_data = {
+&"idle": ExtResource("9_2xbkd"),
+&"run": ExtResource("9_kgmex"),
+&"walk": ExtResource("9_08u7w")
+}
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_y1t4u"]
-material = SubResource("StandardMaterial3D_player")
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_3vpsw"]
+animation = &"Animations/idle"
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "DamageOverlay", "NameCard", "Flashlight", "MeshInstance")]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_m62uw"]
+animation = &"Animations/run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_b30ri"]
+animation = &"Animations/walk"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_pn41e"]
+min_space = 0.0
+sync = true
+blend_point_0/node = SubResource("AnimationNodeAnimation_3vpsw")
+blend_point_0/pos = 0.0
+blend_point_0/name = &"Animations_idle"
+blend_point_1/node = SubResource("AnimationNodeAnimation_m62uw")
+blend_point_1/pos = 1.0
+blend_point_1/name = &"Animations_run"
+blend_point_2/node = SubResource("AnimationNodeAnimation_b30ri")
+blend_point_2/pos = 0.5
+blend_point_2/name = &"Animations_walk"
+
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "DamageOverlay", "NameCard", "Flashlight", "AnimTree", "CharacterModel")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
@@ -46,8 +72,8 @@ DeathOverlay = NodePath("Death")
 DamageOverlay = NodePath("DamageOverlay")
 NameCard = NodePath("NameCard")
 Flashlight = NodePath("Head/Camera/Flashlight")
-MeshInstance = NodePath("MeshInstance3D")
-ThrowCooldown = 0.5
+AnimTree = NodePath("Sketchfab_Scene/AnimationTree")
+CharacterModel = NodePath("Sketchfab_Scene")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")
@@ -57,7 +83,7 @@ shape = SubResource("CapsuleShape3D_y1t4u")
 [node name="AudioListener3D" type="AudioListener3D" parent="Head" unique_id=1446680800]
 
 [node name="Camera" type="Camera3D" parent="Head" unique_id=1745667712]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -0.17485094)
 
 [node name="RayCast3D" type="RayCast3D" parent="Head/Camera" unique_id=1833017106]
 target_position = Vector3(0, 0, -2.75)
@@ -288,5 +314,13 @@ font_size = 36
 outline_size = 10
 uppercase = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=577659693]
-mesh = SubResource("CapsuleMesh_y1t4u")
+[node name="Sketchfab_Scene" parent="." unique_id=612140684 instance=ExtResource("8_4qbli")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, -1, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sketchfab_Scene" unique_id=63159552]
+libraries/Animations = SubResource("AnimationLibrary_kgmex")
+
+[node name="AnimationTree" type="AnimationTree" parent="Sketchfab_Scene" unique_id=247988011]
+tree_root = SubResource("AnimationNodeBlendSpace1D_pn41e")
+anim_player = NodePath("../AnimationPlayer")
+parameters/blend_position = 0.0

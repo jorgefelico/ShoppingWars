@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://djo12gpef67m0"]
+
+[ext_resource type="PackedScene" uid="uid://bvcwk3puelnaa" path="res://Models/free_pack_-_stick_man_rigged.glb" id="1_q3of8"]
+
+[node name="Sketchfab_Scene" unique_id=612140684 instance=ExtResource("1_q3of8")]

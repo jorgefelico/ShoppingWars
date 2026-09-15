@@ -16,16 +16,48 @@ public static class StylizationHelper
         }
     }
 
+    private static readonly Dictionary<(float width, Color color), ShaderMaterial> _outlineMatCache = new();
+    private static readonly Dictionary<(Material source, ShaderMaterial outline), StandardMaterial3D> _toonMatCache = new();
+
+    public static void ClearCache()
+    {
+        _outlineMatCache.Clear();
+        _toonMatCache.Clear();
+    }
+
     public static ShaderMaterial CreateInkOutlineMaterial(float width = 0.0028f, Color? color = null)
     {
         if (InkOutlineShader == null) return null;
+        Color c = color ?? new Color(0.06f, 0.06f, 0.09f, 1.0f);
+        var key = (width, c);
+        if (_outlineMatCache.TryGetValue(key, out ShaderMaterial cached) && GodotObject.IsInstanceValid(cached))
+        {
+            return cached;
+        }
+
         var mat = new ShaderMaterial
         {
             Shader = InkOutlineShader
         };
         mat.SetShaderParameter("outline_width", width);
-        mat.SetShaderParameter("outline_color", color ?? new Color(0.06f, 0.06f, 0.09f, 1.0f));
+        mat.SetShaderParameter("outline_color", c);
+        _outlineMatCache[key] = mat;
         return mat;
+    }
+
+    private static StandardMaterial3D GetOrCreateToonMaterial(StandardMaterial3D sourceMat, ShaderMaterial outlineMat)
+    {
+        if (sourceMat == null) return null;
+        var key = (sourceMat, outlineMat);
+        if (_toonMatCache.TryGetValue(key, out StandardMaterial3D cached) && GodotObject.IsInstanceValid(cached))
+        {
+            return cached;
+        }
+
+        var toon = (StandardMaterial3D)sourceMat.Duplicate();
+        ConfigureToonMaterial(toon, outlineMat);
+        _toonMatCache[key] = toon;
+        return toon;
     }
 
     public static void ApplyToonStylization(Node root, float outlineWidth = 0.0028f, Color? outlineColor = null, bool addOutline = true)
@@ -45,9 +77,7 @@ public static class StylizationHelper
 
             if (mi.MaterialOverride is StandardMaterial3D overrideMat)
             {
-                var toon = (StandardMaterial3D)overrideMat.Duplicate();
-                ConfigureToonMaterial(toon, outlineMat);
-                mi.MaterialOverride = toon;
+                mi.MaterialOverride = GetOrCreateToonMaterial(overrideMat, outlineMat);
             }
             else
             {
@@ -59,15 +89,12 @@ public static class StylizationHelper
                     Material activeMat = mi.GetSurfaceOverrideMaterial(i) ?? mi.GetActiveMaterial(i);
                     if (activeMat is StandardMaterial3D stdMat)
                     {
-                        var toon = (StandardMaterial3D)stdMat.Duplicate();
-                        ConfigureToonMaterial(toon, outlineMat);
-                        mi.SetSurfaceOverrideMaterial(i, toon);
+                        mi.SetSurfaceOverrideMaterial(i, GetOrCreateToonMaterial(stdMat, outlineMat));
                     }
                     else if (activeMat == null && mi.Mesh != null)
                     {
-                        var toon = new StandardMaterial3D();
-                        ConfigureToonMaterial(toon, outlineMat);
-                        mi.SetSurfaceOverrideMaterial(i, toon);
+                        var defaultMat = new StandardMaterial3D();
+                        mi.SetSurfaceOverrideMaterial(i, GetOrCreateToonMaterial(defaultMat, outlineMat));
                     }
                 }
             }

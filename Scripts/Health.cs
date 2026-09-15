@@ -3,10 +3,12 @@ using System;
 
 public partial class Health : Node
 {
-    [Export] public int MaxHealth = 150;
+    [Export] public int MaxHealth = 200;
     [Export] HealthBar HealthBar;
-    public int CurrentHealth = 150;
+    public int CurrentHealth = 200;
     public bool IsDead = false;
+    [Export] public float DamageGraceDuration = 0.22f;
+    private double _lastDamageTime = -10.0;
 
     public event Action Died;
     public event Action<int, int> HealthChanged;
@@ -43,6 +45,19 @@ public partial class Health : Node
     public void TakeDamage(int amount)
     {
         if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer()) return;
+        if (IsDead) return;
+
+        double now = Time.GetTicksMsec() / 1000.0;
+        if (now - _lastDamageTime < DamageGraceDuration)
+        {
+            // Rapid consecutive hit within grace window deals dampened damage to prevent instant multi-projectile deletion
+            amount = Mathf.Max(1, (int)(amount * 0.50f));
+        }
+        else
+        {
+            _lastDamageTime = now;
+        }
+
         int newHealth = Mathf.Clamp(CurrentHealth - amount, 0, MaxHealth);
         bool isDead = newHealth <= 0;
         if (Multiplayer.HasMultiplayerPeer())

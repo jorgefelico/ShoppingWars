@@ -49,6 +49,11 @@ public partial class GamePhaseHUD : CanvasLayer
         _lastDisplayedMoney = currentMoney;
     }
 
+    public override void _EnterTree()
+    {
+        Instance = this;
+    }
+
     public override void _Ready()
     {
         Instance = this;
@@ -108,6 +113,11 @@ public partial class GamePhaseHUD : CanvasLayer
 
     public override void _ExitTree()
     {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
@@ -406,6 +416,7 @@ public partial class GamePhaseHUD : CanvasLayer
     }
 
     private Control _tutorialModal;
+    private Button _tutorialCloseButton;
     private Label _helpHintLabel;
     private Control _pauseMenuModal;
     public bool IsTutorialOpen => _tutorialModal != null && _tutorialModal.Visible;
@@ -414,6 +425,28 @@ public partial class GamePhaseHUD : CanvasLayer
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (IsTutorialOpen)
+        {
+            if (@event is InputEventKey tKey && tKey.Pressed && !tKey.Echo)
+            {
+                if (tKey.Keycode == Key.H || tKey.Keycode == Key.F1 ||
+                    tKey.Keycode == Key.Escape || tKey.Keycode == Key.Space ||
+                    tKey.Keycode == Key.Enter || tKey.Keycode == Key.KpEnter ||
+                    tKey.Keycode == Key.E)
+                {
+                    CloseTutorial();
+                    GetViewport().SetInputAsHandled();
+                    return;
+                }
+            }
+            else if (@event.IsActionPressed("ui_accept") || @event.IsActionPressed("interact") || @event.IsActionPressed("jump"))
+            {
+                CloseTutorial();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+        }
+
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
         {
             if (key.Keycode == Key.H || key.Keycode == Key.F1)
@@ -460,6 +493,7 @@ public partial class GamePhaseHUD : CanvasLayer
             if (IsPerkModalOpen) ClosePerkModal();
             _tutorialModal.Visible = true;
             Input.MouseMode = Input.MouseModeEnum.Visible;
+            _tutorialCloseButton?.CallDeferred(Control.MethodName.GrabFocus);
         }
     }
 
@@ -549,6 +583,13 @@ public partial class GamePhaseHUD : CanvasLayer
         _tutorialModal.Name = "TutorialModal";
         _tutorialModal.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _tutorialModal.MouseFilter = Control.MouseFilterEnum.Stop;
+        _tutorialModal.GuiInput += (@event) =>
+        {
+            if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+            {
+                CloseTutorial();
+            }
+        };
 
         var bgStyle = new StyleBoxFlat();
         bgStyle.BgColor = new Color(0.04f, 0.05f, 0.08f, 0.90f);
@@ -561,6 +602,7 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var card = new PanelContainer();
         card.CustomMinimumSize = new Vector2(820, 540);
+        card.MouseFilter = Control.MouseFilterEnum.Stop;
         var cardStyle = new StyleBoxFlat();
         cardStyle.BgColor = new Color(0.08f, 0.10f, 0.15f, 0.98f);
         cardStyle.BorderWidthLeft = 3;
@@ -708,9 +750,11 @@ public partial class GamePhaseHUD : CanvasLayer
         footer.AddChild(btnContainer);
 
         var closeBtn = new Button();
-        closeBtn.Text = "✅ GOT IT! LET'S SHOP";
-        closeBtn.CustomMinimumSize = new Vector2(240, 42);
+        closeBtn.Text = "✅ GOT IT! LET'S SHOP  [Space / Enter]";
+        closeBtn.CustomMinimumSize = new Vector2(300, 44);
         closeBtn.AddThemeFontSizeOverride("font_size", 16);
+        closeBtn.FocusMode = Control.FocusModeEnum.All;
+        closeBtn.MouseFilter = Control.MouseFilterEnum.Stop;
 
         var btnStyle = new StyleBoxFlat();
         btnStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
@@ -730,8 +774,17 @@ public partial class GamePhaseHUD : CanvasLayer
         hoverStyle.BorderColor = new Color(0.5f, 1.0f, 0.6f, 1.0f);
         closeBtn.AddThemeStyleboxOverride("hover", hoverStyle);
 
+        var focusStyle = (StyleBoxFlat)btnStyle.Duplicate();
+        focusStyle.BorderColor = Colors.White;
+        focusStyle.BorderWidthLeft = 3;
+        focusStyle.BorderWidthTop = 3;
+        focusStyle.BorderWidthRight = 3;
+        focusStyle.BorderWidthBottom = 3;
+        closeBtn.AddThemeStyleboxOverride("focus", focusStyle);
+
         closeBtn.Pressed += CloseTutorial;
         btnContainer.AddChild(closeBtn);
+        _tutorialCloseButton = closeBtn;
 
         var tipLbl = new Label();
         tipLbl.Text = "Press [H] anytime during the match to toggle this guide!";

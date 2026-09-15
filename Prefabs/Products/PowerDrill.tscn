@@ -34,7 +34,7 @@ max_contacts_reported = 4
 script = ExtResource("1_script")
 DisplayName = &"Power Drill"
 Price = 50
-Damage = 75
+Damage = 35
 Icon = ExtResource("2_icon")
 ThrowMultiplier = 0.6
 

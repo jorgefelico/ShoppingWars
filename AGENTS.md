@@ -108,7 +108,7 @@ Server-authoritative dynamic event scheduler triggering 8 arena-wide events duri
 
 ### Networking & Steam Integration
 - **Transport:** Native **GodotSteam GDExtension** (`SteamMultiplayerPeer`) providing Steam Datagram Relay (SDR) P2P networking without port forwarding or public IP exposure.
-- **Matchmaking & Lobbies:** Steam Friends-Only lobbies created via `SteamManager.cs`. Main menu features dynamic in-game invite acceptance buttons (`OnInviteReceived` event) and Steam Overlay invite support.
+- **Matchmaking & Lobbies:** Steam Friends-Only lobbies created via `SteamManager.cs`. Main menu features dynamic in-game invite acceptance buttons (`OnInviteReceived` event). The **"Join A Friend"** button opens an in-game popup listing friends' active lobbies (discovered via rich presence, `SteamManager.GetFriendsWithActiveLobbies()`) so players can join directly without the Steam overlay; hosts advertise their lobby ID on creation (`setRichPresence`) and clear it on return-to-menu/shutdown.
 - **Local Fallback:** Supports local network testing using `ENetMultiplayerPeer` (`127.0.0.1:7000`) via `JoinLocalButton`.
 - **Dynamic Spawning:** `MultiplayerSpawner` replicates players instantiated by `NetworkManager.cs`. Players spawn at numbered `SpawnPoints` markers.
 - **Scene Load Handshake:** Joining clients load the level scene first and send `RpcClientReady` to the host before the host spawns their player node, preventing scene transition race conditions.
@@ -148,7 +148,7 @@ Configured in `project.godot`:
 - **`DamageOverlay.cs`** (`CanvasLayer`) — Damage vignette flash and directional damage indicators.
 - **`GamePhaseHUD.cs`** (`CanvasLayer`) — Match status, countdown timer, money tracker, perk modal (`[P]`), tutorial modal (`[H]`), settings menu (`[Esc]`), and victory/defeat screen.
 - **`SpectatorHUD.cs`** (`CanvasLayer`) — Spectator overlay with player cycling controls and elimination status.
-- **`MainMenu.cs`** — Main menu UI controller (Host, Join, Steam invite popups, status messages).
+- **`MainMenu.cs`** — Main menu UI controller (Host, Join A Friend in-game lobby list popup, Steam invite popups, status messages).
 
 #### Items, Combat & Visual Effects (8 Files)
 - **`Product.cs`** (`RigidBody3D`, implements `IInteractable`) — Throwable and melee store items with price, damage, durability, healing, and impact physics.

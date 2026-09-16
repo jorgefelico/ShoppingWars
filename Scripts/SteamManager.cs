@@ -1,11 +1,17 @@
 using Godot;
-
+using System.Collections.Generic;
 public partial class SteamManager : Node
 {
     public static SteamManager Instance { get; private set; }
     public bool IsSteamInitialized { get; private set; }
 
     public event System.Action<ulong, string> OnInviteReceived;
+
+    // Rich presence key advertising which Steam lobby this player is hosting.
+    // Friends read it via getFriendRichPresence so the main menu can list
+    // joinable friend lobbies in-game (this GodotSteam build does not expose
+    // GetLobbyByIndex, so lobby list search results cannot be enumerated).
+    private const string LobbyPresenceKey = "lobby";
 
     private GodotObject _steam;
 
@@ -80,17 +86,44 @@ public partial class SteamManager : Node
         _steam.Call("createLobby", 1, 4);
     }
 
-    public void OpenFriendsInviteOverlay()
-    {
-        if (!IsSteamInitialized || _steam == null) return;
-        _steam.Call("activateGameOverlay", "friends");
-    }
-
     public void JoinLobbyById(ulong lobbyId)
     {
         if (!IsSteamInitialized || _steam == null) return;
         GD.Print($"[Steam] Joining Lobby directly: {lobbyId}");
         _steam.Call("joinLobby", lobbyId);
+    }
+
+    /// <summary>
+    /// Scans the friend list for players advertising an active hosted lobby via
+    /// rich presence. Returns (steamId, personaName, lobbyId) per hit.
+    /// </summary>
+    public List<(ulong SteamId, string Name, ulong LobbyId)> GetFriendsWithActiveLobbies()
+    {
+        var results = new List<(ulong SteamId, string Name, ulong LobbyId)>();
+        if (!IsSteamInitialized || _steam == null) return results;
+
+        int friendCount = (int)_steam.Call("getFriendCount", 0x7F); // k_EFriendFlag_All
+        for (int i = 0; i < friendCount; i++)
+        {
+            ulong friendId = (ulong)_steam.Call("getFriendByIndex", i, 0x7F);
+            string name = (string)_steam.Call("getFriendPersonaName", friendId);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            // getFriendRichPresence issues RequestFriendRichPresence internally first.
+            string lobbyIdStr = (string)_steam.Call("getFriendRichPresence", friendId, LobbyPresenceKey);
+            if (!string.IsNullOrEmpty(lobbyIdStr) && ulong.TryParse(lobbyIdStr, out ulong lobbyId) && lobbyId != 0)
+            {
+                results.Add((friendId, name, lobbyId));
+                GD.Print($"[Steam] Friend with active lobby: {name} -> {lobbyId}");
+            }
+        }
+        return results;
+    }
+
+    public void ClearLobbyPresence()
+    {
+        if (!IsSteamInitialized || _steam == null) return;
+        _steam.Call("clearRichPresence");
     }
 
     private void OnLobbyCreated(long status, ulong lobbyId)
@@ -105,6 +138,11 @@ public partial class SteamManager : Node
 
         ulong mySteamId = (ulong)_steam.Call("getSteamID");
         _steam.Call("setLobbyData", lobbyId, "HostSteamID", mySteamId.ToString());
+
+        // Advertise this lobby to friends via rich presence so they can find it
+        // from the in-game "Join A Friend" list.
+        _steam.Call("setRichPresence", LobbyPresenceKey, lobbyId.ToString());
+        GD.Print($"[Steam] Rich presence set: {LobbyPresenceKey}={lobbyId}");
 
         NetworkManager.Instance?.LoadLevel("res://Scenes/StoreInterior.tscn");
     }
@@ -162,6 +200,7 @@ public partial class SteamManager : Node
         {
             if (IsSteamInitialized && _steam != null)
             {
+                ClearLobbyPresence();
                 _steam.Call("steamShutdown");
             }
         }

@@ -295,6 +295,9 @@ public partial class NetworkManager : Node
 
     public void ReturnToMainMenu()
     {
+        // Stop advertising our hosted lobby so friends' "Join A Friend" list
+        // no longer shows a match we are no longer running.
+        SteamManager.Instance?.ClearLobbyPresence();
         if (Multiplayer.HasMultiplayerPeer())
         {
             Multiplayer.MultiplayerPeer = null;

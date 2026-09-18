@@ -1,40 +1,38 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b5e60qgonqth2"]
 
 [ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
-[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="2_navy"]
-[ext_resource type="Script" path="res://Scripts/ProceduralShelfFiller.cs" id="3_filler"]
+[ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="2_navy"]
+[ext_resource type="Script" uid="uid://cmgbltxdot2n5" path="res://Scripts/ProceduralShelfFiller.cs" id="3_filler"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_Elec_Base"]
-material = ExtResource("1_dark")
 lightmap_size_hint = Vector2i(54, 26)
+material = ExtResource("1_dark")
 add_uv2 = true
-size = Vector3(4.5, 0.95, 2.0)
+size = Vector3(4.5, 0.95, 2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Elec_Sign"]
-material = ExtResource("2_navy")
 lightmap_size_hint = Vector2i(20, 16)
+material = ExtResource("2_navy")
 add_uv2 = true
 size = Vector3(2.2, 1.25, 0.08)
 
 [sub_resource type="BoxShape3D" id="BoxShape_Elec_Table"]
-size = Vector3(4.5, 2.2, 2.0)
+size = Vector3(4.5, 2.2, 2)
 
-[node name="ElectronicsDisplayTable" type="StaticBody3D"]
+[node name="ElectronicsDisplayTable" type="StaticBody3D" unique_id=1031281672]
 
-[node name="TableBase" type="MeshInstance3D" parent="."]
+[node name="TableBase" type="MeshInstance3D" parent="." unique_id=1442247221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, 0)
-gi_mode = 1
 mesh = SubResource("BoxMesh_Elec_Base")
 
-[node name="SignBoard" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
-gi_mode = 1
+[node name="SignBoard" type="MeshInstance3D" parent="." unique_id=1681821203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5485116, 0)
 mesh = SubResource("BoxMesh_Elec_Sign")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1231879975]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("BoxShape_Elec_Table")
 
-[node name="ShelfFiller" type="Node3D" parent="."]
+[node name="ShelfFiller" type="Node3D" parent="." unique_id=111022032]
 script = ExtResource("3_filler")
 Category = 8

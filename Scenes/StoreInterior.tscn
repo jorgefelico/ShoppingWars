@@ -12,7 +12,7 @@
 [ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
 [ext_resource type="AudioStream" uid="uid://n2kntl7et4dk" path="res://Sounds/battle_phase_starting.wav" id="4_1y5qk"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
-[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="6_navy"]
+[ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="38_kml1t"]
@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Products/PipeWrench.tscn" id="51_tlmvn"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/SodaCan.tscn" id="52_u58hr"]
 [ext_resource type="PackedScene" uid="uid://bqo6tswn34s4n" path="res://Prefabs/Products/Glizzy.tscn" id="53_u58hr"]
+[ext_resource type="PackedScene" uid="uid://grm1pkumumug" path="res://Models/usflag.glb" id="54_0v6be"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" uid="uid://8pec71wcoeo7" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
@@ -36,17 +37,17 @@
 [ext_resource type="PackedScene" uid="uid://cavvmg6hkxcwv" path="res://Prefabs/CeilingSpeaker.tscn" id="P_CeilingSpeaker"]
 [ext_resource type="PackedScene" uid="uid://c2ga4lsjsdn3d" path="res://Prefabs/Store_CheckoutLane.tscn" id="P_Checkout"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CircularClothingRack.tscn" id="P_ClothRack"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_StructuralColumn.tscn" id="P_Column"]
+[ext_resource type="PackedScene" uid="uid://d4au1hdtvy103" path="res://Prefabs/Store_StructuralColumn.tscn" id="P_Column"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PerimeterWallCooler.tscn" id="P_Cooler"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CustomerServiceDesk.tscn" id="P_CustServ"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_DeliServiceCounter.tscn" id="P_Deli"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsLockupCase.tscn" id="P_ElecLockup"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsDisplayTable.tscn" id="P_ElecTable"]
+[ext_resource type="PackedScene" uid="uid://b5e60qgonqth2" path="res://Prefabs/Store_ElectronicsDisplayTable.tscn" id="P_ElecTable"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_EmergencyBeacon.tscn" id="P_EmergencyBeacon"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FittingRoomDivider.tscn" id="P_Fitting"]
 [ext_resource type="PackedScene" uid="uid://dtpkw3fn2u452" path="res://Prefabs/Store_FluorescentLight.tscn" id="P_FluorescentLight"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FluorescentLight_Flickering.tscn" id="P_FluorescentLight_Flickering"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_FoldedApparelTable.tscn" id="P_FoldTable"]
+[ext_resource type="PackedScene" uid="uid://xn16gtx2l1c6" path="res://Prefabs/Store_FoldedApparelTable.tscn" id="P_FoldTable"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_FreezerBunker.tscn" id="P_Freezer"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PalletCargoStack.tscn" id="P_Pallet"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PharmacyCounter.tscn" id="P_Pharm"]
@@ -67,7 +68,6 @@ tonemap_mode = 3
 tonemap_exposure = 1.35
 tonemap_white = 3.5
 ssr_enabled = true
-ssr_max_steps = 48
 ssao_enabled = true
 ssao_intensity = 1.25
 ssil_enabled = true
@@ -226,7 +226,37 @@ quality = 2
 bounces = 8
 directional = true
 interior = true
+denoiser_strength = 0.5
+max_texture_size = 4096
 light_data = ExtResource("1_7u461")
+
+[node name="ReflectionProbe" type="ReflectionProbe" parent="." unique_id=1331066912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.707047, 5.3434887, 33.47845)
+size = Vector3(92.90576, 11.479736, 73.92798)
+box_projection = true
+interior = true
+enable_shadows = true
+
+[node name="ReflectionProbe2" type="ReflectionProbe" parent="." unique_id=1016377161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.7939, 5.3434887, -34.653034)
+size = Vector3(92.90576, 11.479736, 71.221436)
+box_projection = true
+interior = true
+enable_shadows = true
+
+[node name="ReflectionProbe3" type="ReflectionProbe" parent="." unique_id=646921328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.801468, 5.3434887, 33.274494)
+size = Vector3(98.75073, 11.479736, 74.357666)
+box_projection = true
+interior = true
+enable_shadows = true
+
+[node name="ReflectionProbe4" type="ReflectionProbe" parent="." unique_id=384465600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.723953, 5.3434887, -36.097004)
+size = Vector3(92.90576, 11.479736, 68.333496)
+box_projection = true
+interior = true
+enable_shadows = true
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1799987798]
 navigation_mesh = SubResource("NavigationMesh_l8b7g")
@@ -322,94 +352,94 @@ mesh = SubResource("BoxMesh_Wall_Front_Side")
 [node name="Columns" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=742637480]
 
 [node name="Column_1" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1395019738 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.48, -45)
 
 [node name="Column_2" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1436899878 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.48, -22.5)
 
 [node name="Column_3" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1014521943 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.48, 0)
 
 [node name="Column_4" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1657506177 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.48, 22.5)
 
 [node name="Column_5" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=401857235 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 4.48, 45)
 
 [node name="Column_6" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1397377296 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.48, -45)
 
 [node name="Column_7" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=226507889 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.48, -22.5)
 
 [node name="Column_8" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1156215668 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.48, 0)
 
 [node name="Column_9" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=952456230 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.48, 22.5)
 
 [node name="Column_10" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1660125609 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4.48, 45)
 
 [node name="Column_11" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=649458237 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.48, -45)
 
 [node name="Column_12" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1703809846 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.48, -22.5)
 
 [node name="Column_13" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=923995884 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.48, 0)
 
 [node name="Column_14" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=284217774 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.48, 22.5)
 
 [node name="Column_15" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=940701764 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.48, 45)
 
 [node name="Column_16" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=2082943957 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.48, -45)
 
 [node name="Column_17" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=358718824 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.48, -22.5)
 
 [node name="Column_18" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1551712127 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.48, 0)
 
 [node name="Column_19" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1609511343 instance=ExtResource("P_Column")]
-transform = Transform3D(1.2337961, 0, 0, 0, 1, 0, 0, 0, 1, 11.612137, 4.5, 22.5)
+transform = Transform3D(1.2337961, 0, 0, 0, 1, 0, 0, 0, 1, 11.612137, 4.48, 22.5)
 
 [node name="Column_20" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1526810862 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4.48, 45)
 
 [node name="Column_21" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=83133905 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.48, -45)
 
 [node name="Column_22" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=974169262 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.48, -22.5)
 
 [node name="Column_23" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1923799915 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.48, 0)
 
 [node name="Column_24" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1552457934 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.48, 22.5)
 
 [node name="Column_25" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=252827720 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 4.48, 45)
 
 [node name="Column_26" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=50871351 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, -45)
 
 [node name="Column_27" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=578970527 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, -22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, -22.5)
 
 [node name="Column_28" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1818833464 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, 0)
 
 [node name="Column_29" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=2015618060 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 22.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, 22.5)
 
 [node name="Column_30" parent="NavigationRegion3D/Interior/Architecture/Columns" unique_id=1327267533 instance=ExtResource("P_Column")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, 45)
 
 [node name="HVAC" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=1473811502]
 
@@ -1734,3 +1764,12 @@ ScaleVariation = true
 
 [node name="ReadyUp" parent="." unique_id=1398623995 instance=ExtResource("29_t3mvi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.14164, 1.4286656, -69.6)
+
+[node name="usflag" parent="." unique_id=1922159656 instance=ExtResource("54_0v6be")]
+transform = Transform3D(-8.742278e-08, -2, -8.742278e-08, 0, -8.742278e-08, 2, -2, 8.742278e-08, 3.821371e-15, -29.969202, 6.1807647, -4.532968)
+
+[node name="usflag2" parent="." unique_id=135301392 instance=ExtResource("54_0v6be")]
+transform = Transform3D(-8.742278e-08, -2, -8.742278e-08, 0, -8.742278e-08, 2, -2, 8.742278e-08, 3.821371e-15, -0.010763407, 6.1807647, 4.4593787)
+
+[node name="usflag3" parent="." unique_id=1985043183 instance=ExtResource("54_0v6be")]
+transform = Transform3D(-8.742278e-08, -2, -8.742278e-08, 0, -8.742278e-08, 2, -2, 8.742278e-08, 3.821371e-15, 29.989237, 6.1807647, -5.5406213)

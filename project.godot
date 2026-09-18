@@ -22,6 +22,7 @@ NetworkManager="*uid://bj851bcregmf4"
 
 [display]
 
+window/size/mode=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -137,9 +138,11 @@ drop_item={
 
 [rendering]
 
+reflections/reflection_atlas/reflection_size=1024
 textures/default_filters/anisotropic_filtering_level=4
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/msaa_3d=2
+anti_aliasing/screen_space_roughness_limiter/limit=0.2
 anti_aliasing/quality/use_debanding=true
 anti_aliasing/quality/screen_space_aa=2
 

@@ -1,10 +1,7 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://3p8pr8pxm2lc"]
 
 [resource]
-diffuse_mode = 3
-specular_mode = 1
 albedo_color = Color(0.58, 0.4, 0.25, 1)
-metallic = 0.0
 roughness = 0.5
 rim_enabled = true
 rim = 0.25

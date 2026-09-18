@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://8pec71wcoeo7"]
 
-[ext_resource type="Material" path="res://Materials/shelf_dark.tres" id="1_dark"]
-[ext_resource type="Material" path="res://Materials/shelf_metal.tres" id="2_metal"]
-[ext_resource type="Material" path="res://Materials/signage_navy.tres" id="3_blue"]
+[ext_resource type="Material" uid="uid://6trabf6ue14a" path="res://Materials/shelf_dark.tres" id="1_dark"]
+[ext_resource type="Material" uid="uid://b3qxmiqcvfefc" path="res://Materials/shelf_metal.tres" id="2_metal"]
+[ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="3_blue"]
 [ext_resource type="Script" uid="uid://cmgbltxdot2n5" path="res://Scripts/ProceduralShelfFiller.cs" id="4_filler"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_Base"]

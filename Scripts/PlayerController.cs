@@ -81,6 +81,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
     private HitMarker _hitMarker;
+    private ItemHoverBox _hoverBox;
     private PlayerAudio _playerAudio;
     private float _stepTimer = 0f;
     private bool _isLeftFoot = true;
@@ -172,6 +173,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             {
                 _hitMarker = new HitMarker();
                 CrossHair.AddChild(_hitMarker);
+
+                _hoverBox = new ItemHoverBox();
+                CrossHair.AddChild(_hoverBox);
             }
         }
         else
@@ -234,11 +238,22 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Health.Damaged += OnPlayerDamaged;
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged += OnGamePhaseChangedForHover;
+        }
+
         Money = StartingMoney;
     }
 
     public override void _ExitTree()
     {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GamePhaseChanged -= OnGamePhaseChangedForHover;
+        }
+        _hoverBox?.HideBox();
+
         if (Health != null)
         {
             Health.Died -= OnPlayerDied;
@@ -318,6 +333,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         UpdateNameCardWithPerk();
+        _hoverBox?.Refresh(this);
     }
 
     public int GetDiscountedPrice(int originalPrice)
@@ -761,6 +777,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 }
                 _highlightedItem = interactable;
                 _highlightedItem.OutlineOn();
+                UpdateHoverCard();
             }
         }
         else if (_highlightedItem != null)
@@ -770,6 +787,37 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 _highlightedItem.OutlineOff();
             }
             _highlightedItem = null;
+            _hoverBox?.HideBox();
+        }
+    }
+
+    private void UpdateHoverCard()
+    {
+        if (_hoverBox == null) return;
+
+        if (_highlightedItem is Product product)
+        {
+            _hoverBox.ShowProduct(product, this);
+        }
+        else if (_highlightedItem is ReadyUp readyUp)
+        {
+            _hoverBox.ShowReadyUp(readyUp);
+        }
+        else if (_highlightedItem != null)
+        {
+            _hoverBox.ShowGeneric(_highlightedItem.HoverText);
+        }
+        else
+        {
+            _hoverBox.HideBox();
+        }
+    }
+
+    private void OnGamePhaseChangedForHover()
+    {
+        if (_highlightedItem != null)
+        {
+            UpdateHoverCard();
         }
     }
 
@@ -828,6 +876,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (IsMultiplayerAuthority())
         {
+            if (_highlightedItem != null && _highlightedItem as Product == item)
+            {
+                _highlightedItem = null;
+                _hoverBox?.HideBox();
+            }
             Inventory.AddItem(item);
             UpdateHandItemVisibility();
 
@@ -1545,6 +1598,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         _highlightedItem?.OutlineOff();
         _highlightedItem = null;
+        _hoverBox?.HideBox();
 
         if (CrossHair != null) CrossHair.Visible = false;
         if (InventoryBar != null) InventoryBar.Visible = false;

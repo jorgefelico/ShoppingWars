@@ -412,7 +412,7 @@ public partial class Product : RigidBody3D, IInteractable
         if (HoverLabel != null)
         {
             UpdateHoverLabelForPlayer(PlayerController.Instance);
-            HoverLabel.Visible = true;
+            HoverLabel.Visible = false; // HUD hover box displays item card and effects
         }
     }
 

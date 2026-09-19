@@ -198,8 +198,6 @@ BattleDuration = 240.0
 _lightmap = NodePath("../../LightmapGI")
 _worldEnvironment = NodePath("../WorldEnvironment")
 TransitionChime = ExtResource("2_11fay")
-ShoppingTransitionSound = ExtResource("2_wpfo0")
-BattleTransitionSound = ExtResource("4_1y5qk")
 SpeakerVolumeDb = -12.0
 CeilingSpeakerPrefab = ExtResource("P_CeilingSpeaker")
 

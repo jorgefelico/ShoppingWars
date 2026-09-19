@@ -9,8 +9,8 @@ public partial class AmbientEventManager : Node
     [Export] public bool EnableRandomEvents = true;
     [Export] public float MinEventInterval = 15.0f;
     [Export] public float MaxEventInterval = 25.0f;
-    [Export] public float MinFirstEventDelay = 8.0f;
-    [Export] public float MaxFirstEventDelay = 15.0f;
+    [Export] public float MinFirstEventDelay = 18.0f;
+    [Export] public float MaxFirstEventDelay = 28.0f;
     [Export] public bool TriggerInShoppingPhase = false;
     [Export] public bool TriggerInBattleRoyalePhase = true;
 
@@ -102,6 +102,7 @@ public partial class AmbientEventManager : Node
             {
                 EndActiveEvent();
             }
+            ScheduleFirstEventDelay();
         }
     }
 
@@ -156,12 +157,12 @@ public partial class AmbientEventManager : Node
         // 2. Server-authoritative random event scheduler
         if (!Multiplayer.IsServer() || !EnableRandomEvents) return;
 
-        // Only trigger during active game phases
+        // Only trigger during allowed active phases (Battle Royale by default)
         if (GameManager.Instance == null) return;
         GamePhase phase = GameManager.Instance.CurrentPhase;
-        if (phase == GamePhase.Lobby) return;
-        if (phase == GamePhase.Shopping && !TriggerInShoppingPhase) return;
-        if (phase == GamePhase.BattleRoyale && !TriggerInBattleRoyalePhase) return;
+        bool isAllowedPhase = (phase == GamePhase.BattleRoyale && TriggerInBattleRoyalePhase)
+                           || (phase == GamePhase.Shopping && TriggerInShoppingPhase);
+        if (!isAllowedPhase) return;
 
         NextEventTimer -= (float)delta;
         if (NextEventTimer <= 0f)
@@ -241,6 +242,7 @@ public partial class AmbientEventManager : Node
         ActiveEvent.OnStart(this, duration);
         EmitSignal(SignalName.AmbientEventStarted, ev.EventId, ev.DisplayName, ev.Description, duration);
         GD.Print($"[AmbientEventManager] Event START: {ev.DisplayName} for {duration:0.0}s");
+        ManagerAnnouncer.Instance?.AnnounceAmbientEvent(ev.EventId);
     }
 
     public void EndActiveEvent()

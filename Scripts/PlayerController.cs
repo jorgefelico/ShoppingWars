@@ -56,6 +56,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             UpdateNameCardWithPerk();
         }
     }
+
+    public int MatchKills { get; set; } = 0;
+    public bool IsBountyTarget { get; private set; } = false;
+    private Node3D _bountyMarker;
+    private Label3D _bountyLabel;
+
     const float Accel = 30.0f;
     const float Friction = 25.0f;
     const float JumpVelocity = 4.5f;
@@ -244,6 +250,36 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         Money = StartingMoney;
+
+        // In-world 3D Bounty Marker
+        _bountyMarker = new Node3D { Name = "BountyMarker", Visible = false };
+        _bountyMarker.Position = new Vector3(0, 2.35f, 0);
+
+        _bountyLabel = new Label3D
+        {
+            Text = "🎯 $50 BOUNTY 🎯",
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            FontSize = 26,
+            OutlineSize = 6,
+            Modulate = new Color(1.0f, 0.85f, 0.1f),
+            OutlineModulate = Colors.Black
+        };
+        _bountyMarker.AddChild(_bountyLabel);
+
+        var diamond = new MeshInstance3D
+        {
+            Mesh = new PrismMesh { Size = new Vector3(0.35f, 0.35f, 0.35f) },
+            Position = new Vector3(0, 0.45f, 0),
+            MaterialOverride = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(1.0f, 0.85f, 0.15f),
+                EmissionEnabled = true,
+                Emission = new Color(1.0f, 0.8f, 0.1f),
+                EmissionEnergyMultiplier = 1.8f
+            }
+        };
+        _bountyMarker.AddChild(diamond);
+        AddChild(_bountyMarker);
     }
 
     public override void _ExitTree()
@@ -385,6 +421,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         Velocity = Vector3.Zero;
 
         ResetMoney();
+        MatchKills = 0;
+        SetBountyTarget(false);
         ApplyCurrentPerk();
         if (Health != null)
         {
@@ -434,6 +472,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _Process(double delta)
     {
+        if (_bountyMarker != null && _bountyMarker.Visible)
+        {
+            _bountyMarker.RotateY((float)delta * 3.0f);
+        }
+
         if (IsMultiplayerAuthority())
         {
             if (Health == null) return;
@@ -1489,6 +1532,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     {
         if (!Multiplayer.IsServer()) return;
 
+        MatchKills++;
+
         // Reward the killer: Heal 35 HP, bonus $50 cash, and 4s speed boost!
         Health?.Heal(35);
         AddMoney(50);
@@ -1501,6 +1546,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 SpeedModifier = 1.0f;
             }
         };
+
+        // Check if victim was the active bounty target
+        if (victim != null && victim.IsBountyTarget)
+        {
+            GameManager.Instance?.OnBountyClaimed(this, victim);
+        }
+        else
+        {
+            GameManager.Instance?.CheckAndAssignBounty(this);
+        }
 
         string killerName = PlayerName;
         string victimName = victim != null ? victim.PlayerName : "Shopper";
@@ -1516,10 +1571,30 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcSetBounty(bool active, int bountyAmount = 50)
+    {
+        SetBountyTarget(active, bountyAmount);
+    }
+
+    public void SetBountyTarget(bool active, int bountyAmount = 50)
+    {
+        IsBountyTarget = active;
+        if (_bountyMarker != null)
+        {
+            _bountyMarker.Visible = active;
+            if (_bountyLabel != null)
+            {
+                _bountyLabel.Text = $"🎯 ${bountyAmount} BOUNTY 🎯";
+            }
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     private void RpcSyncElimination(string killerName, string victimName)
     {
         GD.Print($"[Elimination] {killerName} eliminated {victimName}!");
         GamePhaseHUD.Instance?.ShowEliminationNotification(killerName, victimName);
+        ManagerAnnouncer.Instance?.AnnounceElimination(killerName, victimName);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]

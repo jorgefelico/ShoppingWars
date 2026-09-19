@@ -23,6 +23,20 @@ public partial class GamePhaseHUD : CanvasLayer
     private float _killFeedTimer = 0f;
     private int _lastDisplayedMoney = -1;
 
+    // Mr. Henderson Intercom HUD
+    private PanelContainer _intercomCard;
+    private Label _intercomAvatarLabel;
+    private Label _intercomMessageLabel;
+    private Label _intercomLiveDot;
+    private Tween _intercomTween;
+    private float _intercomDisplayTimer = 0f;
+    private float _intercomPulseTimer = 0f;
+    private bool _subscribedToManager = false;
+
+    // Store Bounty HUD
+    private Label _bountyHUDLabel;
+    private float _bountyHUDTimer = 0f;
+
     private void UpdateMoneyDisplay()
     {
         if (MoneyLabel == null) return;
@@ -70,6 +84,17 @@ public partial class GamePhaseHUD : CanvasLayer
         _killFeedLabel.Visible = false;
         AddChild(_killFeedLabel);
 
+        _bountyHUDLabel = new Label();
+        _bountyHUDLabel.Name = "BountyHUDLabel";
+        _bountyHUDLabel.Position = new Vector2(20, 105);
+        _bountyHUDLabel.Size = new Vector2(500, 35);
+        _bountyHUDLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.1f));
+        _bountyHUDLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _bountyHUDLabel.AddThemeConstantOverride("outline_size", 4);
+        _bountyHUDLabel.AddThemeFontSizeOverride("font_size", 15);
+        _bountyHUDLabel.Visible = false;
+        AddChild(_bountyHUDLabel);
+
         if (EventContainer != null)
         {
             EventContainer.Visible = false;
@@ -101,6 +126,7 @@ public partial class GamePhaseHUD : CanvasLayer
         BuildTutorialModal();
         BuildPerkModal();
         BuildPauseMenu();
+        BuildIntercomHUD();
 
         if (GameManager.Instance != null)
         {
@@ -116,6 +142,11 @@ public partial class GamePhaseHUD : CanvasLayer
         if (Instance == this)
         {
             Instance = null;
+        }
+
+        if (ManagerAnnouncer.Instance != null)
+        {
+            ManagerAnnouncer.Instance.ManagerAnnounced -= OnManagerAnnounced;
         }
 
         if (GameManager.Instance != null)
@@ -239,6 +270,37 @@ public partial class GamePhaseHUD : CanvasLayer
             }
         }
 
+        if (_bountyHUDTimer > 0f)
+        {
+            _bountyHUDTimer -= (float)delta;
+            if (_bountyHUDTimer <= 0f && _bountyHUDLabel != null)
+            {
+                _bountyHUDLabel.Visible = false;
+            }
+        }
+
+        if (!_subscribedToManager && ManagerAnnouncer.Instance != null)
+        {
+            ManagerAnnouncer.Instance.ManagerAnnounced += OnManagerAnnounced;
+            _subscribedToManager = true;
+        }
+
+        if (_intercomDisplayTimer > 0f)
+        {
+            _intercomDisplayTimer -= (float)delta;
+            _intercomPulseTimer += (float)delta * 5.0f;
+            if (_intercomLiveDot != null)
+            {
+                float alpha = 0.35f + 0.65f * Mathf.Abs(Mathf.Sin(_intercomPulseTimer));
+                _intercomLiveDot.Modulate = new Color(1f, 0.2f, 0.2f, alpha);
+            }
+
+            if (_intercomDisplayTimer <= 0f)
+            {
+                HideIntercom();
+            }
+        }
+
         UpdateAmbientEventHUD();
     }
 
@@ -249,6 +311,28 @@ public partial class GamePhaseHUD : CanvasLayer
         {
             _killFeedLabel.Text = $"💀 {killer} eliminated {victim}!";
             _killFeedLabel.Visible = true;
+        }
+    }
+
+    public void ShowBountyNotification(string targetName, int amount)
+    {
+        _bountyHUDTimer = 6.0f;
+        if (_bountyHUDLabel != null)
+        {
+            _bountyHUDLabel.Text = $"🎯 STORE BOUNTY: ${amount} ON {targetName.ToUpper()}! 🎯";
+            _bountyHUDLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.1f));
+            _bountyHUDLabel.Visible = true;
+        }
+    }
+
+    public void ShowBountyClaimedNotification(string killerName, string targetName, int amount)
+    {
+        _bountyHUDTimer = 6.0f;
+        if (_bountyHUDLabel != null)
+        {
+            _bountyHUDLabel.Text = $"💰 BOUNTY CLAIMED: {killerName.ToUpper()} KILLED {targetName.ToUpper()} (+${amount})! 💰";
+            _bountyHUDLabel.AddThemeColorOverride("font_color", new Color(0.2f, 1.0f, 0.4f));
+            _bountyHUDLabel.Visible = true;
         }
     }
 
@@ -1358,4 +1442,209 @@ public partial class GamePhaseHUD : CanvasLayer
 
         return slider;
     }
+
+    #region Mr. Henderson Intercom HUD
+    private void BuildIntercomHUD()
+    {
+        _intercomCard = new PanelContainer();
+        _intercomCard.Name = "IntercomCard";
+        _intercomCard.MouseFilter = Control.MouseFilterEnum.Ignore;
+        
+        // Centered horizontally, 640px wide, 95px tall
+        _intercomCard.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+        _intercomCard.AnchorLeft = 0.5f;
+        _intercomCard.AnchorRight = 0.5f;
+        _intercomCard.OffsetLeft = -320;
+        _intercomCard.OffsetRight = 320;
+        _intercomCard.OffsetTop = -150; // Initially hidden above screen
+        _intercomCard.OffsetBottom = -50;
+        _intercomCard.CustomMinimumSize = new Vector2(640, 95);
+
+        var cardStyle = new StyleBoxFlat();
+        cardStyle.BgColor = new Color(0.08f, 0.10f, 0.14f, 0.96f);
+        cardStyle.BorderWidthLeft = 3;
+        cardStyle.BorderWidthTop = 3;
+        cardStyle.BorderWidthRight = 3;
+        cardStyle.BorderWidthBottom = 3;
+        cardStyle.BorderColor = new Color(1.0f, 0.82f, 0.20f, 0.95f); // Golden store hazard outline
+        cardStyle.CornerRadiusTopLeft = 10;
+        cardStyle.CornerRadiusTopRight = 10;
+        cardStyle.CornerRadiusBottomRight = 10;
+        cardStyle.CornerRadiusBottomLeft = 10;
+        cardStyle.ShadowColor = new Color(0, 0, 0, 0.7f);
+        cardStyle.ShadowSize = 10;
+        _intercomCard.AddThemeStyleboxOverride("panel", cardStyle);
+
+        var margin = new MarginContainer();
+        margin.AddThemeConstantOverride("margin_left", 12);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_right", 14);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
+        _intercomCard.AddChild(margin);
+
+        var hbox = new HBoxContainer();
+        hbox.AddThemeConstantOverride("separation", 14);
+        margin.AddChild(hbox);
+
+        // Left column: Avatar portrait + Live badge
+        var leftCol = new VBoxContainer();
+        leftCol.CustomMinimumSize = new Vector2(105, 80);
+        leftCol.Alignment = BoxContainer.AlignmentMode.Center;
+        hbox.AddChild(leftCol);
+
+        var liveHBox = new HBoxContainer();
+        liveHBox.Alignment = BoxContainer.AlignmentMode.Center;
+        _intercomLiveDot = new Label();
+        _intercomLiveDot.Text = "🔴";
+        _intercomLiveDot.AddThemeFontSizeOverride("font_size", 12);
+        liveHBox.AddChild(_intercomLiveDot);
+
+        var liveLabel = new Label();
+        liveLabel.Text = "PA LIVE";
+        liveLabel.AddThemeFontSizeOverride("font_size", 11);
+        liveLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.35f, 0.35f));
+        liveHBox.AddChild(liveLabel);
+        leftCol.AddChild(liveHBox);
+
+        var avatarPanel = new PanelContainer();
+        var avatarStyle = new StyleBoxFlat();
+        avatarStyle.BgColor = new Color(0.13f, 0.16f, 0.22f, 1f);
+        avatarStyle.BorderWidthLeft = 1;
+        avatarStyle.BorderWidthTop = 1;
+        avatarStyle.BorderWidthRight = 1;
+        avatarStyle.BorderWidthBottom = 1;
+        avatarStyle.BorderColor = new Color(0.4f, 0.5f, 0.6f);
+        avatarStyle.CornerRadiusTopLeft = 6;
+        avatarStyle.CornerRadiusTopRight = 6;
+        avatarStyle.CornerRadiusBottomRight = 6;
+        avatarStyle.CornerRadiusBottomLeft = 6;
+        avatarPanel.AddThemeStyleboxOverride("panel", avatarStyle);
+
+        _intercomAvatarLabel = new Label();
+        _intercomAvatarLabel.Text = "( ಠ_ಠ )";
+        _intercomAvatarLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _intercomAvatarLabel.VerticalAlignment = VerticalAlignment.Center;
+        _intercomAvatarLabel.AddThemeFontSizeOverride("font_size", 18);
+        _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.3f));
+        avatarPanel.AddChild(_intercomAvatarLabel);
+        leftCol.AddChild(avatarPanel);
+
+        var nameLabel = new Label();
+        nameLabel.Text = "MR. HENDERSON";
+        nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        nameLabel.AddThemeFontSizeOverride("font_size", 10);
+        nameLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.25f));
+        leftCol.AddChild(nameLabel);
+
+        // Right column: Channel header + Dialogue text
+        var rightCol = new VBoxContainer();
+        rightCol.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        rightCol.Alignment = BoxContainer.AlignmentMode.Center;
+        hbox.AddChild(rightCol);
+
+        var channelLabel = new Label();
+        channelLabel.Text = "📻 STORE INTERCOM — GENERAL MANAGER";
+        channelLabel.AddThemeFontSizeOverride("font_size", 11);
+        channelLabel.AddThemeColorOverride("font_color", new Color(0.35f, 0.85f, 1.0f));
+        channelLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        channelLabel.AddThemeConstantOverride("outline_size", 2);
+        rightCol.AddChild(channelLabel);
+
+        _intercomMessageLabel = new Label();
+        _intercomMessageLabel.Text = "";
+        _intercomMessageLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _intercomMessageLabel.AddThemeFontSizeOverride("font_size", 14);
+        _intercomMessageLabel.AddThemeColorOverride("font_color", Colors.White);
+        _intercomMessageLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _intercomMessageLabel.AddThemeConstantOverride("outline_size", 3);
+        rightCol.AddChild(_intercomMessageLabel);
+
+        _intercomCard.Visible = false;
+        AddChild(_intercomCard);
+
+        if (ManagerAnnouncer.Instance != null)
+        {
+            ManagerAnnouncer.Instance.ManagerAnnounced += OnManagerAnnounced;
+            _subscribedToManager = true;
+        }
+    }
+
+    public void ShowIntercomAnnouncement(string text, ManagerEmotion emotion, float duration)
+    {
+        if (_intercomCard == null) return;
+
+        _intercomMessageLabel.Text = $"\"{text}\"";
+        _intercomDisplayTimer = duration;
+
+        switch (emotion)
+        {
+            case ManagerEmotion.Neutral:
+                _intercomAvatarLabel.Text = "( ಠ_ಠ )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.85f, 0.9f));
+                break;
+            case ManagerEmotion.Annoyed:
+                _intercomAvatarLabel.Text = "( ¬_¬ )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.6f, 0.3f));
+                break;
+            case ManagerEmotion.Greedy:
+                _intercomAvatarLabel.Text = "( $ ‿ $ )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.3f, 1.0f, 0.4f));
+                break;
+            case ManagerEmotion.Panicked:
+                _intercomAvatarLabel.Text = "( ⊙_⊙; )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.4f, 0.4f));
+                break;
+            case ManagerEmotion.Enraged:
+                _intercomAvatarLabel.Text = "( >皿< )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.2f, 0.2f));
+                break;
+            case ManagerEmotion.Megaphone:
+                _intercomAvatarLabel.Text = "📢( ᐛ )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.9f, 0.2f));
+                break;
+            case ManagerEmotion.Smug:
+                _intercomAvatarLabel.Text = "( ˘‿˘ )";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.4f, 0.8f, 1.0f));
+                break;
+        }
+
+        _intercomCard.Visible = true;
+        _intercomCard.OffsetTop = -150;
+        _intercomCard.OffsetBottom = -50;
+
+        if (_intercomTween != null && _intercomTween.IsValid())
+        {
+            _intercomTween.Kill();
+        }
+
+        _intercomTween = CreateTween();
+        _intercomTween.SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+        _intercomTween.TweenProperty(_intercomCard, "offset_top", 110.0f, 0.35f);
+        _intercomTween.Parallel().TweenProperty(_intercomCard, "offset_bottom", 210.0f, 0.35f);
+    }
+
+    private void HideIntercom()
+    {
+        if (_intercomCard == null || !_intercomCard.Visible) return;
+
+        if (_intercomTween != null && _intercomTween.IsValid())
+        {
+            _intercomTween.Kill();
+        }
+
+        _intercomTween = CreateTween();
+        _intercomTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+        _intercomTween.TweenProperty(_intercomCard, "offset_top", -150.0f, 0.28f);
+        _intercomTween.Parallel().TweenProperty(_intercomCard, "offset_bottom", -50.0f, 0.28f);
+        _intercomTween.TweenCallback(Callable.From(() =>
+        {
+            if (_intercomCard != null) _intercomCard.Visible = false;
+        }));
+    }
+
+    private void OnManagerAnnounced(string line, int emotionIndex, float duration)
+    {
+        ShowIntercomAnnouncement(line, (ManagerEmotion)emotionIndex, duration);
+    }
+    #endregion
 }

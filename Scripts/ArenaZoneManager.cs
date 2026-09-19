@@ -253,6 +253,8 @@ public partial class ArenaZoneManager : Node3D
 
     private void OnShrinkPhaseStarted()
     {
+        ManagerAnnouncer.Instance?.AnnounceZoneShrink();
+
         if (GameManager.Instance == null) return;
         AudioStream warningSound = GameManager.Instance.TransitionChime;
         if (warningSound != null)

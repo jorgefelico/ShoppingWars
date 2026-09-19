@@ -47,6 +47,7 @@ public partial class GameManager : Node
     [Export] public PackedScene CeilingSpeakerPrefab;
 
     public float EffectiveMusicVolumeDb => (_ceilingSpeakers.Count > 0 && UseCeilingSpeakers) ? SpeakerVolumeDb : MusicVolumeDb;
+    public bool HasActiveCeilingSpeakers => UseCeilingSpeakers && (_ceilingSpeakerSFX.Count > 0 || _ceilingSpeakers.Count > 0);
 
     private AudioStreamPlayer _audioPlayer;
     private AudioStreamPlayer _musicPlayer;
@@ -71,6 +72,10 @@ public partial class GameManager : Node
     private float _syncTimer = 0f;
     private const float SyncInterval = 0.25f; // Sync state 4 times per second
 
+    private bool _specialDropSpawned = false;
+    private bool _shoppingHalfwayAnnounced = false;
+    public PlayerController ActiveBountyPlayer { get; private set; } = null;
+
     public override void _Ready()
     {
         Instance = this;
@@ -78,6 +83,12 @@ public partial class GameManager : Node
         _audioPlayer = new AudioStreamPlayer();
         _audioPlayer.Bus = "SFX";
         AddChild(_audioPlayer);
+
+        if (ManagerAnnouncer.Instance == null)
+        {
+            var announcer = new ManagerAnnouncer { Name = "ManagerAnnouncer" };
+            AddChild(announcer);
+        }
 
         if (TransitionChime == null)
         {
@@ -155,6 +166,15 @@ public partial class GameManager : Node
                 RpcId(1, nameof(RpcRequestSyncState));
             }
         }
+
+        // Welcome shoppers to the lobby shortly after level loads
+        GetTree().CreateTimer(1.2f).Timeout += () =>
+        {
+            if (GodotObject.IsInstanceValid(this) && CurrentPhase == GamePhase.Lobby)
+            {
+                ManagerAnnouncer.Instance?.AnnouncePhase(GamePhase.Lobby);
+            }
+        };
     }
 
     public override void _ExitTree()
@@ -196,10 +216,26 @@ public partial class GameManager : Node
                 TimeRemaining = 0f;
                 StartShoppingPhase();
             }
-            else if (CurrentPhase == GamePhase.Shopping && TimeRemaining <= 0f)
+            else if (CurrentPhase == GamePhase.Shopping)
             {
-                TimeRemaining = 0f;
-                StartBattleTransition();
+                if (!_shoppingHalfwayAnnounced && TimeRemaining <= ShoppingDuration * 0.5f && TimeRemaining > 2.0f)
+                {
+                    _shoppingHalfwayAnnounced = true;
+                    if (Multiplayer.HasMultiplayerPeer())
+                    {
+                        Rpc(nameof(RpcSyncShoppingHalfway));
+                    }
+                    else
+                    {
+                        RpcSyncShoppingHalfway();
+                    }
+                }
+
+                if (TimeRemaining <= 0f)
+                {
+                    TimeRemaining = 0f;
+                    StartBattleTransition();
+                }
             }
             else if (CurrentPhase == GamePhase.BattleTransition && TimeRemaining <= 0f)
             {
@@ -208,6 +244,11 @@ public partial class GameManager : Node
             }
             else if (CurrentPhase == GamePhase.BattleRoyale)
             {
+                if (!_specialDropSpawned && TimeRemaining <= BattleDuration * 0.55f)
+                {
+                    _specialDropSpawned = true;
+                    SpawnManagersSpecialDrop();
+                }
                 CheckBattleRoyaleOutcome();
             }
             else if (CurrentPhase == GamePhase.RoundOver && TimeRemaining <= 0f)
@@ -379,6 +420,7 @@ public partial class GameManager : Node
 
         WinnerName = "";
         IsDraw = false;
+        _shoppingHalfwayAnnounced = false;
 
         if (Multiplayer.HasMultiplayerPeer())
         {
@@ -532,6 +574,11 @@ public partial class GameManager : Node
         CurrentRound++;
         SyncRoundState();
 
+        _specialDropSpawned = false;
+        _shoppingHalfwayAnnounced = false;
+        ActiveBountyPlayer = null;
+        DespawnSpecialDrop();
+
         AmbientEventManager.Instance?.ResetEvents();
         ArenaZoneManager.Instance?.ResetZone();
 
@@ -541,6 +588,9 @@ public partial class GameManager : Node
     public void StartBattleRoyalePhase()
     {
         if (!Multiplayer.IsServer()) return;
+
+        _specialDropSpawned = false;
+        ActiveBountyPlayer = null;
 
         if (CurrentPhase == GamePhase.Shopping)
         {
@@ -605,27 +655,6 @@ public partial class GameManager : Node
                 AmbientEventManager.Instance?.ResetEvents();
             }
 
-            if (newPhase == GamePhase.ShoppingTransition)
-            {
-                AudioStream chime = ShoppingTransitionSound ?? TransitionChime;
-                if (chime != null)
-                {
-                    PlaySoundOnSpeakers(chime, SpeakerTransitionSoundVolumeDb, duckMusic: true);
-                }
-            }
-            else if (newPhase == GamePhase.BattleTransition)
-            {
-                AudioStream chime = BattleTransitionSound ?? TransitionChime;
-                if (chime != null)
-                {
-                    PlaySoundOnSpeakers(chime, SpeakerTransitionSoundVolumeDb, duckMusic: true);
-                }
-            }
-            else if (newPhase == GamePhase.BattleRoyale && BattleRoyaleSound != null)
-            {
-                PlaySoundOnSpeakers(BattleRoyaleSound, SpeakerTransitionSoundVolumeDb, duckMusic: true);
-            }
-
             if (newPhase == GamePhase.GameOver)
             {
                 AmbientEventManager.Instance?.ResetEvents();
@@ -635,6 +664,7 @@ public partial class GameManager : Node
 
             EmitSignal(SignalName.GamePhaseChanged);
             GD.Print($"[GameManager] Phase synced to: {CurrentPhase} (Winner: {WinnerName})");
+            ManagerAnnouncer.Instance?.AnnouncePhase(newPhase);
         }
 
         TimeRemaining = serverTimeRemaining;
@@ -654,6 +684,7 @@ public partial class GameManager : Node
         EmitSignal(SignalName.GamePhaseChanged);
         EmitSignal(SignalName.GameOverDeclared, winnerName, isDraw);
         GD.Print($"[GameManager] GameOver Synced! Winner: '{winnerName}', IsDraw: {isDraw}");
+        ManagerAnnouncer.Instance?.AnnounceVictory(winnerName, isDraw);
     }
 
     private void AddTrackIfValid(Godot.Collections.Array<AudioStream> playlist, string resPath)
@@ -1212,6 +1243,17 @@ public partial class GameManager : Node
         }
     }
 
+    public void StopSpeakerSFX()
+    {
+        foreach (var sfx in _ceilingSpeakerSFX)
+        {
+            if (GodotObject.IsInstanceValid(sfx) && sfx.Playing)
+            {
+                sfx.Stop();
+            }
+        }
+    }
+
     public void DuckMusicForSound(AudioStream sound, float extraHoldTime = 0.25f)
     {
         if (sound == null) return;
@@ -1316,4 +1358,120 @@ public partial class GameManager : Node
 
     [Signal]
     public delegate void GameOverDeclaredEventHandler(string winnerName, bool isDraw);
+
+    #region Manager's Special Drop System
+    public void SpawnManagersSpecialDrop()
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        Vector3 dropPos = new Vector3(0, 0, 0);
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncSpawnSpecialDrop), dropPos);
+        }
+        else
+        {
+            RpcSyncSpawnSpecialDrop(dropPos);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncSpawnSpecialDrop(Vector3 dropPos)
+    {
+        DespawnSpecialDrop();
+
+        var drop = new ManagersSpecialDrop { Name = "ManagersSpecialDrop" };
+        GetTree().CurrentScene.AddChild(drop);
+        drop.GlobalPosition = dropPos;
+        ManagerAnnouncer.Instance?.AnnounceSpecialDrop();
+        GD.Print($"[GameManager] Spawned Manager's Special Drop at {dropPos}");
+    }
+
+    public void DespawnSpecialDrop()
+    {
+        Node existing = GetTree()?.CurrentScene?.FindChild("ManagersSpecialDrop", true, false);
+        if (existing != null && GodotObject.IsInstanceValid(existing))
+        {
+            existing.QueueFree();
+        }
+    }
+    #endregion
+
+    #region Store Bounty System (Customer of the Month)
+    public void CheckAndAssignBounty(PlayerController killer)
+    {
+        if (!Multiplayer.IsServer()) return;
+        if (CurrentPhase != GamePhase.BattleRoyale) return;
+        if (killer == null || !GodotObject.IsInstanceValid(killer)) return;
+
+        // Trigger bounty if killer has 2+ kills and no active bounty exists
+        if (killer.MatchKills >= 2 && ActiveBountyPlayer == null)
+        {
+            ActiveBountyPlayer = killer;
+            if (Multiplayer.HasMultiplayerPeer())
+            {
+                Rpc(nameof(RpcSyncBountyTarget), killer.GetPath(), 50);
+            }
+            else
+            {
+                RpcSyncBountyTarget(killer.GetPath(), 50);
+            }
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncBountyTarget(NodePath playerPath, int bountyAmount)
+    {
+        Node node = !playerPath.IsEmpty ? GetNodeOrNull(playerPath) : null;
+        if (node is PlayerController target)
+        {
+            ActiveBountyPlayer = target;
+            target.SetBountyTarget(true, bountyAmount);
+            ManagerAnnouncer.Instance?.AnnounceBounty(target.PlayerName, bountyAmount);
+            GamePhaseHUD.Instance?.ShowBountyNotification(target.PlayerName, bountyAmount);
+            GD.Print($"[Bounty] Customer of the Month bounty placed on {target.PlayerName} (${bountyAmount})!");
+        }
+    }
+
+    public void OnBountyClaimed(PlayerController killer, PlayerController victim)
+    {
+        if (!Multiplayer.IsServer()) return;
+        if (victim == null || victim != ActiveBountyPlayer) return;
+
+        ActiveBountyPlayer = null;
+        string killerName = killer != null ? killer.PlayerName : "A Shopper";
+        string victimName = victim.PlayerName;
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcSyncBountyClaimed), killerName, victimName, 75);
+        }
+        else
+        {
+            RpcSyncBountyClaimed(killerName, victimName, 75);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncBountyClaimed(string killerName, string victimName, int reward)
+    {
+        ActiveBountyPlayer = null;
+        ManagerAnnouncer.Instance?.Announce(
+            $"Bounty claimed by {killerName}! That's a ${reward} bonus credited to your account!",
+            ManagerEmotion.Greedy,
+            "res://Sounds/henderson_bounty_claimed_01.wav",
+            5.0f,
+            priority: 4
+        );
+        GamePhaseHUD.Instance?.ShowBountyClaimedNotification(killerName, victimName, reward);
+        GD.Print($"[Bounty] {killerName} claimed the bounty on {victimName} (+${reward})!");
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void RpcSyncShoppingHalfway()
+    {
+        ManagerAnnouncer.Instance?.AnnounceShoppingHalfway();
+        GD.Print("[GameManager] Shopping phase halfway announcement triggered.");
+    }
+    #endregion
 }

@@ -189,6 +189,12 @@ public partial class Product : RigidBody3D, IInteractable
             {
                 _settleTimer = 0f;
             }
+
+            // Detect flying projectile near-misses with Groomba hazards in real-time
+            if (Thrower != null && !_hasImpacted && LinearVelocity.LengthSquared() > 80.0f)
+            {
+                Groomba.CheckProjectileNearMiss(this, GlobalPosition, LinearVelocity, Thrower as PlayerController);
+            }
         }
 
         _lastVelocity = LinearVelocity;
@@ -197,7 +203,8 @@ public partial class Product : RigidBody3D, IInteractable
     private void OnBodyEntered(Node body)
     {
         if (_hasImpacted) return;
-        if (_lastVelocity.Length() < MinDamageSpeed) return;
+        float effectiveMinSpeed = (Thrower != null) ? 4.0f : MinDamageSpeed;
+        if (_lastVelocity.Length() < effectiveMinSpeed) return;
 
         if (GameManager.Instance != null && GameManager.Instance.CurrentPhase != GamePhase.BattleRoyale) return;
 
@@ -230,6 +237,9 @@ public partial class Product : RigidBody3D, IInteractable
                 }
             }
         }
+
+        // Alert sentient Groombas of the acoustic disturbance / thrown item landing nearby
+        Groomba.NotifyDisturbance(this, impactPos, Thrower as PlayerController);
 
         if (Multiplayer.HasMultiplayerPeer())
         {

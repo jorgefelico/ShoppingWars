@@ -50,7 +50,7 @@ public abstract partial class PatrolEnemy : CharacterBody3D, IDamageable, IPatro
         NavAgent.TargetPosition = randomPoint;
     }
 
-    public void DetectPlayer()
+    public virtual void DetectPlayer()
     {
         _targetPlayer = null;
         float closestDistance = DetectionRange;

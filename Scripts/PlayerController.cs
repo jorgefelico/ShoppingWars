@@ -79,7 +79,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private Vector3 _currentShakeRotation = Vector3.Zero;
     private FastNoiseLite _shakeNoise;
     private float _shakeTime = 0f;
-    bool IsRunning = false;
+    public bool IsRunning { get; private set; } = false;
     public Product HeldItem { get; private set; }
     private float _throwCooldownTimer = 0f;
     public float ThrowCooldownRemaining => _throwCooldownTimer;

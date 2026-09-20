@@ -126,9 +126,14 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
 - **Security Camera Lasers (`LaserCamera.cs`)**: Sweeping wall/ceiling cameras with scanning yaw/pitch, spotlight vision cones, player target tracking, and continuous damage ticks during the Battle phase.
 - **Groomba Robot Vacuum (`Groomba.cs`, inherits `PatrolEnemy.cs`):**
   - Pathfinds using `NavigationAgent3D` and `NavigationRegion3D`.
-  - **FSM States**: `Patrol` (green ring, `^ ‿ ^` face), `Attack` (red ring, `> 皿 <` face, 8m aggro or retaliation), `Search` (amber ring, `⊙ _ ⊙` face, checks last known location).
-  - Deals 15 contact damage with cooldown.
-  - Emits rear vacuum dust trails, displays damage reaction (`> <`), and can be destroyed via thrown items (`FloatingDamageNumber` displays `K.O.!`).
+  - **Sentient Perception & Senses**:
+    - *Aisle Vision*: Forward vision cone with physics raycast line-of-sight up to 18m (22m in Search/alerted mode).
+    - *360° Ultrasonic Proximity*: Detects players sneaking within 5m in any direction.
+    - *Acoustic Sprint Sensing*: Hears sprinting footsteps within 12m; engages if in view or investigates corners if obstructed.
+    - *Acoustic Disturbance & Litter Detection*: Hears thrown products impacting or landing within a 22m radius. If line-of-sight to the thrower is clear, Groomba identifies the culprit, becomes enraged (`> 皿 <`), and charges to attack (`"NO LITTERING!"`, `"YOU THREW THAT!"`, `"CLEANING VIOLATION!"`). If the thrower threw from behind cover, Groomba investigates the impact site at accelerated speed (4.2 m/s), inspects the mess with a judgemental face (`ಠ _ ಠ`), and performs a swivel scan.
+    - *Near-Miss Evasion*: In-flight projectiles passing within 2.8m or landing within 3.5m trigger an emergency flinch/jolt (`O _ O`, `"WHOA!"`, `"DODGE!"`) and turn Groomba towards the attacker.
+  - **FSM States**: `Patrol` (green ring, `^ ‿ ^` face), `Attack` (red ring, `> 皿 <` face, 28m chase with corner memory), `Search` (amber ring, `⊙ _ ⊙` / `! _ !` / `ಠ _ ಠ` face, investigates disturbances and scans last known positions).
+  - Deals 15 contact damage with cooldown, displays kill reaction (`˘ ‿ ˘`, `"TRASH DISPOSED!"`), and self-destructs or detonates when destroyed via thrown items (`FloatingDamageNumber` displays `K.O.!`).
 
 **Ambient Events System (`AmbientEventManager.cs`):**
 Server-authoritative dynamic event scheduler triggering 8 arena-wide events during the Battle Royale phase:

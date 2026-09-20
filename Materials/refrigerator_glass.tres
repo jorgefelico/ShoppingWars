@@ -2,6 +2,14 @@
 
 [resource]
 transparency = 1
-albedo_color = Color(0.65, 0.88, 0.95, 0.45)
+albedo_color = Color(0.75, 0.9, 0.98, 0.25)
 metallic = 0.1
-roughness = 0.1
+roughness = 0.05
+clearcoat_enabled = true
+clearcoat = 1.0
+clearcoat_roughness = 0.05
+refraction_enabled = true
+refraction_scale = 0.015
+rim_enabled = true
+rim = 0.6
+rim_tint = 0.6

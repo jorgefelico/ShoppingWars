@@ -292,8 +292,7 @@ public partial class AmbientEventManager : Node
         GetTree().CallGroup("StoreLights", "SetPower", true);
         GetTree().CallGroup("EmergencyBeacons", "SetBeaconState", false);
         SetLightmapVisible(true);
-        SetTonemapExposure(1.5f);
-        SetVolumetricFog(false, 0f, Colors.White);
+        RestoreBaselineAtmosphere();
         PlayerController.SetGlobalSpeedModifier(1.0f);
         PlayerController.SetGlobalGravityModifier(1.0f, 1.0f);
         PlayerController.SetGlobalFrictionModifier(1.0f);
@@ -301,6 +300,12 @@ public partial class AmbientEventManager : Node
         GetTree().CallGroup("PatrolEnemies", "SetSpeedMultiplier", 1.0f);
 
         ScheduleFirstEventDelay();
+    }
+
+    public void RestoreBaselineAtmosphere()
+    {
+        SetTonemapExposure(1.35f);
+        SetVolumetricFog(true, 0.003f, new Color(0.82f, 0.86f, 0.92f, 1.0f));
     }
 
     public void SetLightmapVisible(bool visible)

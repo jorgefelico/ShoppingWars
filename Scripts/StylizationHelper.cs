@@ -105,10 +105,11 @@ public static class StylizationHelper
     {
         mat.DiffuseMode = BaseMaterial3D.DiffuseModeEnum.Toon;
         mat.SpecularMode = BaseMaterial3D.SpecularModeEnum.Toon;
+        mat.TextureFilter = BaseMaterial3D.TextureFilterEnum.LinearWithMipmapsAnisotropic;
         mat.Roughness = Mathf.Clamp(mat.Roughness, 0.18f, 0.45f);
         mat.RimEnabled = true;
-        mat.Rim = 0.35f;
-        mat.RimTint = 0.5f;
+        mat.Rim = 0.38f;
+        mat.RimTint = 0.45f;
 
         if (outlineMat != null)
         {

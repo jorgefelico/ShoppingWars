@@ -8,12 +8,17 @@ uniform float max_distance : hint_range(5.0, 50.0) = 25.0;
 
 void vertex()
 {
-	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vec3 world_normal = normalize(MODEL_NORMAL_MATRIX * NORMAL);
-	float dist = length(world_pos - CAMERA_POSITION_WORLD);
-	float factor = clamp(dist, min_distance, max_distance);
-	world_pos += world_normal * (outline_width * factor);
-	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(world_pos, 1.0));
+	vec4 view_pos = VIEW_MATRIX * (MODEL_MATRIX * vec4(VERTEX, 1.0));
+	vec3 view_normal = mat3(VIEW_MATRIX) * (mat3(MODEL_MATRIX) * NORMAL);
+	
+	// Sub-linear distance damping preserves fine comic linework without bloat down aisles
+	float dist = max(-view_pos.z, 0.1);
+	float factor = clamp(sqrt(dist) * 0.55, 0.75, 2.2);
+	
+	view_pos.xyz += normalize(view_normal) * (outline_width * factor);
+	view_pos.z += 0.0005;
+	
+	POSITION = PROJECTION_MATRIX * view_pos;
 }
 
 void fragment()

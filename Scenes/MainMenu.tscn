@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b2t037etmbow8" path="res://Textures/mainmenubg.png" id="1_tt5f1"]
 [ext_resource type="AudioStream" uid="uid://dy03qr0inis6c" path="res://Sounds/Music/Prime_Time_Jackpot.mp3" id="3_8saeu"]
 
-[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "QuitButton", "InviteContainer", "StatusLabel")]
+[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SettingsButton", "QuitButton", "InviteContainer", "StatusLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,6 +14,7 @@ grow_vertical = 2
 script = ExtResource("1_853f1")
 HostButton = NodePath("VBoxContainer/Host")
 JoinButton = NodePath("VBoxContainer/Join")
+SettingsButton = NodePath("VBoxContainer/Settings")
 QuitButton = NodePath("VBoxContainer/Quit")
 InviteContainer = NodePath("VBoxContainer/InviteContainer")
 StatusLabel = NodePath("StatusLabel")
@@ -35,41 +36,53 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+offset_left = -120.0
+offset_top = -92.0
+offset_right = 120.0
+offset_bottom = 92.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 8
 
 [node name="Host" type="Button" parent="VBoxContainer" unique_id=1198731858]
+custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Host Steam Lobby"
 
 [node name="Join" type="Button" parent="VBoxContainer" unique_id=2121950271]
+custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Join A Friend"
 
+[node name="Settings" type="Button" parent="VBoxContainer" unique_id=1621950272]
+custom_minimum_size = Vector2(240, 38)
+layout_mode = 2
+text = "⚙️ Settings & Graphics"
+
 [node name="Quit" type="Button" parent="VBoxContainer" unique_id=1498731859]
+custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Quit to Desktop"
 
 [node name="InviteContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=123456789]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="StatusLabel" type="Label" parent="." unique_id=2135534249]
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -20.0
-offset_top = -23.0
-offset_right = 20.0
-offset_bottom = -209.0
+offset_left = -300.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
+horizontal_alignment = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=322160361]
 stream = ExtResource("3_8saeu")

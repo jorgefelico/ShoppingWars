@@ -7,12 +7,11 @@
 [ext_resource type="Material" uid="uid://crjn34m3d6v40" path="res://Materials/ceiling.tres" id="2_ceiling"]
 [ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
-[ext_resource type="AudioStream" uid="uid://crlspo1d4dyis" path="res://Sounds/shopping_phase_starting.wav" id="2_wpfo0"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
 [ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
-[ext_resource type="AudioStream" uid="uid://n2kntl7et4dk" path="res://Sounds/battle_phase_starting.wav" id="4_1y5qk"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
+[ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="38_kml1t"]
@@ -66,23 +65,42 @@ sky = SubResource("Sky_7oesd")
 ambient_light_source = 1
 tonemap_mode = 3
 tonemap_exposure = 1.35
-tonemap_white = 3.5
+tonemap_white = 3.6
 ssr_enabled = true
+ssr_max_steps = 112
+ssr_fade_in = 0.04
+ssr_fade_out = 2.5
+ssr_depth_tolerance = 0.2
 ssao_enabled = true
-ssao_intensity = 1.25
+ssao_radius = 1.4
+ssao_intensity = 2.2
+ssao_detail = 0.85
 ssil_enabled = true
+ssil_intensity = 1.4
 glow_enabled = true
-glow_intensity = 0.55
-glow_bloom = 0.12
+glow_levels/1 = 0.8
+glow_levels/2 = 0.6
+glow_levels/3 = 0.75
+glow_levels/4 = 0.5
+glow_levels/5 = 0.25
+glow_intensity = 0.45
+glow_bloom = 0.15
 glow_blend_mode = 0
+glow_hdr_scale = 1.8
+glow_hdr_luminance_cap = 16.0
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.0025
-volumetric_fog_albedo = Color(0.75, 0.78, 0.85, 1)
+volumetric_fog_density = 0.003
+volumetric_fog_albedo = Color(0.82, 0.86, 0.92, 1)
+volumetric_fog_emission = Color(0.03, 0.035, 0.045, 1)
+volumetric_fog_emission_energy = 0.35
 volumetric_fog_anisotropy = 0.65
-volumetric_fog_length = 100.0
+volumetric_fog_length = 85.0
+volumetric_fog_ambient_inject = 0.18
+volumetric_fog_temporal_reprojection_amount = 0.96
 adjustment_enabled = true
-adjustment_contrast = 1.12
-adjustment_saturation = 1.22
+adjustment_brightness = 1.02
+adjustment_contrast = 1.15
+adjustment_saturation = 1.25
 
 [sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_p8oww"]
 auto_exposure_min_exposure_value = 0.5
@@ -228,33 +246,161 @@ denoiser_strength = 0.5
 max_texture_size = 4096
 light_data = ExtResource("1_7u461")
 
-[node name="ReflectionProbe" type="ReflectionProbe" parent="." unique_id=1331066912]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.707047, 5.3434887, 33.47845)
-size = Vector3(92.90576, 11.479736, 73.92798)
+[node name="Probe_West_Coolers" type="ReflectionProbe" parent="." unique_id=1219834567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 4.55, 6.5)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(26, 9.4, 116)
+origin_offset = Vector3(-3.5, -2.25, 0)
 box_projection = true
 interior = true
 enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
 
-[node name="ReflectionProbe2" type="ReflectionProbe" parent="." unique_id=1016377161]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.7939, 5.3434887, -34.653034)
-size = Vector3(92.90576, 11.479736, 71.221436)
+[node name="Probe_West_Produce" type="ReflectionProbe" parent="." unique_id=1331066912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 4.55, -42)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(56, 9.4, 52)
+origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
 enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
 
-[node name="ReflectionProbe3" type="ReflectionProbe" parent="." unique_id=646921328]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.801468, 5.3434887, 33.274494)
-size = Vector3(98.75073, 11.479736, 74.357666)
+[node name="Probe_West_PackagedGrocery" type="ReflectionProbe" parent="." unique_id=1483920184]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 4.55, 40)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(48, 9.4, 38)
+origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
 enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
 
-[node name="ReflectionProbe4" type="ReflectionProbe" parent="." unique_id=384465600]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.723953, 5.3434887, -36.097004)
-size = Vector3(92.90576, 11.479736, 68.333496)
+[node name="Probe_West_DeliBakery" type="ReflectionProbe" parent="." unique_id=1016377161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 4.55, 59)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(56, 9.4, 24)
+origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
 enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_Center_Checkout" type="ReflectionProbe" parent="." unique_id=646921328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, -54)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(76, 9.4, 34)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_Center_AislesSouth" type="ReflectionProbe" parent="." unique_id=384465600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, -22)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(68, 9.4, 26)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_Center_ActionAlley" type="ReflectionProbe" parent="." unique_id=1567829104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, 0)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(72, 9.4, 26)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_Center_AislesNorth" type="ReflectionProbe" parent="." unique_id=1734910283]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, 22)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(68, 9.4, 26)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_Center_BackWarehouse" type="ReflectionProbe" parent="." unique_id=1412093841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.55, 58)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(68, 9.4, 26)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_East_Electronics" type="ReflectionProbe" parent="." unique_id=1582910472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, -36)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(62, 9.4, 46)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_East_Apparel" type="ReflectionProbe" parent="." unique_id=1693820153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, 0)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(62, 9.4, 38)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
+
+[node name="Probe_East_Pharmacy" type="ReflectionProbe" parent="." unique_id=1804739264]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, 44)
+blend_distance = 4.0
+max_distance = 100.0
+size = Vector3(62, 9.4, 44)
+origin_offset = Vector3(0, -2.25, 0)
+box_projection = true
+interior = true
+enable_shadows = true
+cull_mask = 1048573
+mesh_lod_threshold = 0.0
+ambient_mode = 0
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=1799987798]
 navigation_mesh = SubResource("NavigationMesh_l8b7g")
@@ -271,6 +417,9 @@ mesh = SubResource("BoxMesh_Floor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/Floor" unique_id=1938655199]
 shape = SubResource("BoxShape_Floor")
+
+[node name="potatogun" parent="NavigationRegion3D/Interior/Architecture/Floor" unique_id=1005953913 instance=ExtResource("9_u58hr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.05661, 0.43125707, -13.887246)
 
 [node name="Ceiling" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=829036318]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.1, 0)

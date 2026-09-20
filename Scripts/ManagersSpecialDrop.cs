@@ -92,7 +92,11 @@ public partial class ManagersSpecialDrop : StaticBody3D, IInteractable, IDamagea
             Position = new Vector3(0, 8.5f, 0),
             RotationDegrees = new Vector3(-90, 0, 0),
             LightColor = new Color(1.0f, 0.9f, 0.4f),
-            LightEnergy = 6.0f,
+            LightEnergy = 6.5f,
+            LightSpecular = 1.5f,
+            LightVolumetricFogEnergy = 2.5f,
+            ShadowEnabled = true,
+            ShadowBlur = 1.5f,
             SpotRange = 12.0f,
             SpotAngle = 26.0f
         };

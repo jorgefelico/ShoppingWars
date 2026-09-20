@@ -6,16 +6,21 @@ uniform vec4 outline_color : source_color = vec4(1.0, 0.85, 0.1, 1.0);
 
 void vertex()
 {
-	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vec3 world_normal = normalize(MODEL_NORMAL_MATRIX * NORMAL);
-	float dist = length(world_pos - CAMERA_POSITION_WORLD);
-	float factor = clamp(dist, 0.5, 25.0);
-	world_pos += world_normal * (outline_width * factor);
-	POSITION = PROJECTION_MATRIX * (VIEW_MATRIX * vec4(world_pos, 1.0));
+	vec4 view_pos = VIEW_MATRIX * (MODEL_MATRIX * vec4(VERTEX, 1.0));
+	vec3 view_normal = mat3(VIEW_MATRIX) * (mat3(MODEL_MATRIX) * NORMAL);
+	
+	float dist = max(-view_pos.z, 0.1);
+	float factor = clamp(sqrt(dist) * 0.6, 0.85, 2.5);
+	
+	view_pos.xyz += normalize(view_normal) * (outline_width * factor);
+	view_pos.z += 0.0005;
+	
+	POSITION = PROJECTION_MATRIX * view_pos;
 }
 
 void fragment()
 {
-	ALBEDO = outline_color.rgb;
+	float pulse = 0.88 + 0.12 * sin(TIME * 6.0);
+	ALBEDO = outline_color.rgb * pulse;
 	ALPHA = outline_color.a;
 }

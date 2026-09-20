@@ -4,6 +4,7 @@ public partial class SteamManager : Node
 {
     public static SteamManager Instance { get; private set; }
     public bool IsSteamInitialized { get; private set; }
+    public ulong CurrentLobbyId { get; private set; } = 0;
 
     public event System.Action<ulong, string> OnInviteReceived;
 
@@ -126,6 +127,31 @@ public partial class SteamManager : Node
         _steam.Call("clearRichPresence");
     }
 
+    public void LeaveCurrentLobby()
+    {
+        if (IsSteamInitialized && _steam != null)
+        {
+            if (CurrentLobbyId != 0)
+            {
+                GD.Print($"[Steam] Leaving Steam Lobby: {CurrentLobbyId}");
+                _steam.Call("leaveLobby", CurrentLobbyId);
+                CurrentLobbyId = 0;
+            }
+            ClearLobbyPresence();
+        }
+    }
+
+    public void Shutdown()
+    {
+        if (IsSteamInitialized && _steam != null)
+        {
+            LeaveCurrentLobby();
+            GD.Print("[Steam] Shutting down Steamworks API...");
+            _steam.Call("steamShutdown");
+            IsSteamInitialized = false;
+        }
+    }
+
     private void OnLobbyCreated(long status, ulong lobbyId)
     {
         if (status != 1) // 1 = k_EResultOK in Steamworks / GodotSteam
@@ -134,6 +160,7 @@ public partial class SteamManager : Node
             return;
         }
 
+        CurrentLobbyId = lobbyId;
         GD.Print($"[Steam] Lobby Created Successfully! ID: {lobbyId}");
 
         ulong mySteamId = (ulong)_steam.Call("getSteamID");
@@ -162,6 +189,7 @@ public partial class SteamManager : Node
 
     private void OnLobbyJoined(ulong lobbyId, long permissions, bool locked, long response)
     {
+        CurrentLobbyId = lobbyId;
         ulong mySteamId = (ulong)_steam.Call("getSteamID");
         ulong hostSteamId = (ulong)_steam.Call("getLobbyOwner", lobbyId);
 
@@ -198,11 +226,7 @@ public partial class SteamManager : Node
     {
         if (what == NotificationWMCloseRequest)
         {
-            if (IsSteamInitialized && _steam != null)
-            {
-                ClearLobbyPresence();
-                _steam.Call("steamShutdown");
-            }
+            Shutdown();
         }
     }
     

@@ -17,7 +17,7 @@ public class DenseFogAmbientEvent : AmbientEventBase
 
     public override void OnEnd(AmbientEventManager manager)
     {
-        manager.SetVolumetricFog(false, 0.0f, Colors.White);
+        manager.RestoreBaselineAtmosphere();
         GD.Print("[AmbientEvent] Freezer Leak ended. Air cleared!");
     }
 }

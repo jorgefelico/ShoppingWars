@@ -77,10 +77,14 @@ public partial class ArenaZoneManager : Node3D
 
         _barrierMaterial = new StandardMaterial3D();
         _barrierMaterial.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-        _barrierMaterial.AlbedoColor = new Color(0.2f, 0.7f, 1.0f, 0.20f);
+        _barrierMaterial.AlbedoColor = new Color(0.2f, 0.7f, 1.0f, 0.22f);
         _barrierMaterial.EmissionEnabled = true;
-        _barrierMaterial.Emission = new Color(0.1f, 0.6f, 1.0f);
-        _barrierMaterial.EmissionEnergyMultiplier = 2.0f;
+        _barrierMaterial.Emission = new Color(0.15f, 0.65f, 1.0f);
+        _barrierMaterial.EmissionEnergyMultiplier = 2.5f;
+        _barrierMaterial.RimEnabled = true;
+        _barrierMaterial.Rim = 0.8f;
+        _barrierMaterial.RimTint = 0.7f;
+        _barrierMaterial.Roughness = 0.1f;
         _barrierMaterial.CullMode = BaseMaterial3D.CullModeEnum.Disabled; // Visible from both sides
 
         _barrierMesh.Mesh = cylinder;

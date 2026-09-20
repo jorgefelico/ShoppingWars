@@ -1,8 +1,14 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
+[ext_resource type="Texture2D" uid="uid://nicxhf8unfn3" path="res://Textures/flat_screen_tv_retail_tv_screen.png" id="1_tv"]
+
 [resource]
-albedo_color = Color(0.08, 0.1, 0.14, 1)
-roughness = 0.2
+albedo_texture = ExtResource("1_tv")
+roughness = 0.15
 emission_enabled = true
-emission = Color(0.2, 0.4, 0.8, 1)
-emission_energy_multiplier = 0.6
+emission_energy_multiplier = 1.25
+emission_texture = ExtResource("1_tv")
+clearcoat_enabled = true
+clearcoat = 0.5
+clearcoat_roughness = 0.1
+texture_filter = 5

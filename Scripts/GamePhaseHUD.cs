@@ -1126,6 +1126,15 @@ public partial class GamePhaseHUD : CanvasLayer
     private Label _fovValLabel;
     private Button _fullscreenBtn;
     private Button _vsyncBtn;
+    private Button _presetLowBtn;
+    private Button _presetMedBtn;
+    private Button _presetHighBtn;
+    private Button _presetUltraBtn;
+    private Label _vramLabel;
+    private Button _aaBtn;
+    private Button _shadowBtn;
+    private Button _ssrBtn;
+    private Button _fogBtn;
 
     private void RefreshPauseMenuSettings()
     {
@@ -1141,6 +1150,64 @@ public partial class GamePhaseHUD : CanvasLayer
         if (_fovValLabel != null) _fovValLabel.Text = $"{(int)SettingsManager.Fov}°";
         if (_fullscreenBtn != null) _fullscreenBtn.Text = SettingsManager.IsFullscreen ? "🖥️ Fullscreen: ON" : "🖥️ Fullscreen: OFF";
         if (_vsyncBtn != null) _vsyncBtn.Text = SettingsManager.IsVsync ? "⚡ V-Sync: ON" : "⚡ V-Sync: OFF";
+
+        UpdateGraphicsSettingsUI();
+    }
+
+    private void UpdateGraphicsSettingsUI()
+    {
+        var curPreset = SettingsManager.CurrentPreset;
+        if (_presetLowBtn != null) StylePresetButton(_presetLowBtn, curPreset == SettingsManager.GraphicsPreset.Low, SettingsManager.GetPresetColor(SettingsManager.GraphicsPreset.Low));
+        if (_presetMedBtn != null) StylePresetButton(_presetMedBtn, curPreset == SettingsManager.GraphicsPreset.Medium, SettingsManager.GetPresetColor(SettingsManager.GraphicsPreset.Medium));
+        if (_presetHighBtn != null) StylePresetButton(_presetHighBtn, curPreset == SettingsManager.GraphicsPreset.High, SettingsManager.GetPresetColor(SettingsManager.GraphicsPreset.High));
+        if (_presetUltraBtn != null) StylePresetButton(_presetUltraBtn, curPreset == SettingsManager.GraphicsPreset.Ultra, SettingsManager.GetPresetColor(SettingsManager.GraphicsPreset.Ultra));
+
+        if (_vramLabel != null)
+        {
+            _vramLabel.Text = SettingsManager.GetEstimatedVramString();
+            _vramLabel.AddThemeColorOverride("font_color", SettingsManager.GetPresetColor(curPreset));
+        }
+
+        if (_aaBtn != null) _aaBtn.Text = SettingsManager.GetAntiAliasingLabel(SettingsManager.CurrentAntiAliasing);
+        if (_shadowBtn != null) _shadowBtn.Text = SettingsManager.GetShadowQualityLabel(SettingsManager.CurrentShadowQuality);
+        if (_ssrBtn != null) _ssrBtn.Text = SettingsManager.GetSsrQualityLabel(SettingsManager.CurrentSsr);
+        if (_fogBtn != null) _fogBtn.Text = SettingsManager.GetVolumetricFogLabel(SettingsManager.CurrentVolumetricFog);
+    }
+
+    private void StylePresetButton(Button btn, bool isSelected, Color activeColor)
+    {
+        var style = new StyleBoxFlat();
+        style.CornerRadiusTopLeft = 6;
+        style.CornerRadiusTopRight = 6;
+        style.CornerRadiusBottomLeft = 6;
+        style.CornerRadiusBottomRight = 6;
+        if (isSelected)
+        {
+            style.BgColor = new Color(activeColor.R * 0.35f, activeColor.G * 0.35f, activeColor.B * 0.35f, 0.95f);
+            style.BorderColor = activeColor;
+            style.BorderWidthLeft = 2;
+            style.BorderWidthTop = 2;
+            style.BorderWidthRight = 2;
+            style.BorderWidthBottom = 2;
+            btn.AddThemeColorOverride("font_color", Colors.White);
+        }
+        else
+        {
+            style.BgColor = new Color(0.10f, 0.12f, 0.16f, 0.85f);
+            style.BorderColor = new Color(0.30f, 0.35f, 0.45f, 0.6f);
+            style.BorderWidthLeft = 1;
+            style.BorderWidthTop = 1;
+            style.BorderWidthRight = 1;
+            style.BorderWidthBottom = 1;
+            btn.AddThemeColorOverride("font_color", new Color(0.70f, 0.75f, 0.85f));
+        }
+        btn.AddThemeStyleboxOverride("normal", style);
+
+        var hover = (StyleBoxFlat)style.Duplicate();
+        hover.BgColor = isSelected
+            ? new Color(activeColor.R * 0.5f, activeColor.G * 0.5f, activeColor.B * 0.5f, 1.0f)
+            : new Color(0.18f, 0.22f, 0.28f, 0.95f);
+        btn.AddThemeStyleboxOverride("hover", hover);
     }
 
     private void BuildPauseMenu()
@@ -1160,7 +1227,7 @@ public partial class GamePhaseHUD : CanvasLayer
         _pauseMenuModal.AddChild(center);
 
         var card = new PanelContainer();
-        card.CustomMinimumSize = new Vector2(620, 560);
+        card.CustomMinimumSize = new Vector2(660, 620);
         var cardStyle = new StyleBoxFlat();
         cardStyle.BgColor = new Color(0.07f, 0.09f, 0.14f, 0.98f);
         cardStyle.BorderWidthLeft = 3;
@@ -1181,9 +1248,9 @@ public partial class GamePhaseHUD : CanvasLayer
         card.AddThemeStyleboxOverride("panel", cardStyle);
         center.AddChild(card);
 
-        var vbox = new VBoxContainer();
-        vbox.AddThemeConstantOverride("separation", 10);
-        card.AddChild(vbox);
+        var rootVBox = new VBoxContainer();
+        rootVBox.AddThemeConstantOverride("separation", 8);
+        card.AddChild(rootVBox);
 
         // Header
         var title = new Label();
@@ -1193,16 +1260,28 @@ public partial class GamePhaseHUD : CanvasLayer
         title.AddThemeColorOverride("font_outline_color", Colors.Black);
         title.AddThemeConstantOverride("outline_size", 4);
         title.AddThemeFontSizeOverride("font_size", 24);
-        vbox.AddChild(title);
+        rootVBox.AddChild(title);
 
         var subtitle = new Label();
         subtitle.Text = "⚠️ Live multiplayer match in progress — gameplay does NOT pause!";
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
         subtitle.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.25f));
         subtitle.AddThemeFontSizeOverride("font_size", 12);
-        vbox.AddChild(subtitle);
+        rootVBox.AddChild(subtitle);
 
-        vbox.AddChild(new HSeparator());
+        rootVBox.AddChild(new HSeparator());
+
+        // Scrollable settings area
+        var scroll = new ScrollContainer();
+        scroll.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        scroll.VerticalScrollMode = ScrollContainer.ScrollMode.Auto;
+        scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        rootVBox.AddChild(scroll);
+
+        var vbox = new VBoxContainer();
+        vbox.AddThemeConstantOverride("separation", 10);
+        vbox.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        scroll.AddChild(vbox);
 
         // Audio Section
         var audioHeader = new Label();
@@ -1294,10 +1373,161 @@ public partial class GamePhaseHUD : CanvasLayer
 
         vbox.AddChild(new HSeparator());
 
+        // Graphics & Performance Section
+        var graphicsHeader = new Label();
+        graphicsHeader.Text = "🎨 GRAPHICS & PERFORMANCE";
+        graphicsHeader.AddThemeColorOverride("font_color", new Color(0.3f, 0.95f, 0.8f));
+        graphicsHeader.AddThemeFontSizeOverride("font_size", 13);
+        vbox.AddChild(graphicsHeader);
+
+        // Presets row
+        var presetsContainer = new VBoxContainer();
+        presetsContainer.AddThemeConstantOverride("separation", 4);
+        vbox.AddChild(presetsContainer);
+
+        var presetsRow = new HBoxContainer();
+        presetsRow.AddThemeConstantOverride("separation", 8);
+        presetsContainer.AddChild(presetsRow);
+
+        _presetLowBtn = new Button();
+        _presetLowBtn.Text = "🟢 LOW";
+        _presetLowBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _presetLowBtn.CustomMinimumSize = new Vector2(0, 34);
+        _presetLowBtn.AddThemeFontSizeOverride("font_size", 12);
+        _presetLowBtn.Pressed += () =>
+        {
+            SettingsManager.SetGraphicsPreset(SettingsManager.GraphicsPreset.Low);
+            UpdateGraphicsSettingsUI();
+        };
+        presetsRow.AddChild(_presetLowBtn);
+
+        _presetMedBtn = new Button();
+        _presetMedBtn.Text = "🟡 MEDIUM";
+        _presetMedBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _presetMedBtn.CustomMinimumSize = new Vector2(0, 34);
+        _presetMedBtn.AddThemeFontSizeOverride("font_size", 12);
+        _presetMedBtn.Pressed += () =>
+        {
+            SettingsManager.SetGraphicsPreset(SettingsManager.GraphicsPreset.Medium);
+            UpdateGraphicsSettingsUI();
+        };
+        presetsRow.AddChild(_presetMedBtn);
+
+        _presetHighBtn = new Button();
+        _presetHighBtn.Text = "🔵 HIGH";
+        _presetHighBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _presetHighBtn.CustomMinimumSize = new Vector2(0, 34);
+        _presetHighBtn.AddThemeFontSizeOverride("font_size", 12);
+        _presetHighBtn.Pressed += () =>
+        {
+            SettingsManager.SetGraphicsPreset(SettingsManager.GraphicsPreset.High);
+            UpdateGraphicsSettingsUI();
+        };
+        presetsRow.AddChild(_presetHighBtn);
+
+        _presetUltraBtn = new Button();
+        _presetUltraBtn.Text = "🟣 ULTRA";
+        _presetUltraBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _presetUltraBtn.CustomMinimumSize = new Vector2(0, 34);
+        _presetUltraBtn.AddThemeFontSizeOverride("font_size", 12);
+        _presetUltraBtn.Pressed += () =>
+        {
+            SettingsManager.SetGraphicsPreset(SettingsManager.GraphicsPreset.Ultra);
+            UpdateGraphicsSettingsUI();
+        };
+        presetsRow.AddChild(_presetUltraBtn);
+
+        _vramLabel = new Label();
+        _vramLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _vramLabel.AddThemeFontSizeOverride("font_size", 11);
+        presetsContainer.AddChild(_vramLabel);
+
+        // Advanced Quality Toggles (2x2 Grid)
+        var advancedGrid = new GridContainer();
+        advancedGrid.Columns = 2;
+        advancedGrid.AddThemeConstantOverride("h_separation", 10);
+        advancedGrid.AddThemeConstantOverride("v_separation", 8);
+        vbox.AddChild(advancedGrid);
+
+        _aaBtn = new Button();
+        _aaBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _aaBtn.CustomMinimumSize = new Vector2(0, 32);
+        _aaBtn.AddThemeFontSizeOverride("font_size", 11);
+        _aaBtn.Pressed += () =>
+        {
+            var next = SettingsManager.CurrentAntiAliasing switch
+            {
+                SettingsManager.AntiAliasingMode.Off => SettingsManager.AntiAliasingMode.Fxaa,
+                SettingsManager.AntiAliasingMode.Fxaa => SettingsManager.AntiAliasingMode.Taa,
+                SettingsManager.AntiAliasingMode.Taa => SettingsManager.AntiAliasingMode.TaaAndSmaa,
+                _ => SettingsManager.AntiAliasingMode.Off
+            };
+            SettingsManager.SetAntiAliasing(next);
+            UpdateGraphicsSettingsUI();
+        };
+        advancedGrid.AddChild(_aaBtn);
+
+        _shadowBtn = new Button();
+        _shadowBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _shadowBtn.CustomMinimumSize = new Vector2(0, 32);
+        _shadowBtn.AddThemeFontSizeOverride("font_size", 11);
+        _shadowBtn.Pressed += () =>
+        {
+            var next = SettingsManager.CurrentShadowQuality switch
+            {
+                SettingsManager.ShadowQualityLevel.Low => SettingsManager.ShadowQualityLevel.Medium,
+                SettingsManager.ShadowQualityLevel.Medium => SettingsManager.ShadowQualityLevel.High,
+                SettingsManager.ShadowQualityLevel.High => SettingsManager.ShadowQualityLevel.Ultra,
+                _ => SettingsManager.ShadowQualityLevel.Low
+            };
+            SettingsManager.SetShadowQuality(next);
+            UpdateGraphicsSettingsUI();
+        };
+        advancedGrid.AddChild(_shadowBtn);
+
+        _ssrBtn = new Button();
+        _ssrBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _ssrBtn.CustomMinimumSize = new Vector2(0, 32);
+        _ssrBtn.AddThemeFontSizeOverride("font_size", 11);
+        _ssrBtn.Pressed += () =>
+        {
+            var next = SettingsManager.CurrentSsr switch
+            {
+                SettingsManager.QualityLevel.Off => SettingsManager.QualityLevel.Low,
+                SettingsManager.QualityLevel.Low => SettingsManager.QualityLevel.Medium,
+                SettingsManager.QualityLevel.Medium => SettingsManager.QualityLevel.High,
+                _ => SettingsManager.QualityLevel.Off
+            };
+            SettingsManager.SetSsrQuality(next);
+            UpdateGraphicsSettingsUI();
+        };
+        advancedGrid.AddChild(_ssrBtn);
+
+        _fogBtn = new Button();
+        _fogBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _fogBtn.CustomMinimumSize = new Vector2(0, 32);
+        _fogBtn.AddThemeFontSizeOverride("font_size", 11);
+        _fogBtn.Pressed += () =>
+        {
+            var next = SettingsManager.CurrentVolumetricFog switch
+            {
+                SettingsManager.QualityLevel.Off => SettingsManager.QualityLevel.Low,
+                SettingsManager.QualityLevel.Low => SettingsManager.QualityLevel.High,
+                _ => SettingsManager.QualityLevel.Off
+            };
+            SettingsManager.SetVolumetricFog(next);
+            UpdateGraphicsSettingsUI();
+        };
+        advancedGrid.AddChild(_fogBtn);
+
+        UpdateGraphicsSettingsUI();
+
+        rootVBox.AddChild(new HSeparator());
+
         // Actions Row
         var actionsRow = new HBoxContainer();
         actionsRow.AddThemeConstantOverride("separation", 12);
-        vbox.AddChild(actionsRow);
+        rootVBox.AddChild(actionsRow);
 
         var resumeBtn = new Button();
         resumeBtn.Text = "▶️ RESUME [Esc]";

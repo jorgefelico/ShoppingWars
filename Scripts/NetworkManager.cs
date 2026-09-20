@@ -295,13 +295,31 @@ public partial class NetworkManager : Node
 
     public void ReturnToMainMenu()
     {
-        // Stop advertising our hosted lobby so friends' "Join A Friend" list
-        // no longer shows a match we are no longer running.
-        SteamManager.Instance?.ClearLobbyPresence();
-        if (Multiplayer.HasMultiplayerPeer())
+        // 1. Properly close the MultiplayerPeer before nulling it so native socket threads terminate
+        if (Multiplayer.HasMultiplayerPeer() && Multiplayer.MultiplayerPeer != null)
         {
+            GD.Print("[NetworkManager] Closing active MultiplayerPeer on return to menu...");
+            try
+            {
+                Multiplayer.MultiplayerPeer.Close();
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[NetworkManager] Exception closing MultiplayerPeer: {ex.Message}");
+            }
             Multiplayer.MultiplayerPeer = null;
         }
+
+        // 2. Properly leave the Steam lobby and clear rich presence
+        SteamManager.Instance?.LeaveCurrentLobby();
+
+        // 3. Clear transient match player dictionary
+        _spawnedPlayers.Clear();
+
+        // 4. Ensure mouse cursor is visible and not captured
+        Input.MouseMode = Input.MouseModeEnum.Visible;
+
+        // 5. Change to MainMenu scene
         GetTree().ChangeSceneToFile("res://Scenes/MainMenu.tscn");
     }
 }

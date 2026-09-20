@@ -1,9 +1,23 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://b3qxmiqcvfefc"]
 
+[ext_resource type="Texture2D" uid="uid://cajurqsj2ryuw" path="res://Textures/Poliigon_MetalSteelBrushed_7174_Normal.png" id="1_nor"]
+[ext_resource type="Texture2D" uid="uid://clj8q6v30ivmg" path="res://Textures/Poliigon_MetalSteelBrushed_7174_Roughness.jpg" id="2_rough"]
+[ext_resource type="Texture2D" uid="uid://n353fy4s2n0w" path="res://Textures/Poliigon_MetalSteelBrushed_7174_AmbientOcclusion.jpg" id="3_ao"]
+
 [resource]
 albedo_color = Color(0.86, 0.88, 0.9, 1)
-metallic = 0.3
+metallic = 0.45
 roughness = 0.35
+roughness_texture = ExtResource("2_rough")
+normal_enabled = true
+normal_scale = 0.4
+normal_texture = ExtResource("1_nor")
+ao_enabled = true
+ao_light_affect = 0.4
+ao_texture = ExtResource("3_ao")
 rim_enabled = true
-rim = 0.25
+rim = 0.35
 rim_tint = 0.4
+uv1_triplanar = true
+uv1_scale = Vector3(2, 2, 2)
+texture_filter = 5

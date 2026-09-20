@@ -12,6 +12,7 @@
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
+[ext_resource type="Material" uid="uid://b5nv7kprp5dd6" path="res://Materials/truss.tres" id="14_0v6be"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
 [ext_resource type="PackedScene" uid="uid://34h8fibcrltq" path="res://Prefabs/Products/Watermelon.tscn" id="38_kml1t"]
@@ -133,43 +134,47 @@ size = Vector3(181, 2, 141)
 size = Vector3(180, 0.2, 140)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_180"]
-lightmap_size_hint = Vector2i(908, 996)
+lightmap_size_hint = Vector2i(908, 1056)
 material = ExtResource("3_wall")
 add_uv2 = true
-size = Vector3(180, 9, 0.8)
+size = Vector3(180, 15, 0.8)
 subdivide_width = 180
-subdivide_height = 9
+subdivide_height = 15
 subdivide_depth = 1
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_180"]
 size = Vector3(180, 9, 0.8)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_140"]
-lightmap_size_hint = Vector2i(708, 796)
+lightmap_size_hint = Vector2i(708, 856)
 material = ExtResource("3_wall")
 add_uv2 = true
-size = Vector3(0.8, 9, 140)
+size = Vector3(0.8, 15, 140)
 subdivide_width = 1
-subdivide_height = 9
+subdivide_height = 15
 subdivide_depth = 140
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_140"]
 size = Vector3(0.8, 9, 140)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Side"]
-lightmap_size_hint = Vector2i(133, 221)
+lightmap_size_hint = Vector2i(133, 281)
 material = ExtResource("3_wall")
 add_uv2 = true
-size = Vector3(25, 9, 0.8)
+size = Vector3(25, 15, 0.8)
+subdivide_width = 25
+subdivide_height = 15
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Side"]
 size = Vector3(25, 9, 0.8)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Center"]
-lightmap_size_hint = Vector2i(408, 496)
+lightmap_size_hint = Vector2i(408, 556)
 material = ExtResource("3_wall")
 add_uv2 = true
-size = Vector3(80, 9, 0.8)
+size = Vector3(80, 15, 0.8)
+subdivide_width = 80
+subdivide_height = 15
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Center"]
 size = Vector3(80, 9, 0.8)
@@ -190,7 +195,7 @@ subdivide_height = 4
 
 [sub_resource type="BoxMesh" id="BoxMesh_Truss"]
 lightmap_size_hint = Vector2i(896, 901)
-material = ExtResource("4_hvac")
+material = ExtResource("14_0v6be")
 add_uv2 = true
 size = Vector3(178, 0.5, 0.5)
 
@@ -247,10 +252,10 @@ max_texture_size = 4096
 light_data = ExtResource("1_7u461")
 
 [node name="Probe_West_Coolers" type="ReflectionProbe" parent="." unique_id=1219834567]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 4.55, 6.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 7, 6.5)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(26, 9.4, 116)
+size = Vector3(26, 15, 116)
 origin_offset = Vector3(-3.5, -2.25, 0)
 box_projection = true
 interior = true
@@ -260,10 +265,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_West_Produce" type="ReflectionProbe" parent="." unique_id=1331066912]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 4.55, -42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 7, -42)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(56, 9.4, 52)
+size = Vector3(56, 15, 52)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -273,10 +278,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_West_PackagedGrocery" type="ReflectionProbe" parent="." unique_id=1483920184]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 4.55, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 7, 40)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(48, 9.4, 38)
+size = Vector3(48, 15, 38)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -286,10 +291,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_West_DeliBakery" type="ReflectionProbe" parent="." unique_id=1016377161]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 4.55, 59)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 7, 59)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(56, 9.4, 24)
+size = Vector3(56, 15, 24)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -299,10 +304,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_Center_Checkout" type="ReflectionProbe" parent="." unique_id=646921328]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, -54)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, -54)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(76, 9.4, 34)
+size = Vector3(76, 15, 34)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -312,10 +317,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_Center_AislesSouth" type="ReflectionProbe" parent="." unique_id=384465600]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, -22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, -22)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(68, 9.4, 26)
+size = Vector3(68, 15, 26)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -325,10 +330,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_Center_ActionAlley" type="ReflectionProbe" parent="." unique_id=1567829104]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(72, 9.4, 26)
+size = Vector3(72, 15, 26)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -338,10 +343,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_Center_AislesNorth" type="ReflectionProbe" parent="." unique_id=1734910283]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.55, 22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 22)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(68, 9.4, 26)
+size = Vector3(68, 15, 26)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -351,10 +356,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_Center_BackWarehouse" type="ReflectionProbe" parent="." unique_id=1412093841]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.55, 58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 7, 58)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(68, 9.4, 26)
+size = Vector3(68, 15, 26)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -364,10 +369,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_East_Electronics" type="ReflectionProbe" parent="." unique_id=1582910472]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, -36)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7, -36)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(62, 9.4, 46)
+size = Vector3(62, 15, 46)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -377,10 +382,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_East_Apparel" type="ReflectionProbe" parent="." unique_id=1693820153]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7, 0)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(62, 9.4, 38)
+size = Vector3(62, 15, 38)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -390,10 +395,10 @@ mesh_lod_threshold = 0.0
 ambient_mode = 0
 
 [node name="Probe_East_Pharmacy" type="ReflectionProbe" parent="." unique_id=1804739264]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.55, 44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 7, 44)
 blend_distance = 4.0
 max_distance = 100.0
-size = Vector3(62, 9.4, 44)
+size = Vector3(62, 15, 44)
 origin_offset = Vector3(0, -2.25, 0)
 box_projection = true
 interior = true
@@ -422,7 +427,7 @@ shape = SubResource("BoxShape_Floor")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.05661, 0.43125707, -13.887246)
 
 [node name="Ceiling" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=829036318]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/Ceiling" unique_id=960600315]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9141655, 0)
@@ -437,7 +442,7 @@ shape = SubResource("BoxShape_Ceiling")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 70)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=1878322479]
-transform = Transform3D(1, 0, 0, 0, 1.061992, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1.061992, 0, 0, 0, 1, 0, 2.6468945, 0)
 mesh = SubResource("BoxMesh_Wall_180")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=146658957]
@@ -447,6 +452,7 @@ shape = SubResource("BoxShape_Wall_180")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 4.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1417861734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5218048, 0)
 mesh = SubResource("BoxMesh_Wall_140")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1316458140]
@@ -456,6 +462,7 @@ shape = SubResource("BoxShape_Wall_140")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 4.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2136919519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8148613, 0)
 mesh = SubResource("BoxMesh_Wall_140")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2037900109]
@@ -465,6 +472,7 @@ shape = SubResource("BoxShape_Wall_140")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.5, 4.5, -70)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1939176688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7533007, 0)
 mesh = SubResource("BoxMesh_Wall_Front_Side")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1597177725]
@@ -474,6 +482,7 @@ shape = SubResource("BoxShape_Wall_Front_Side")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -70)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=1482988054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7693396, 0)
 mesh = SubResource("BoxMesh_Wall_Front_Center")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=280894155]
@@ -483,6 +492,7 @@ shape = SubResource("BoxShape_Wall_Front_Center")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 77.5, 4.5, -70)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=1168301548]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7319307, 0)
 mesh = SubResource("BoxMesh_Wall_Front_Side")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=181462042]
@@ -589,6 +599,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, 22.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.48, 45)
 
 [node name="HVAC" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=1473811502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.787445, 0)
 
 [node name="HVAC_Long_1" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/HVAC" unique_id=1667947251]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 8.2, 0)
@@ -631,6 +642,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 50)
 mesh = SubResource("BoxMesh_HVAC_Cross")
 
 [node name="RoofTrusses" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=34011168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.787445, 0)
 
 [node name="Truss_1" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/RoofTrusses" unique_id=1302135603]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -55)

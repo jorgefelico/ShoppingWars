@@ -6,8 +6,10 @@
 [ext_resource type="Texture2D" uid="uid://bmn0ipkhnugce" path="res://Textures/ceiling_interior_rough_2k.png" id="4_1swjj"]
 
 [resource]
-albedo_color = Color(1.353256, 1.353256, 1.353256, 1)
+albedo_color = Color(0.078431375, 0.09019608, 0.10980392, 1)
 albedo_texture = ExtResource("1_tjv6j")
+metallic_specular = 0.08
+roughness = 0.85
 roughness_texture = ExtResource("4_1swjj")
 normal_enabled = true
 normal_texture = ExtResource("3_fsyfa")

@@ -26,10 +26,10 @@ texture_filter = 5
 stencil_flags = 2
 
 [sub_resource type="BoxMesh" id="BoxMesh_Column"]
-lightmap_size_hint = Vector2i(23, 84)
+lightmap_size_hint = Vector2i(18, 163)
 material = SubResource("StandardMaterial3D_uuxav")
 add_uv2 = true
-size = Vector3(1.4, 9, 1.4)
+size = Vector3(1.4, 15.006287, 1.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Column_Bumper"]
 lightmap_size_hint = Vector2i(31, 26)
@@ -43,6 +43,7 @@ size = Vector3(1.4, 9, 1.4)
 [node name="StructuralColumn" type="StaticBody3D" unique_id=1650336392]
 
 [node name="PillarMesh" type="MeshInstance3D" parent="." unique_id=5672895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0031433, 0)
 mesh = SubResource("BoxMesh_Column")
 
 [node name="BumperMesh" type="MeshInstance3D" parent="." unique_id=125773732]

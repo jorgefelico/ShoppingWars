@@ -43,8 +43,6 @@ public partial class SupermarketDressing : Node
             // Apply vibrant toon-shaded department color to the banner board
             var mat = new StandardMaterial3D
             {
-                DiffuseMode = BaseMaterial3D.DiffuseModeEnum.Toon,
-                SpecularMode = BaseMaterial3D.SpecularModeEnum.Toon,
                 AlbedoColor = config.Color,
                 Roughness = 0.35f,
                 Metallic = 0.15f,

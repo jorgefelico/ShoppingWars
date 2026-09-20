@@ -56,7 +56,6 @@ public partial class Groomba : PatrolEnemy
                 Roughness = 0.35f
             };
             bodyMesh.MaterialOverride = bodyMat;
-            StylizationHelper.ApplyToonStylization(bodyMesh, 0.0035f);
         }
         
         Material activeMat = RingMesh?.GetActiveMaterial(0) ?? (RingMesh?.Mesh is PrimitiveMesh pm ? pm.Material : null);

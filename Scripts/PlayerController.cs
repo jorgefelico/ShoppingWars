@@ -208,12 +208,10 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             if (MeshInstance != null)
             {
                 MeshInstance.Visible = true;
-                StylizationHelper.ApplyToonStylization(MeshInstance, 0.0035f);
             }
             if (CharacterModel != null)
             {
                 CharacterModel.Visible = true;
-                StylizationHelper.ApplyToonStylization(CharacterModel, 0.0035f);
             }
 
             // Delete UI elements on remote player clones so their UI never renders locally!

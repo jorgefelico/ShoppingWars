@@ -15,7 +15,6 @@ public partial class Product : RigidBody3D, IInteractable
     [Export] public bool IsConsumable = false;
     [Export] public int HealAmount = 0;
     [Export] public int MeleeDurability = 4;
-    [Export] public bool EnableToonStyle = true;
     [Export] public float ToonOutlineWidth = 0.0028f;
     public int CurrentDurability = 4;
     public bool CanBePickedUp = true;
@@ -101,11 +100,6 @@ public partial class Product : RigidBody3D, IInteractable
         if (IsConsumable && HealAmount > 0)
         {
             HoverText += $" (Heals {HealAmount} HP)";
-        }
-
-        if (EnableToonStyle)
-        {
-            StylizationHelper.ApplyToonStylization(this, ToonOutlineWidth);
         }
 
         mesh = Utils.FindMeshInstance(this);

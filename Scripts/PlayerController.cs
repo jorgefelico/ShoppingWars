@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 public partial class PlayerController : CharacterBody3D, IDamageable
 {
-    static public PlayerController Instance { get; private set; }
+    private static PlayerController _instance;
+    public static PlayerController Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
     [Export] public Node3D Head { get; private set; }
     [Export] public Camera3D Camera { get; private set; }
     [Export] private RayCast3D RayCast;
@@ -284,6 +289,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     public override void _ExitTree()
     {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChangedForHover;

@@ -18,7 +18,12 @@ public partial class GamePhaseHUD : CanvasLayer
     [Export] private Button PlayAgainButton;
     [Export] private Button MainMenuButton;
 
-    public static GamePhaseHUD Instance { get; private set; }
+    private static GamePhaseHUD _instance;
+    public static GamePhaseHUD Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
     private Label _killFeedLabel;
     private float _killFeedTimer = 0f;
     private int _lastDisplayedMoney = -1;
@@ -139,9 +144,9 @@ public partial class GamePhaseHUD : CanvasLayer
 
     public override void _ExitTree()
     {
-        if (Instance == this)
+        if (_instance == this)
         {
-            Instance = null;
+            _instance = null;
         }
 
         if (ManagerAnnouncer.Instance != null)

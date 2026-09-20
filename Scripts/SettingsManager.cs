@@ -134,9 +134,10 @@ public static class SettingsManager
     public static void SetFov(float fov)
     {
         Fov = Mathf.Clamp(fov, 70f, 110f);
-        if (PlayerController.Instance?.Camera != null)
+        var player = PlayerController.Instance;
+        if (GodotObject.IsInstanceValid(player) && GodotObject.IsInstanceValid(player.Camera))
         {
-            PlayerController.Instance.Camera.Fov = Fov;
+            player.Camera.Fov = Fov;
         }
         SaveSettings();
     }
@@ -306,9 +307,10 @@ public static class SettingsManager
         ApplyBusVolume("Music", MusicVolume);
         ApplyBusVolume("SFX", SfxVolume);
 
-        if (PlayerController.Instance?.Camera != null)
+        var player = PlayerController.Instance;
+        if (GodotObject.IsInstanceValid(player) && GodotObject.IsInstanceValid(player.Camera))
         {
-            PlayerController.Instance.Camera.Fov = Fov;
+            player.Camera.Fov = Fov;
         }
 
         DisplayServer.WindowSetMode(IsFullscreen 

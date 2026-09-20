@@ -4,7 +4,12 @@ using Godot;
 
 public partial class ManagerAnnouncer : Node
 {
-    public static ManagerAnnouncer Instance { get; private set; }
+    private static ManagerAnnouncer _instance;
+    public static ManagerAnnouncer Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
 
     [Signal]
     public delegate void ManagerAnnouncedEventHandler(string line, int emotionIndex, float duration);
@@ -39,6 +44,14 @@ public partial class ManagerAnnouncer : Node
     public override void _EnterTree()
     {
         Instance = this;
+    }
+
+    public override void _ExitTree()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
     }
 
     public override void _Ready()

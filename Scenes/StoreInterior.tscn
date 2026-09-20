@@ -8,10 +8,10 @@
 [ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
-[ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="3_wall"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
+[ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="12_2462t"]
 [ext_resource type="Material" uid="uid://b5nv7kprp5dd6" path="res://Materials/truss.tres" id="14_0v6be"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
 [ext_resource type="PackedScene" path="res://Prefabs/Products/Avocado.tscn" id="37_o3hkx"]
@@ -134,50 +134,28 @@ size = Vector3(181, 2, 141)
 size = Vector3(180, 0.2, 140)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_180"]
-lightmap_size_hint = Vector2i(908, 1056)
-material = ExtResource("3_wall")
+material = ExtResource("12_2462t")
 add_uv2 = true
-size = Vector3(180, 15, 0.8)
-subdivide_width = 180
-subdivide_height = 15
-subdivide_depth = 1
+size = Vector3(0.8, 15, 180)
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_180"]
-size = Vector3(180, 9, 0.8)
-
-[sub_resource type="BoxMesh" id="BoxMesh_Wall_140"]
-lightmap_size_hint = Vector2i(708, 856)
-material = ExtResource("3_wall")
-add_uv2 = true
-size = Vector3(0.8, 15, 140)
-subdivide_width = 1
-subdivide_height = 15
-subdivide_depth = 140
+size = Vector3(180, 14, 0.8)
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_140"]
-size = Vector3(0.8, 9, 140)
+size = Vector3(0.8, 14, 140)
 
-[sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Side"]
-lightmap_size_hint = Vector2i(133, 281)
-material = ExtResource("3_wall")
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_140"]
+material = ExtResource("12_2462t")
 add_uv2 = true
-size = Vector3(25, 15, 0.8)
-subdivide_width = 25
-subdivide_height = 15
-
-[sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Side"]
-size = Vector3(25, 9, 0.8)
-
-[sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Center"]
-lightmap_size_hint = Vector2i(408, 556)
-material = ExtResource("3_wall")
-add_uv2 = true
-size = Vector3(80, 15, 0.8)
-subdivide_width = 80
-subdivide_height = 15
+size = Vector3(0.8, 15, 140)
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Center"]
-size = Vector3(80, 9, 0.8)
+size = Vector3(180, 14, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Center"]
+material = ExtResource("12_2462t")
+add_uv2 = true
+size = Vector3(0.8, 15, 180)
 
 [sub_resource type="BoxMesh" id="BoxMesh_HVAC_Long"]
 lightmap_size_hint = Vector2i(663, 666)
@@ -442,69 +420,46 @@ shape = SubResource("BoxShape_Ceiling")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 70)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=1878322479]
-transform = Transform3D(1, 0, 0, 0, 1.061992, 0, 0, 0, 1, 0, 2.6468945, 0)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 2.8, 0)
 mesh = SubResource("BoxMesh_Wall_180")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/BackWall" unique_id=146658957]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8000002, 0)
 shape = SubResource("BoxShape_Wall_180")
 
 [node name="LeftWall" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=305345920]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 4.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1417861734]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5218048, 0)
-mesh = SubResource("BoxMesh_Wall_140")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1316458140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8000002, 0)
 shape = SubResource("BoxShape_Wall_140")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/LeftWall" unique_id=1417861734]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.8, 0)
+mesh = SubResource("BoxMesh_Wall_140")
 
 [node name="RightWall" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1471331183]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 4.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2136919519]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8148613, 0)
-mesh = SubResource("BoxMesh_Wall_140")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2037900109]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8000002, 0)
 shape = SubResource("BoxShape_Wall_140")
 
-[node name="FrontWall_Left" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1122550015]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.5, 4.5, -70)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1939176688]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7533007, 0)
-mesh = SubResource("BoxMesh_Wall_Front_Side")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Left" unique_id=1597177725]
-shape = SubResource("BoxShape_Wall_Front_Side")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/RightWall" unique_id=2136919519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
+mesh = SubResource("BoxMesh_Wall_140")
 
 [node name="FrontWall_Center" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=2031074748]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -70)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=1482988054]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7693396, 0)
-mesh = SubResource("BoxMesh_Wall_Front_Center")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=280894155]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8000002, 0)
 shape = SubResource("BoxShape_Wall_Front_Center")
 
-[node name="FrontWall_Right" type="StaticBody3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=1970106656]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 77.5, 4.5, -70)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=1168301548]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.7319307, 0)
-mesh = SubResource("BoxMesh_Wall_Front_Side")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Right" unique_id=181462042]
-shape = SubResource("BoxShape_Wall_Front_Side")
-
-[node name="Vestibule_Grocery_Header" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=39462352]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.5, 7.5, -70)
-mesh = SubResource("BoxMesh_Wall_Front_Side")
-
-[node name="Vestibule_GM_Header" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls" unique_id=2145847303]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.5, 7.5, -70)
-mesh = SubResource("BoxMesh_Wall_Front_Side")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Architecture/PerimeterWalls/FrontWall_Center" unique_id=1482988054]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.8, 0)
+material_override = ExtResource("12_2462t")
+mesh = SubResource("BoxMesh_Wall_Front_Center")
 
 [node name="Columns" type="Node3D" parent="NavigationRegion3D/Interior/Architecture" unique_id=742637480]
 

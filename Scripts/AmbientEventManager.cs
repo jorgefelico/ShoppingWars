@@ -4,7 +4,12 @@ using System.Linq;
 
 public partial class AmbientEventManager : Node
 {
-    public static AmbientEventManager Instance { get; private set; }
+    private static AmbientEventManager _instance;
+    public static AmbientEventManager Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
 
     [Export] public bool EnableRandomEvents = true;
     [Export] public float MinEventInterval = 15.0f;
@@ -74,6 +79,11 @@ public partial class AmbientEventManager : Node
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
             _subscribedToGameManager = false;
+        }
+
+        if (_instance == this)
+        {
+            _instance = null;
         }
     }
 

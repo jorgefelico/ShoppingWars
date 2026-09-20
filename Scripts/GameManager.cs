@@ -13,7 +13,12 @@ public enum GamePhase
 
 public partial class GameManager : Node
 {
-    public static GameManager Instance { get; private set; }
+    private static GameManager _instance;
+    public static GameManager Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
     [Export] public float ShoppingTransitionDuration = 5.0f;
     [Export] public float ShoppingDuration = 30.0f;
     [Export] public float BattleTransitionDuration = 5.0f;
@@ -179,6 +184,11 @@ public partial class GameManager : Node
 
     public override void _ExitTree()
     {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
+
         if (_ceilingSpeakers.Count > 0)
         {
             _ceilingSpeakers[0].Finished -= OnMusicTrackFinished;

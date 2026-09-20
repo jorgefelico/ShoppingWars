@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 public partial class ArenaZoneManager : Node3D
 {
-    public static ArenaZoneManager Instance { get; private set; }
+    private static ArenaZoneManager _instance;
+    public static ArenaZoneManager Instance
+    {
+        get => GodotObject.IsInstanceValid(_instance) ? _instance : null;
+        private set => _instance = value;
+    }
 
     [Export] public float InitialRadius = 116.0f;
     [Export] public float Stage1Radius = 58.0f;
@@ -54,9 +59,9 @@ public partial class ArenaZoneManager : Node3D
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;
         }
-        if (Instance == this)
+        if (_instance == this)
         {
-            Instance = null;
+            _instance = null;
         }
     }
 

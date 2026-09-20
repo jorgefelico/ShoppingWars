@@ -313,8 +313,11 @@ public partial class NetworkManager : Node
         // 2. Properly leave the Steam lobby and clear rich presence
         SteamManager.Instance?.LeaveCurrentLobby();
 
-        // 3. Clear transient match player dictionary
+        // 3. Clear transient match player dictionary and match caches
         _spawnedPlayers.Clear();
+        ProceduralShelfFiller.ResetGlobalSpawnCounts();
+        StylizationHelper.ClearCache();
+        PlayerController.GlobalDamageMultiplier = 1.0f;
 
         // 4. Ensure mouse cursor is visible and not captured
         Input.MouseMode = Input.MouseModeEnum.Visible;

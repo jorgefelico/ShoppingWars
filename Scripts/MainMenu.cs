@@ -10,36 +10,51 @@ public partial class MainMenu : Control
     [Export] private VBoxContainer InviteContainer;
     [Export] private Label StatusLabel;
 
+    private Control _onboardPopup;
+    private Button _onboardConfirmButton;
+    private Action _onboardAction;
+
+    // "Join A Friend" popup: lists friends' active lobbies (discovered via
+    // rich presence) so players can join directly without the Steam overlay.
+    private Control _friendsPopup;
+    private VBoxContainer _friendsListContainer;
+    private Label _friendsStatus;
+    private Button _friendsRefreshButton;
+    private bool _friendsAutoRescan;
+
     public override void _Ready()
     {
         Input.MouseMode = Input.MouseModeEnum.Visible;
-        SettingsManager.Initialize();
+        try
+        {
+            SettingsManager.Initialize();
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[MainMenu] Error during SettingsManager.Initialize: {ex.Message}");
+        }
 
         if (HostButton == null) HostButton = GetNodeOrNull<Button>("VBoxContainer/Host");
         if (HostButton != null)
         {
-            HostButton.Pressed -= OnHostPressed;
             HostButton.Pressed += OnHostPressed;
         }
 
         if (JoinButton == null) JoinButton = GetNodeOrNull<Button>("VBoxContainer/Join");
         if (JoinButton != null)
         {
-            JoinButton.Pressed -= OnJoinPressed;
             JoinButton.Pressed += OnJoinPressed;
         }
 
         if (SettingsButton == null) SettingsButton = GetNodeOrNull<Button>("VBoxContainer/Settings");
         if (SettingsButton != null)
         {
-            SettingsButton.Pressed -= OnSettingsPressed;
             SettingsButton.Pressed += OnSettingsPressed;
         }
 
         if (QuitButton == null) QuitButton = GetNodeOrNull<Button>("VBoxContainer/Quit");
         if (QuitButton != null)
         {
-            QuitButton.Pressed -= OnQuitPressed;
             QuitButton.Pressed += OnQuitPressed;
         }
 
@@ -52,13 +67,24 @@ public partial class MainMenu : Control
 
         if (SteamManager.Instance != null)
         {
-            SteamManager.Instance.OnInviteReceived -= OnInviteReceived;
             SteamManager.Instance.OnInviteReceived += OnInviteReceived;
         }
     }
 
     public override void _ExitTree()
     {
+        if (HostButton != null)
+        {
+            HostButton.Pressed -= OnHostPressed;
+        }
+        if (JoinButton != null)
+        {
+            JoinButton.Pressed -= OnJoinPressed;
+        }
+        if (SettingsButton != null)
+        {
+            SettingsButton.Pressed -= OnSettingsPressed;
+        }
         if (QuitButton != null)
         {
             QuitButton.Pressed -= OnQuitPressed;
@@ -86,23 +112,13 @@ public partial class MainMenu : Control
 
         SteamManager.Instance?.Shutdown();
 
-        GetTree().Root.PropagateNotification((int)Node.NotificationWMCloseRequest);
+        GetTree().Root.PropagateNotification((int)NotificationWMCloseRequest);
         GetTree().Quit();
 
         // Guaranteed process termination in case background GDExtension or audio threads don't exit promptly
         System.Environment.Exit(0);
     }
-    private Control _onboardPopup;
-    private Button _onboardConfirmButton;
-    private Action _onboardAction;
-
-    // "Join A Friend" popup: lists friends' active lobbies (discovered via
-    // rich presence) so players can join directly without the Steam overlay.
-    private Control _friendsPopup;
-    private VBoxContainer _friendsListContainer;
-    private Label _friendsStatus;
-    private Button _friendsRefreshButton;
-    private bool _friendsAutoRescan;
+    
 
     // Pre-match onboarding popup. Shown over the main menu before a lobby is
     // created/joined, so the heavy StoreInterior load + network handshake only

@@ -52,12 +52,13 @@ public partial class GameManager : Node
     [Export] public PackedScene CeilingSpeakerPrefab;
 
     public float EffectiveMusicVolumeDb => (_ceilingSpeakers.Count > 0 && UseCeilingSpeakers) ? SpeakerVolumeDb : MusicVolumeDb;
-    public bool HasActiveCeilingSpeakers => UseCeilingSpeakers && (_ceilingSpeakerSFX.Count > 0 || _ceilingSpeakers.Count > 0);
+    public bool HasActiveCeilingSpeakers => UseCeilingSpeakers && (_ceilingSpeakerSFX.Count > 0 || _ceilingSpeakers.Count > 0 || _ceilingSpeakerVoice.Count > 0);
 
     private AudioStreamPlayer _audioPlayer;
     private AudioStreamPlayer _musicPlayer;
     private readonly System.Collections.Generic.List<AudioStreamPlayer3D> _ceilingSpeakers = new();
     private readonly System.Collections.Generic.List<AudioStreamPlayer3D> _ceilingSpeakerSFX = new();
+    private readonly System.Collections.Generic.List<AudioStreamPlayer3D> _ceilingSpeakerVoice = new();
     private Node3D _ceilingSpeakersContainer;
     private Tween _musicTween;
     private Tween _duckTween;
@@ -990,6 +991,7 @@ public partial class GameManager : Node
 
         _ceilingSpeakers.Clear();
         _ceilingSpeakerSFX.Clear();
+        _ceilingSpeakerVoice.Clear();
 
         // 1. Check if there are already speaker instances placed in the scene tree
         var existingSpeakers = GetTree().GetNodesInGroup("CeilingSpeakers");
@@ -1007,6 +1009,12 @@ public partial class GameManager : Node
                 if (sfx != null && !_ceilingSpeakerSFX.Contains(sfx))
                 {
                     _ceilingSpeakerSFX.Add(sfx);
+                }
+
+                AudioStreamPlayer3D voice = node.GetNodeOrNull<AudioStreamPlayer3D>("VoicePlayer");
+                if (voice != null && !_ceilingSpeakerVoice.Contains(voice))
+                {
+                    _ceilingSpeakerVoice.Add(voice);
                 }
             }
             if (_ceilingSpeakers.Count > 0)
@@ -1041,6 +1049,12 @@ public partial class GameManager : Node
             if (sfx != null && !_ceilingSpeakerSFX.Contains(sfx))
             {
                 _ceilingSpeakerSFX.Add(sfx);
+            }
+
+            AudioStreamPlayer3D voice = child.GetNodeOrNull<AudioStreamPlayer3D>("VoicePlayer");
+            if (voice != null && !_ceilingSpeakerVoice.Contains(voice))
+            {
+                _ceilingSpeakerVoice.Add(voice);
             }
         }
 
@@ -1091,17 +1105,19 @@ public partial class GameManager : Node
                 Node3D speakerNode = null;
                 AudioStreamPlayer3D player = null;
                 AudioStreamPlayer3D sfxPlayer = null;
+                AudioStreamPlayer3D voicePlayer = null;
 
                 if (CeilingSpeakerPrefab != null)
                 {
                     speakerNode = CeilingSpeakerPrefab.Instantiate<Node3D>();
                     player = speakerNode.GetNodeOrNull<AudioStreamPlayer3D>("AudioPlayer") ?? (speakerNode as AudioStreamPlayer3D);
                     sfxPlayer = speakerNode.GetNodeOrNull<AudioStreamPlayer3D>("SFXPlayer");
+                    voicePlayer = speakerNode.GetNodeOrNull<AudioStreamPlayer3D>("VoicePlayer");
                 }
 
                 if (speakerNode == null)
                 {
-                    speakerNode = CreateProceduralSpeakerNode(out player, out sfxPlayer);
+                    speakerNode = CreateProceduralSpeakerNode(out player, out sfxPlayer, out voicePlayer);
                 }
 
                 speakerNode.Name = $"CeilingSpeaker_{r * cols + c + 1}";
@@ -1120,14 +1136,20 @@ public partial class GameManager : Node
                     ConfigureSpeakerSFXPlayer(sfxPlayer);
                     _ceilingSpeakerSFX.Add(sfxPlayer);
                 }
+
+                if (voicePlayer != null)
+                {
+                    ConfigureSpeakerVoicePlayer(voicePlayer);
+                    _ceilingSpeakerVoice.Add(voicePlayer);
+                }
             }
         }
 
         SetupSpeakerPlayers();
-        GD.Print($"[GameManager] Spawned {_ceilingSpeakers.Count} randomized ceiling speakers (SFX: {_ceilingSpeakerSFX.Count}) across store interior.");
+        GD.Print($"[GameManager] Spawned {_ceilingSpeakers.Count} randomized ceiling speakers (SFX: {_ceilingSpeakerSFX.Count}, Voice: {_ceilingSpeakerVoice.Count}) across store interior.");
     }
 
-    private Node3D CreateProceduralSpeakerNode(out AudioStreamPlayer3D player, out AudioStreamPlayer3D sfxPlayer)
+    private Node3D CreateProceduralSpeakerNode(out AudioStreamPlayer3D player, out AudioStreamPlayer3D sfxPlayer, out AudioStreamPlayer3D voicePlayer)
     {
         Node3D speakerRoot = new Node3D();
 
@@ -1166,6 +1188,13 @@ public partial class GameManager : Node
         };
         speakerRoot.AddChild(sfxPlayer);
 
+        voicePlayer = new AudioStreamPlayer3D
+        {
+            Name = "VoicePlayer",
+            Position = new Vector3(0, -0.56f, 0)
+        };
+        speakerRoot.AddChild(voicePlayer);
+
         return speakerRoot;
     }
 
@@ -1193,6 +1222,18 @@ public partial class GameManager : Node
         sfxPlayer.VolumeDb = SpeakerTransitionSoundVolumeDb;
     }
 
+    private void ConfigureSpeakerVoicePlayer(AudioStreamPlayer3D voicePlayer)
+    {
+        voicePlayer.Bus = "SFX";
+        voicePlayer.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
+        voicePlayer.UnitSize = SpeakerUnitSize + 4.0f;
+        voicePlayer.MaxDistance = SpeakerMaxDistance + 15.0f;
+        voicePlayer.PanningStrength = SpeakerPanningStrength;
+        voicePlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
+        voicePlayer.MaxPolyphony = 1;
+        voicePlayer.VolumeDb = 6.0f;
+    }
+
     private void SetupSpeakerPlayers()
     {
         if (_ceilingSpeakers.Count == 0) return;
@@ -1205,6 +1246,11 @@ public partial class GameManager : Node
         foreach (var sfx in _ceilingSpeakerSFX)
         {
             ConfigureSpeakerSFXPlayer(sfx);
+        }
+
+        foreach (var voice in _ceilingSpeakerVoice)
+        {
+            ConfigureSpeakerVoicePlayer(voice);
         }
 
         _ceilingSpeakers[0].Finished += OnMusicTrackFinished;
@@ -1250,6 +1296,54 @@ public partial class GameManager : Node
         if (duckMusic)
         {
             DuckMusicForSound(sound);
+        }
+    }
+
+    public void PlayVoiceOnSpeakers(AudioStream sound, float volumeDb = float.NaN, bool duckMusic = false)
+    {
+        if (sound == null) return;
+
+        float targetVol = float.IsNaN(volumeDb) ? 6.0f : volumeDb;
+
+        if (UseCeilingSpeakers && _ceilingSpeakerVoice.Count > 0)
+        {
+            foreach (var voice in _ceilingSpeakerVoice)
+            {
+                if (GodotObject.IsInstanceValid(voice) && voice.IsInsideTree())
+                {
+                    voice.VolumeDb = targetVol;
+                    voice.Stream = sound;
+                    voice.Play();
+                }
+            }
+        }
+        else if (UseCeilingSpeakers && _ceilingSpeakerSFX.Count > 0)
+        {
+            // Fallback to SFX player if no dedicated voice player
+            PlaySoundOnSpeakers(sound, targetVol, duckMusic);
+            return;
+        }
+        else if (_audioPlayer != null && GodotObject.IsInstanceValid(_audioPlayer) && _audioPlayer.IsInsideTree())
+        {
+            _audioPlayer.VolumeDb = targetVol;
+            _audioPlayer.Stream = sound;
+            _audioPlayer.Play();
+        }
+
+        if (duckMusic)
+        {
+            DuckMusicForSound(sound);
+        }
+    }
+
+    public void StopSpeakerVoice()
+    {
+        foreach (var voice in _ceilingSpeakerVoice)
+        {
+            if (GodotObject.IsInstanceValid(voice) && voice.Playing)
+            {
+                voice.Stop();
+            }
         }
     }
 

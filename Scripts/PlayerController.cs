@@ -49,7 +49,6 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     [Export] public float TraumaDecay = 2.5f;
     [Export] public Vector3 MaxShakeTranslation = new Vector3(0.07f, 0.07f, 0.03f);
     [Export] public Vector3 MaxShakeRotation = new Vector3(Mathf.DegToRad(3.5f), Mathf.DegToRad(2.0f), Mathf.DegToRad(5.5f));
-
     private string _playerName = "";
     [Export]
     public string PlayerName
@@ -105,11 +104,23 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private float _lastSentPitch = 0f;
     private float _heartbeatTimer = 0f;
     private float _remoteMoveTimer = 0f;
+    private Ccdik3D _armIK;
+    private Skeleton3D _skeleton;
+    private int _headBoneIdx = -1;
+    private int _neckBoneIdx = -1;
+    private float _punchTimer = 0f;
+    private float _throwTimer = 0f;
+    private bool _isThrowing = false;
+    private Tween _throwTween;
+    private bool _isMeleeSwinging = false;
+    private Tween _meleeTween;
+    private Vector3 _defaultItemHandPosition = new Vector3(0.28f, -0.22f, -0.38f);
+    private Vector3 _defaultItemHandRotation = Vector3.Zero;
 
     public override void _Ready()
     {
+        
         AddToGroup("Players");
-
         if (Head == null) Head = GetNode<Node3D>("Head");
         if (Camera == null) Camera = GetNode<Camera3D>("Head/Camera");
         if (MeshInstance == null) MeshInstance = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
@@ -149,7 +160,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             if (NameCard != null) NameCard.Visible = false;
             if (MeshInstance != null) MeshInstance.Visible = false;
-            if (CharacterModel != null) CharacterModel.Visible = false;
+            if (CharacterModel != null)
+            {
+                CharacterModel.Visible = true;
+                ApplyLocalBoneVisibility();
+            }
             if (string.IsNullOrEmpty(PlayerName))
             {
                 PlayerName = SteamManager.Instance?.GetPersonaName() ?? $"Player {Name}";
@@ -283,10 +298,45 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         };
         _bountyMarker.AddChild(diamond);
         AddChild(_bountyMarker);
+
+        if (ItemHand != null)
+        {
+            _defaultItemHandPosition = ItemHand.Position;
+            _defaultItemHandRotation = ItemHand.Rotation;
+        }
+
+        if (CharacterModel != null)
+        {
+            _skeleton = CharacterModel.GetNodeOrNull<Skeleton3D>("Sketchfab_model/dfd00d2a81994ddba3c7881ac50aedf5_fbx/RootNode/Object_3/GeneralSkeleton");
+            if (_skeleton != null)
+            {
+                _headBoneIdx = _skeleton.FindBone("Head");
+                _neckBoneIdx = _skeleton.FindBone("Neck");
+            }
+
+            _armIK = CharacterModel.GetNodeOrNull<Ccdik3D>("Sketchfab_model/dfd00d2a81994ddba3c7881ac50aedf5_fbx/RootNode/Object_3/GeneralSkeleton/armik");
+            if (_armIK != null)
+            {
+                if (ItemHand != null)
+                {
+                    _armIK.SetTargetNode(0, _armIK.GetPathTo(ItemHand));
+                }
+                _armIK.Influence = 0.0f;
+                _armIK.Active = false;
+            }
+
+            if (IsMultiplayerAuthority())
+            {
+                ApplyLocalBoneVisibility();
+            }
+        }
     }
 
     public override void _ExitTree()
     {
+        _throwTween?.Kill();
+        _meleeTween?.Kill();
+
         if (_instance == this)
         {
             _instance = null;
@@ -453,7 +503,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         _isBeingSpectated = false;
         
         if (MeshInstance != null) MeshInstance.Visible = !IsMultiplayerAuthority();
-        if (CharacterModel != null) CharacterModel.Visible = !IsMultiplayerAuthority();
+        if (CharacterModel != null) CharacterModel.Visible = true;
         if (NameCard != null && !IsMultiplayerAuthority()) NameCard.Visible = true;
         
         CollisionLayer = 2; // Layer 2: Player
@@ -467,7 +517,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (IsMultiplayerAuthority())
         {
             if (MeshInstance != null) MeshInstance.Visible = false;
-            if (CharacterModel != null) CharacterModel.Visible = false;
+            if (CharacterModel != null)
+            {
+                CharacterModel.Visible = true;
+                ApplyLocalBoneVisibility();
+            }
             if (Camera != null) Camera.MakeCurrent();
             GetNodeOrNull<AudioListener3D>("Head/AudioListener3D")?.MakeCurrent();
             if (DeathOverlay != null) DeathOverlay.Visible = false;
@@ -485,6 +539,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             _bountyMarker.RotateY((float)delta * 3.0f);
         }
 
+        if (_punchTimer > 0f)
+        {
+            _punchTimer = Mathf.Max(0f, _punchTimer - (float)delta);
+        }
+
+        if (_throwTimer > 0f)
+        {
+            _throwTimer = Mathf.Max(0f, _throwTimer - (float)delta);
+        }
+
         if (IsMultiplayerAuthority())
         {
             if (Health == null) return;
@@ -499,6 +563,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 return;
             }
 
+            ApplyLocalBoneVisibility();
             UpdateCameraShake((float)delta);
         }
         else
@@ -598,6 +663,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         UpdateCharacterModelRotation();
+        UpdateArmIK((float)delta);
     }
 
 
@@ -885,7 +951,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void HandleDropItem()
     {
-        if (InputDisabled) return;
+        if (InputDisabled || _isThrowing || _isMeleeSwinging) return;
         if (!Input.IsActionJustPressed("drop_item")) return;
 
         if (HeldItem != null)
@@ -1205,17 +1271,80 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         // Throwing
         if (Input.IsActionJustPressed("fire") && HeldItem != null && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
         {
-            if (_throwCooldownTimer > 0f) return;
+            if (_throwCooldownTimer > 0f || _isThrowing || _isMeleeSwinging || _punchTimer > 0f) return;
             _throwCooldownTimer = ThrowCooldown;
 
+            StartThrowSequence();
+        }
+    }
+
+    private void StartThrowSequence()
+    {
+        if (ItemHand == null || HeldItem == null) return;
+
+        _isThrowing = true;
+        _throwTimer = 0.35f;
+
+        // Kill any existing throw tween
+        _throwTween?.Kill();
+        _throwTween = CreateTween();
+
+        // 1. Wind-up (Cock back arm and item): 0.07s
+        Vector3 windupPos = _defaultItemHandPosition + new Vector3(0.04f, 0.06f, 0.10f);
+        Vector3 windupRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(20f), Mathf.DegToRad(10f), Mathf.DegToRad(-8f));
+
+        _throwTween.TweenProperty(ItemHand, "position", windupPos, 0.07f)
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.Out);
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", windupRot, 0.07f)
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.Out);
+
+        // 2. Forward Whip stroke: 0.06s
+        Vector3 whipPos = _defaultItemHandPosition + new Vector3(-0.04f, -0.04f, -0.16f);
+        Vector3 whipRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-24f), Mathf.DegToRad(-10f), Mathf.DegToRad(10f));
+
+        _throwTween.TweenProperty(ItemHand, "position", whipPos, 0.06f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.In);
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", whipRot, 0.06f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.In);
+
+        // 3. Apex / Release Callback
+        _throwTween.TweenCallback(Callable.From(() =>
+        {
+            if (HeldItem == null || !GodotObject.IsInstanceValid(HeldItem) || (Health != null && Health.IsDead))
+            {
+                _isThrowing = false;
+                return;
+            }
+
             Vector3 camForward = -Camera.GlobalBasis.Z;
-            Vector3 aimPoint = Camera.GlobalPosition + camForward * 10.0f;
-            Vector3 dir = (aimPoint - HeldItem.GlobalPosition).Normalized();
+            Vector3 aimPoint = Camera.GlobalPosition + camForward * 12.0f;
+            Vector3 spawnPos = ItemHand != null ? ItemHand.GlobalPosition : (Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f));
+            Vector3 dir = (aimPoint - spawnPos).Normalized();
             float perkThrowMultiplier = (CurrentPerk == PlayerPerk.PowerArm) ? 1.30f : 1.0f;
             float speed = ThrowVelocity * HeldItem.ThrowMultiplier * perkThrowMultiplier;
             NodePath itemPath = HeldItem.GetPath();
+
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.08f, 0f, 1f);
             Rpc(nameof(RpcThrowItem), itemPath, dir * speed);
-        }
+        }));
+
+        // 4. Follow-through & Reset: 0.12s
+        _throwTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.12f)
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.Out);
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.12f)
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.Out);
+
+        // 5. Finished callback
+        _throwTween.TweenCallback(Callable.From(() =>
+        {
+            _isThrowing = false;
+        }));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -1227,7 +1356,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.Thrower = this;
         item.ResetImpact();
         item.Reparent(GetTree().CurrentScene);
-        item.GlobalPosition = Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f);
+        Vector3 spawnPos = ItemHand != null ? ItemHand.GlobalPosition : (Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f));
+        item.GlobalPosition = spawnPos;
         item.CollisionLayer = 1;
         item.CollisionMask = 3;
         item.Freeze = false;
@@ -1235,6 +1365,24 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.Visible = true;
         item.LinearVelocity = launchVelocity;
         _playerAudio?.PlayThrowWhoosh();
+
+        // Visual throw whip on remote player model
+        if (!IsMultiplayerAuthority() && ItemHand != null)
+        {
+            _throwTimer = 0.28f;
+            _throwTween?.Kill();
+            _throwTween = CreateTween();
+            Vector3 whipPos = _defaultItemHandPosition + new Vector3(-0.04f, -0.04f, -0.16f);
+            Vector3 whipRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-22f), Mathf.DegToRad(-12f), Mathf.DegToRad(8f));
+            _throwTween.TweenProperty(ItemHand, "position", whipPos, 0.05f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+            _throwTween.Parallel().TweenProperty(ItemHand, "rotation", whipRot, 0.05f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+            _throwTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+            _throwTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        }
 
         if (IsMultiplayerAuthority())
         {
@@ -1266,85 +1414,254 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         bool isAltPressed = Input.IsActionJustPressed("alt_fire") || (Input.IsMouseButtonPressed(MouseButton.Right) && !_wasRmbPressed);
         _wasRmbPressed = Input.IsMouseButtonPressed(MouseButton.Right);
 
-        if (isAltPressed && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
+        if (isAltPressed)
         {
-            if (_meleeCooldownTimer > 0f) return;
+            if (_meleeCooldownTimer > 0f || _isThrowing || _isMeleeSwinging) return;
             _meleeCooldownTimer = MeleeCooldown;
 
-            // Visual punch/swing animation on ItemHand
-            if (ItemHand != null)
-            {
-                Vector3 origPos = ItemHand.Position;
-                Tween tween = CreateTween();
-                tween.TweenProperty(ItemHand, "position", origPos + new Vector3(0.08f, -0.04f, -0.28f), 0.08f);
-                tween.TweenProperty(ItemHand, "position", origPos, 0.12f);
-            }
+            StartMeleeSwingSequence();
+        }
+    }
 
-            int damage = 12; // Base bare-fist punch
-            bool shouldBreak = false;
-            Product swingItem = HeldItem;
+    private void StartMeleeSwingSequence()
+    {
+        if (ItemHand == null) return;
 
-            if (swingItem != null)
+        _isMeleeSwinging = true;
+        _punchTimer = 0.38f;
+
+        // Snap arm IK influence immediately so the swing/punch starts instantly
+        if (_armIK != null && _armIK.Influence < 0.8f)
+        {
+            _armIK.Influence = 1.0f;
+            _armIK.Active = true;
+        }
+
+        _meleeTween?.Kill();
+        _meleeTween = CreateTween();
+
+        bool hasItem = HeldItem != null && GodotObject.IsInstanceValid(HeldItem);
+
+        if (hasItem)
+        {
+            // === WEAPON / ITEM SWING ANIMATION ===
+            // 1. Wind-up (Cock back & raise weapon over right shoulder): 0.07s
+            Vector3 prepPos = _defaultItemHandPosition + new Vector3(0.08f, 0.09f, 0.08f);
+            Vector3 prepRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(28f), Mathf.DegToRad(35f), Mathf.DegToRad(-18f));
+
+            _meleeTween.TweenProperty(ItemHand, "position", prepPos, 0.07f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", prepRot, 0.07f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+
+            // 2. Power Slash (Sweep down-left across the screen): 0.07s
+            Vector3 slashPos = _defaultItemHandPosition + new Vector3(-0.20f, -0.06f, -0.22f);
+            Vector3 slashRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-25f), Mathf.DegToRad(-50f), Mathf.DegToRad(35f));
+
+            _meleeTween.TweenProperty(ItemHand, "position", slashPos, 0.07f)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.In);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", slashRot, 0.07f)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.In);
+
+            // 3. Apex Impact Check (at t = 0.14s)
+            _meleeTween.TweenCallback(Callable.From(() =>
             {
-                damage = Mathf.Max(15, (int)(swingItem.Damage * 0.6f));
+                ExecuteMeleeHitCheck(true);
+            }));
+
+            // 4. Follow-Through & Recovery: 0.14s
+            _meleeTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+
+            // 5. Finished callback
+            _meleeTween.TweenCallback(Callable.From(() =>
+            {
+                _isMeleeSwinging = false;
+            }));
+        }
+        else
+        {
+            // === BARE-FIST PUNCH ANIMATION ===
+            // 1. Cock Back: 0.05s
+            Vector3 prepPos = _defaultItemHandPosition + new Vector3(0.04f, 0.03f, 0.08f);
+            Vector3 prepRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(15f), Mathf.DegToRad(10f), 0f);
+
+            _meleeTween.TweenProperty(ItemHand, "position", prepPos, 0.05f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", prepRot, 0.05f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+
+            // 2. Punch Thrust (Straight cross towards crosshair with wrist roll): 0.06s
+            Vector3 punchPos = _defaultItemHandPosition + new Vector3(-0.10f, 0.02f, -0.26f);
+            Vector3 punchRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-15f), Mathf.DegToRad(-15f), Mathf.DegToRad(-35f));
+
+            _meleeTween.TweenProperty(ItemHand, "position", punchPos, 0.06f)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.In);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", punchRot, 0.06f)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.In);
+
+            // 3. Apex Impact Check (at t = 0.11s)
+            _meleeTween.TweenCallback(Callable.From(() =>
+            {
+                ExecuteMeleeHitCheck(false);
+            }));
+
+            // 4. Retraction & Recovery: 0.13s
+            _meleeTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.13f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.13f)
+                .SetTrans(Tween.TransitionType.Quad)
+                .SetEase(Tween.EaseType.Out);
+
+            // 5. Finished callback
+            _meleeTween.TweenCallback(Callable.From(() =>
+            {
+                _isMeleeSwinging = false;
+            }));
+        }
+
+        _playerAudio?.PlayThrowWhoosh();
+    }
+
+    private void ExecuteMeleeHitCheck(bool hasItem)
+    {
+        if (Health != null && Health.IsDead) return;
+
+        bool isBattle = GameManager.Instance == null || GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale;
+        int damage = 12; // Base bare-fist punch
+        bool shouldBreak = false;
+        Product swingItem = HeldItem;
+
+        if (swingItem != null && GodotObject.IsInstanceValid(swingItem))
+        {
+            damage = Mathf.Max(15, (int)(swingItem.Damage * 0.6f));
+            if (isBattle)
+            {
                 swingItem.CurrentDurability--;
                 if (swingItem.CurrentDurability <= 0)
                 {
                     shouldBreak = true;
                 }
             }
+        }
 
-            if (CurrentPerk == PlayerPerk.PowerArm)
+        if (CurrentPerk == PlayerPerk.PowerArm)
+        {
+            damage = (int)(damage * 1.25f);
+        }
+
+        if (!isBattle)
+        {
+            damage = 0;
+            shouldBreak = false;
+        }
+
+        // Raycast forward from camera
+        var spaceState = GetWorld3D().DirectSpaceState;
+        Vector3 from = Camera.GlobalPosition;
+        Vector3 to = from - Camera.GlobalBasis.Z * MeleeRange;
+        var query = PhysicsRayQueryParameters3D.Create(from, to);
+        query.CollisionMask = 3; // World (1) and Player (2)
+        query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+
+        var result = spaceState.IntersectRay(query);
+        if (result.Count > 0)
+        {
+            Node collider = result["collider"].As<Node>();
+            Vector3 hitPos = result["position"].As<Vector3>();
+
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.2f, 0f, 1f);
+
+            if (collider is IDamageable target && damage > 0)
             {
-                damage = (int)(damage * 1.25f);
-            }
+                bool isFatal = target is PlayerController pc && pc.Health != null && (pc.Health.CurrentHealth - damage <= 0);
+                TriggerHitMarker(isFatal);
 
-            // Raycast forward from camera
-            var spaceState = GetWorld3D().DirectSpaceState;
-            Vector3 from = Camera.GlobalPosition;
-            Vector3 to = from - Camera.GlobalBasis.Z * MeleeRange;
-            var query = PhysicsRayQueryParameters3D.Create(from, to);
-            query.CollisionMask = 3; // World (1) and Player (2)
-            query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
-
-            var result = spaceState.IntersectRay(query);
-            if (result.Count > 0)
-            {
-                Node collider = result["collider"].As<Node>();
-                Vector3 hitPos = result["position"].As<Vector3>();
-
-                _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.2f, 0f, 1f);
-
-                if (collider is IDamageable target)
+                if (Multiplayer.IsServer())
                 {
-                    bool isFatal = target is PlayerController pc && pc.Health != null && (pc.Health.CurrentHealth - damage <= 0);
-                    TriggerHitMarker(isFatal);
-
-                    if (Multiplayer.IsServer())
-                    {
-                        target.TakeDamage(damage, this);
-                    }
-                    else if (Multiplayer.HasMultiplayerPeer())
-                    {
-                        RpcId(1, nameof(RpcRequestMeleeDamage), (collider as Node3D).GetPath(), damage);
-                    }
+                    target.TakeDamage(damage, this);
                 }
-
-                CombatHitEffect.Spawn(this, hitPos);
-                Rpc(nameof(RpcOnMeleeSwing), hitPos, true);
-            }
-            else
-            {
-                _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.05f, 0f, 1f);
-                Rpc(nameof(RpcOnMeleeSwing), Camera.GlobalPosition - Camera.GlobalBasis.Z * 1.5f, false);
+                else if (Multiplayer.HasMultiplayerPeer())
+                {
+                    RpcId(1, nameof(RpcRequestMeleeDamage), (collider as Node3D).GetPath(), damage);
+                }
             }
 
-            if (shouldBreak && swingItem != null)
-            {
-                Inventory?.RemoveItem(swingItem);
-                UpdateHandItemVisibility();
-                swingItem.QueueFree();
-            }
+            CombatHitEffect.Spawn(this, hitPos);
+            Rpc(nameof(RpcOnMeleeSwing), hitPos, true, hasItem);
+        }
+        else
+        {
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.05f, 0f, 1f);
+            Rpc(nameof(RpcOnMeleeSwing), Camera.GlobalPosition - Camera.GlobalBasis.Z * 1.5f, false, hasItem);
+        }
+
+        if (shouldBreak && swingItem != null && GodotObject.IsInstanceValid(swingItem))
+        {
+            Inventory?.RemoveItem(swingItem);
+            UpdateHandItemVisibility();
+            swingItem.QueueFree();
+        }
+    }
+
+    private void PlayRemoteMeleeAnimation(bool hasItem)
+    {
+        if (ItemHand == null) return;
+
+        _punchTimer = 0.35f;
+        if (_armIK != null && _armIK.Influence < 0.8f)
+        {
+            _armIK.Influence = 1.0f;
+            _armIK.Active = true;
+        }
+
+        _meleeTween?.Kill();
+        _meleeTween = CreateTween();
+
+        _playerAudio?.PlayThrowWhoosh();
+
+        if (hasItem)
+        {
+            Vector3 slashPos = _defaultItemHandPosition + new Vector3(-0.20f, -0.06f, -0.22f);
+            Vector3 slashRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-25f), Mathf.DegToRad(-50f), Mathf.DegToRad(35f));
+
+            _meleeTween.TweenProperty(ItemHand, "position", slashPos, 0.08f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", slashRot, 0.08f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+
+            _meleeTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.16f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.16f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        }
+        else
+        {
+            Vector3 punchPos = _defaultItemHandPosition + new Vector3(-0.10f, 0.02f, -0.26f);
+            Vector3 punchRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-15f), Mathf.DegToRad(-15f), Mathf.DegToRad(-35f));
+
+            _meleeTween.TweenProperty(ItemHand, "position", punchPos, 0.07f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", punchRot, 0.07f)
+                .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+
+            _meleeTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+            _meleeTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.14f)
+                .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
         }
     }
 
@@ -1360,17 +1677,36 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void RpcOnMeleeSwing(Vector3 hitPos, bool didHit)
+    private void RpcOnMeleeSwing(Vector3 hitPos, bool didHit, bool hasItem)
     {
-        if (didHit)
+        if (IsMultiplayerAuthority())
         {
-            if (IsMultiplayerAuthority())
+            if (didHit)
             {
                 _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.15f, 0f, 1f);
             }
-            else
+        }
+        else
+        {
+            PlayRemoteMeleeAnimation(hasItem);
+            if (didHit)
             {
                 CombatHitEffect.Spawn(this, hitPos);
+            }
+        }
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcOnMeleeSwing), hitPos, didHit, hasItem);
+                    }
+                }
             }
         }
     }
@@ -1436,7 +1772,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void SwitchInventorySlot(int index)
     {
-        if (Inventory == null) return;
+        if (Inventory == null || _isThrowing || _isMeleeSwinging) return;
         int prevSlot = Inventory.selectedItemIndex;
         Inventory.SetCurrentSelectedItem(index);
         if (prevSlot != Inventory.selectedItemIndex)
@@ -1877,6 +2213,16 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         _currentShakeRotation = Vector3.Zero;
         ApplyCameraTransform();
 
+        _isThrowing = false;
+        _throwTween?.Kill();
+        _isMeleeSwinging = false;
+        _meleeTween?.Kill();
+        if (ItemHand != null)
+        {
+            ItemHand.Position = _defaultItemHandPosition;
+            ItemHand.Rotation = _defaultItemHandRotation;
+        }
+
         if (IsMultiplayerAuthority())
         {
             StartSpectating();
@@ -1945,6 +2291,48 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (CharacterModel == null || Head == null) return;
         // Align character model yaw to Head look direction (with 180 deg / Pi offset since model faces backwards by default)
         CharacterModel.Rotation = new Vector3(0f, Head.Rotation.Y + Mathf.Pi, 0f);
+    }
+
+    private void ApplyLocalBoneVisibility()
+    {
+        if (!IsMultiplayerAuthority() || _skeleton == null) return;
+        if (_headBoneIdx < 0) _headBoneIdx = _skeleton.FindBone("Head");
+        if (_neckBoneIdx < 0) _neckBoneIdx = _skeleton.FindBone("Neck");
+        if (_headBoneIdx >= 0) _skeleton.SetBonePoseScale(_headBoneIdx, Vector3.Zero);
+        if (_neckBoneIdx >= 0) _skeleton.SetBonePoseScale(_neckBoneIdx, Vector3.Zero);
+    }
+
+    private bool HasVisibleHeldItem()
+    {
+        if (IsMultiplayerAuthority())
+        {
+            return HeldItem != null && GodotObject.IsInstanceValid(HeldItem) && HeldItem.Visible;
+        }
+
+        if (ItemHand == null) return false;
+        foreach (Node child in ItemHand.GetChildren())
+        {
+            if (child is Product p && p.Visible) return true;
+        }
+        return false;
+    }
+
+    private void UpdateArmIK(float delta)
+    {
+        if (_armIK == null) return;
+
+        bool isDead = Health != null && Health.IsDead;
+        bool isHolding = !isDead && (HasVisibleHeldItem() || _punchTimer > 0f || _throwTimer > 0f || _isThrowing || _isMeleeSwinging);
+        float targetInfluence = isHolding ? 1.0f : 0.0f;
+
+        // Fast blend when attacking so the punch/swing starts instantly; smooth blend when relaxing
+        float blendSpeed = (_punchTimer > 0f || _throwTimer > 0f || _isThrowing || _isMeleeSwinging) ? 25.0f : 6.5f;
+
+        // Smoothly blend influence between 0.0 (dropped arm) and 1.0 (holding item / punching / throwing)
+        float currentInfluence = (float)_armIK.Influence;
+        float newInfluence = Mathf.MoveToward(currentInfluence, targetInfluence, delta * blendSpeed);
+        _armIK.Influence = newInfluence;
+        _armIK.Active = newInfluence > 0.001f;
     }
 
     private void EnsureAnimationsLoop()

@@ -8,9 +8,9 @@
 [ext_resource type="PackedScene" uid="uid://b0t48eul7ppob" path="res://Prefabs/Death.tscn" id="6_x3wgy"]
 [ext_resource type="PackedScene" path="res://Prefabs/DamageOverlay.tscn" id="7_dmg"]
 [ext_resource type="PackedScene" uid="uid://djo12gpef67m0" path="res://Prefabs/PlayerModel.tscn" id="8_4qbli"]
-[ext_resource type="Animation" uid="uid://npdotnrqcp2q" path="res://Animations/idle.anim" id="9_2xbkd"]
+[ext_resource type="Animation" uid="uid://b2ryqq8ga3xde" path="res://Animations/idle.anim" id="9_2xbkd"]
 [ext_resource type="Animation" uid="uid://bd4b2syj2u4ay" path="res://Animations/walk.anim" id="9_08u7w"]
-[ext_resource type="Animation" uid="uid://c7p3yablepk2n" path="res://Animations/run.anim" id="9_kgmex"]
+[ext_resource type="Animation" uid="uid://d0f8vggd77mu" path="res://Animations/run.anim" id="9_kgmex"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_y1t4u"]
 
@@ -45,7 +45,7 @@ animation = &"Animations/walk"
 
 [sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_pn41e"]
 min_space = 0.0
-sync = true
+sync_mode = 1
 blend_point_0/node = SubResource("AnimationNodeAnimation_3vpsw")
 blend_point_0/pos = 0.0
 blend_point_0/name = &"Animations_idle"
@@ -56,7 +56,7 @@ blend_point_2/node = SubResource("AnimationNodeAnimation_b30ri")
 blend_point_2/pos = 0.5
 blend_point_2/name = &"Animations_walk"
 
-[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "DamageOverlay", "NameCard", "Flashlight", "AnimTree", "CharacterModel")]
+[node name="Player" type="CharacterBody3D" unique_id=1723693451 node_paths=PackedStringArray("Head", "Camera", "RayCast", "ItemHand", "Inventory", "InventoryBar", "CrossHair", "HealthBar", "Health", "DeathOverlay", "DamageOverlay", "NameCard", "Flashlight", "CharacterModel", "AnimTree")]
 collision_layer = 2
 script = ExtResource("1_v0iea")
 Head = NodePath("Head")
@@ -72,8 +72,8 @@ DeathOverlay = NodePath("Death")
 DamageOverlay = NodePath("DamageOverlay")
 NameCard = NodePath("NameCard")
 Flashlight = NodePath("Head/Camera/Flashlight")
-AnimTree = NodePath("Sketchfab_Scene/AnimationTree")
 CharacterModel = NodePath("Sketchfab_Scene")
+AnimTree = NodePath("Sketchfab_Scene/AnimationTree")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1391679735]
 shape = SubResource("CapsuleShape3D_y1t4u")
@@ -90,7 +90,7 @@ target_position = Vector3(0, 0, -2.75)
 collide_with_areas = true
 
 [node name="ItemHand" type="Node3D" parent="Head/Camera" unique_id=1807680406]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4249195, -0.1646241, -0.92713153)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, -0.22, -0.38)
 
 [node name="Flashlight" type="SpotLight3D" parent="Head/Camera" unique_id=987654321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.15, -0.2)

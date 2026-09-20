@@ -338,6 +338,7 @@ public partial class ProceduralShelfFiller : Node3D
     private int StockSurface(ShelfSurfaceInfo surface, Node3D container, ShelfCategory category, RandomNumberGenerator rng)
     {
         if (TotalGlobalSpawned >= MaxTotalStoreProducts) return 0;
+        if (surface.MaxRun <= surface.MinRun || surface.SafeDepthMax <= surface.SafeDepthMin) return 0;
 
         // Add a shelf spawn chance so shelves have natural breathing room
         float shelfSpawnChance = (surface.IsTable || surface.IsEndcap) ? 0.90f : 0.65f;
@@ -444,8 +445,9 @@ public partial class ProceduralShelfFiller : Node3D
             // Clamp X within safe depth bounds
             float safeX = depthPos + jitterDepth;
             float halfD = itemDepth * 0.5f;
-            safeX = Mathf.Clamp(safeX, surface.SafeDepthMin + halfD, surface.SafeDepthMax - halfD);
-            pos.X = safeX;
+            float minX = surface.SafeDepthMin + halfD;
+            float maxX = surface.SafeDepthMax - halfD;
+            pos.X = minX > maxX ? surface.SafeDepthCenter : Mathf.Clamp(safeX, minX, maxX);
         }
         else
         {
@@ -455,8 +457,9 @@ public partial class ProceduralShelfFiller : Node3D
             // Clamp Z within safe depth bounds
             float safeZ = depthPos + jitterDepth;
             float halfD = itemDepth * 0.5f;
-            safeZ = Mathf.Clamp(safeZ, surface.SafeDepthMin + halfD, surface.SafeDepthMax - halfD);
-            pos.Z = safeZ;
+            float minZ = surface.SafeDepthMin + halfD;
+            float maxZ = surface.SafeDepthMax - halfD;
+            pos.Z = minZ > maxZ ? surface.SafeDepthCenter : Mathf.Clamp(safeZ, minZ, maxZ);
         }
 
         return pos;
@@ -563,6 +566,8 @@ public partial class ProceduralShelfFiller : Node3D
     private List<ProductEntry> GetCandidatesForSurface(ShelfSurfaceInfo surface, ShelfCategory category)
     {
         List<ProductEntry> matches = new();
+        float surfaceDepth = surface.SafeDepthMax - surface.SafeDepthMin;
+        float surfaceRun = surface.MaxRun - surface.MinRun;
 
         foreach (var prod in Catalog)
         {
@@ -570,7 +575,10 @@ public partial class ProceduralShelfFiller : Node3D
             if (prod.Height > surface.ClearanceY + 0.04f) continue;
 
             // Fit check: item width must fit within the shelf run bounds
-            if (prod.Width > (surface.MaxRun - surface.MinRun)) continue;
+            if (prod.Width > surfaceRun) continue;
+
+            // Fit check: item depth must fit within the shelf safe depth bounds
+            if (surfaceDepth > 0f && prod.Depth > surfaceDepth) continue;
 
             bool catMatch = false;
             if (category == ShelfCategory.MixedMarket)
@@ -599,7 +607,9 @@ public partial class ProceduralShelfFiller : Node3D
         {
             foreach (var prod in Catalog)
             {
-                if (prod.Height <= surface.ClearanceY + 0.04f && prod.Width <= (surface.MaxRun - surface.MinRun))
+                if (prod.Height <= surface.ClearanceY + 0.04f &&
+                    prod.Width <= surfaceRun &&
+                    (surfaceDepth <= 0f || prod.Depth <= surfaceDepth))
                 {
                     matches.Add(prod);
                 }
@@ -684,21 +694,33 @@ public partial class ProceduralShelfFiller : Node3D
         {
             Vector3 size = bestTop.Mesh is BoxMesh bm ? bm.Size : bestTop.GetAabb().Size * bestTop.Scale;
             float topY = bestTop.Position.Y + (size.Y * 0.5f);
-            float len = Math.Max(size.X, size.Z);
-            float dep = Math.Min(size.X, size.Z);
+            bool runAlongX = size.X >= size.Z;
+            float len = runAlongX ? size.X : size.Z;
+            float dep = runAlongX ? size.Z : size.X;
+
+            float runPadding = Math.Min(0.35f, len * 0.25f);
+            float depthPadding = Math.Min(0.25f, dep * 0.25f);
+
+            float runCenter = runAlongX ? bestTop.Position.X : bestTop.Position.Z;
+            float minRun = runCenter - (len * 0.5f) + runPadding;
+            float maxRun = runCenter + (len * 0.5f) - runPadding;
+
+            float depthCenter = runAlongX ? bestTop.Position.Z : bestTop.Position.X;
+            float depthMin = depthCenter - (dep * 0.5f) + depthPadding;
+            float depthMax = depthCenter + (dep * 0.5f) - depthPadding;
 
             surfaces.Add(new ShelfSurfaceInfo
             {
                 Name = bestTop.Name,
                 SurfaceCenter = bestTop.Position,
-                MinRun = bestTop.Position.X - (len * 0.5f) + 0.35f,
-                MaxRun = bestTop.Position.X + (len * 0.5f) - 0.35f,
+                MinRun = minRun,
+                MaxRun = maxRun,
                 SurfaceTopY = topY,
                 ClearanceY = 1.6f,
-                FacingNormal = size.X >= size.Z ? Vector3.Back : Vector3.Right,
-                SafeDepthCenter = bestTop.Position.Z,
-                SafeDepthMin = bestTop.Position.Z - (dep * 0.5f) + 0.25f,
-                SafeDepthMax = bestTop.Position.Z + (dep * 0.5f) - 0.25f,
+                FacingNormal = runAlongX ? Vector3.Back : Vector3.Right,
+                SafeDepthCenter = depthCenter,
+                SafeDepthMin = depthMin,
+                SafeDepthMax = depthMax,
                 IsEndcap = false,
                 IsTable = true,
                 Level = 1

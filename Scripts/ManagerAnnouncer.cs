@@ -16,11 +16,13 @@ public partial class ManagerAnnouncer : Node
 
     [Export] public AudioStream IntercomChime;
     [Export] public bool EnableVoiceAudio = true;
+    [Export] public float ChimeDelay = -1f;
     [Export] public float DefaultAnnouncementDuration = 4.5f;
     [Export] public float MinimumIntervalBetweenAnnouncements = 3.5f;
 
     private float _announcementTimer = 0f;
     private int _currentPriority = -1;
+    private int _currentAnnouncementId = 0;
     private float _interAnnouncementBreather = 0f;
     private readonly RandomNumberGenerator _rng = new();
     private bool _firstBloodOccurred = false;
@@ -151,16 +153,26 @@ public partial class ManagerAnnouncer : Node
             voiceStream = GD.Load<AudioStream>(resolvedVoicePath);
         }
 
-        // Calculate accurate display and lockout duration based on voice length if available
+        // Determine delay until voice should play (wait for chime to finish so it is never cut off)
+        float chimeDelay = ChimeDelay >= 0f
+            ? ChimeDelay
+            : (IntercomChime != null ? (float)IntercomChime.GetLength() : 0f);
+
+        // Calculate accurate display and lockout duration based on voice length and chime delay
         float effectiveDuration = duration;
         if (voiceStream != null)
         {
             float voiceLen = (float)voiceStream.GetLength();
             if (voiceLen > 0.5f)
             {
-                // 0.45s chime delay + voice duration + 0.35s natural trailing margin
-                effectiveDuration = Mathf.Max(duration, voiceLen + 0.8f);
+                // Full chime delay + voice duration + 0.35s natural trailing margin
+                effectiveDuration = Mathf.Max(duration, chimeDelay + voiceLen + 0.35f);
             }
+        }
+        else
+        {
+            // If only chime/text is playing, ensure HUD stays visible for chime + reading margin
+            effectiveDuration = Mathf.Max(duration, chimeDelay + 2.0f);
         }
 
         _announcementTimer = effectiveDuration;
@@ -168,7 +180,7 @@ public partial class ManagerAnnouncer : Node
 
         bool useSpatialSpeakers = GameManager.Instance != null && GameManager.Instance.HasActiveCeilingSpeakers;
 
-        // Play chime on 3D ceiling speakers (or direct 2D fallback if no speakers in scene)
+        // Play chime on 3D ceiling speakers SFX channel (or direct 2D fallback if no speakers in scene)
         if (IntercomChime != null)
         {
             if (useSpatialSpeakers)
@@ -189,33 +201,29 @@ public partial class ManagerAnnouncer : Node
             }
         }
 
-        // Play voice audio on 3D ceiling speakers (or direct 2D fallback if no speakers in scene)
+        // Play voice audio after the chime finishes (or immediately if no chime)
         if (voiceStream != null)
         {
-            int assignedPriority = priority;
-            GetTree().CreateTimer(0.45f).Timeout += () =>
+            if (chimeDelay <= 0.02f)
             {
-                if (GodotObject.IsInstanceValid(this) && _announcementTimer > 0f && _currentPriority == assignedPriority)
+                PlayVoiceStream(voiceStream, resolvedVoicePath);
+            }
+            else
+            {
+                int assignedPriority = priority;
+                int announcementId = ++_currentAnnouncementId;
+
+                GetTree().CreateTimer(chimeDelay).Timeout += () =>
                 {
-                    if (useSpatialSpeakers && GameManager.Instance != null)
+                    if (GodotObject.IsInstanceValid(this)
+                        && _currentAnnouncementId == announcementId
+                        && _announcementTimer > 0f
+                        && _currentPriority == assignedPriority)
                     {
-                        GameManager.Instance.PlaySoundOnSpeakers(voiceStream, volumeDb: 6.0f, duckMusic: true);
+                        PlayVoiceStream(voiceStream, resolvedVoicePath);
                     }
-                    else
-                    {
-                        if (_voicePlayer != null && GodotObject.IsInstanceValid(_voicePlayer))
-                        {
-                            _voicePlayer.Stream = voiceStream;
-                            _voicePlayer.Play();
-                        }
-                        if (GameManager.Instance != null)
-                        {
-                            GameManager.Instance.DuckMusicForSound(voiceStream, 0.5f);
-                        }
-                    }
-                    GD.Print($"[Mr. Henderson] Playing voice audio {(useSpatialSpeakers ? "via Spatial Ceiling Speakers" : "via Direct Audio")}: {resolvedVoicePath}");
-                }
-            };
+                };
+            }
         }
         else if (!string.IsNullOrEmpty(audioClipPath))
         {
@@ -223,7 +231,29 @@ public partial class ManagerAnnouncer : Node
         }
 
         EmitSignal(SignalName.ManagerAnnounced, text, (int)emotion, effectiveDuration);
-        GD.Print($"[Mr. Henderson] ({emotion}) [P{priority}] \"{text}\" ({effectiveDuration:0.0}s)");
+        GD.Print($"[Mr. Henderson] ({emotion}) [P{priority}] \"{text}\" (chimeDelay={chimeDelay:0.00}s, duration={effectiveDuration:0.0}s)");
+    }
+
+    private void PlayVoiceStream(AudioStream voiceStream, string resolvedVoicePath)
+    {
+        bool useSpatialSpeakers = GameManager.Instance != null && GameManager.Instance.HasActiveCeilingSpeakers;
+        if (useSpatialSpeakers && GameManager.Instance != null)
+        {
+            GameManager.Instance.PlayVoiceOnSpeakers(voiceStream, volumeDb: 6.0f, duckMusic: true);
+        }
+        else
+        {
+            if (_voicePlayer != null && GodotObject.IsInstanceValid(_voicePlayer))
+            {
+                _voicePlayer.Stream = voiceStream;
+                _voicePlayer.Play();
+            }
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.DuckMusicForSound(voiceStream, 0.5f);
+            }
+        }
+        GD.Print($"[Mr. Henderson] Playing voice audio {(useSpatialSpeakers ? "via Spatial Ceiling Speakers" : "via Direct Audio")}: {resolvedVoicePath}");
     }
 
     private void EnqueueAnnouncement(string text, ManagerEmotion emotion, string audioClipPath, float duration, int priority)
@@ -313,12 +343,19 @@ public partial class ManagerAnnouncer : Node
 
     public void StopCurrentAudio()
     {
+        _currentAnnouncementId++; // Invalidate any pending delayed voice timer
+
         if (_voicePlayer != null && GodotObject.IsInstanceValid(_voicePlayer) && _voicePlayer.Playing)
         {
             _voicePlayer.Stop();
         }
+        if (_chimePlayer != null && GodotObject.IsInstanceValid(_chimePlayer) && _chimePlayer.Playing)
+        {
+            _chimePlayer.Stop();
+        }
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.StopSpeakerVoice();
             GameManager.Instance.StopSpeakerSFX();
         }
         _announcementTimer = 0f;

@@ -3,3 +3,22 @@
 [ext_resource type="PackedScene" uid="uid://bvcwk3puelnaa" path="res://Models/free_pack_-_stick_man_rigged.glb" id="1_q3of8"]
 
 [node name="Sketchfab_Scene" unique_id=612140684 instance=ExtResource("1_q3of8")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="armik" type="CCDIK3D" parent="Sketchfab_model/dfd00d2a81994ddba3c7881ac50aedf5_fbx/RootNode/Object_3/GeneralSkeleton" parent_id_path=PackedInt32Array(1479761739) index="1" unique_id=1715237884]
+setting_count = 1
+settings/0/target_node = NodePath("")
+settings/0/root_bone_name = "RightShoulder"
+settings/0/root_bone = 12
+settings/0/end_bone_name = "RightHand"
+settings/0/end_bone = 15
+settings/0/extend_end_bone = false
+settings/0/joint_count = 4
+settings/0/joints/0/rotation_axis = 3
+settings/0/joints/0/limitation = null
+settings/0/joints/1/rotation_axis = 3
+settings/0/joints/1/limitation = null
+settings/0/joints/2/rotation_axis = 3
+settings/0/joints/2/limitation = null
+settings/0/joints/3/rotation_axis = 3
+settings/0/joints/3/limitation = null

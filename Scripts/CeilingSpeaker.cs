@@ -4,6 +4,7 @@ public partial class CeilingSpeaker : Node3D
 {
     [Export] public AudioStreamPlayer3D AudioPlayer;
     [Export] public AudioStreamPlayer3D SFXPlayer;
+    [Export] public AudioStreamPlayer3D VoicePlayer;
 
     public override void _Ready()
     {
@@ -14,6 +15,10 @@ public partial class CeilingSpeaker : Node3D
         if (SFXPlayer == null)
         {
             SFXPlayer = GetNodeOrNull<AudioStreamPlayer3D>("SFXPlayer");
+        }
+        if (VoicePlayer == null)
+        {
+            VoicePlayer = GetNodeOrNull<AudioStreamPlayer3D>("VoicePlayer");
         }
     }
 }

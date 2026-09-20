@@ -1827,6 +1827,34 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         GD.Print($"[Store] Earned ${amount}! Total money: ${Money}");
     }
 
+    public void ApplyKnockback(Vector3 impulse)
+    {
+        Velocity += impulse;
+        _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.65f, 0f, 1f);
+
+        if (int.TryParse(Name, out int peerId) && Multiplayer.HasMultiplayerPeer())
+        {
+            RpcId(peerId, nameof(RpcApplyKnockback), impulse);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcApplyKnockback(Vector3 impulse)
+    {
+        if (IsMultiplayerAuthority())
+        {
+            Velocity += impulse;
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.65f, 0f, 1f);
+        }
+    }
+
+    public Product KnockDropItem()
+    {
+        Product dropped = Inventory?.DropSingleItem();
+        UpdateHandItemVisibility();
+        return dropped;
+    }
+
     public void TakeDamage(int amount, Node3D source = null)
     {
         if (!Multiplayer.IsServer())

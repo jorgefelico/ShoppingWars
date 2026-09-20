@@ -221,6 +221,63 @@ public partial class Inventory : Node
         InventoryBar?.Refresh(this, 0);
     }
 
+    public Product DropSingleItem(int slotIndex = -1)
+    {
+        if (_slots == null) return null;
+
+        int targetSlot = (slotIndex >= 0 && slotIndex < InventorySize && _slots[slotIndex].Count > 0)
+            ? slotIndex
+            : -1;
+
+        if (targetSlot == -1)
+        {
+            if (selectedItemIndex >= 0 && selectedItemIndex < InventorySize && _slots[selectedItemIndex].Count > 0)
+            {
+                targetSlot = selectedItemIndex;
+            }
+            else
+            {
+                for (int i = 0; i < InventorySize; i++)
+                {
+                    if (_slots[i].Count > 0)
+                    {
+                        targetSlot = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (targetSlot == -1 || _slots[targetSlot].Count == 0) return null;
+
+        int lastIdx = _slots[targetSlot].Count - 1;
+        Product item = _slots[targetSlot][lastIdx];
+        _slots[targetSlot].RemoveAt(lastIdx);
+
+        if (item != null && GodotObject.IsInstanceValid(item))
+        {
+            if (item.GetParent() != GetTree().CurrentScene)
+            {
+                item.Reparent(GetTree().CurrentScene, true);
+            }
+            item.Freeze = false;
+            item.ActivatePhysicsAndSync();
+            item.CollisionLayer = 1;
+            item.CollisionMask = 3;
+            item.Visible = true;
+            item.IsForSale = false;
+            item.WasBought = true;
+            item.CanBePickedUp = true;
+            Node3D parentNode = GetParent<Node3D>();
+            item.GlobalPosition = parentNode != null ? parentNode.GlobalPosition + Vector3.Up * 1.0f : Vector3.Up;
+            RandomNumberGenerator rng = new RandomNumberGenerator();
+            item.LinearVelocity = new Vector3(rng.RandfRange(-3.5f, 3.5f), 4.5f, rng.RandfRange(-3.5f, 3.5f));
+        }
+
+        InventoryBar?.Refresh(this, selectedItemIndex);
+        return item;
+    }
+
     public void ClearInventory()
     {
         if (_slots == null) return;

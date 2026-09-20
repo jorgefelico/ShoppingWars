@@ -134,6 +134,14 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
     - *Near-Miss Evasion*: In-flight projectiles passing within 2.8m or landing within 3.5m trigger an emergency flinch/jolt (`O _ O`, `"WHOA!"`, `"DODGE!"`) and turn Groomba towards the attacker.
   - **FSM States**: `Patrol` (green ring, `^ ‿ ^` face), `Attack` (red ring, `> 皿 <` face, 28m chase with corner memory), `Search` (amber ring, `⊙ _ ⊙` / `! _ !` / `ಠ _ ಠ` face, investigates disturbances and scans last known positions).
   - Deals 15 contact damage with cooldown, displays kill reaction (`˘ ‿ ˘`, `"TRASH DISPOSED!"`), and self-destructs or detonates when destroyed via thrown items (`FloatingDamageNumber` displays `K.O.!`).
+- **Possessed Shopping Cart — "Cartsferatu" (`PossessedCart.cs`):**
+  - Terrifying runaway supermarket shopping cart with wobbly squeaking caster wheel, piercing crimson headlights, and red undercarriage glow.
+  - **FSM States**:
+    - *Patrol*: Cruises aisles at 2.5 m/s emitting rhythmic squeaky wheel clatter.
+    - *Windup*: On spotting a player down an aisle, halts for 0.75s, flares headlights, rings frantic service bell (`DING DING DING!`), and spins wheels with comic spark particles (`"RAMMING SPEED!"`).
+    - *Charge*: Supersonic sprint down the aisle at **10.5 m/s**! Rams players dealing 35 damage, explosive knockback (16 m/s impulse), and **knocks a product out of their inventory** onto the floor!
+    - *Stunned*: If dodged and slamming into a wall or gondola shelf, Cartsferatu crashes, plays heavy metal crunch SFX, and gets stunned for 2.2s with spinning dizzy stars (`✨ @ _ @ ✨`, `"CLANG!"`), leaving it vulnerable.
+    - *Destroyed*: Can be destroyed with 150 damage (or interrupted during charge with 28+ dmg). Detonates with an explosion, drops 2 high-tier weapons and cash loot, and awards +$50 to the destroyer with custom Mr. Henderson commentary.
 
 **Ambient Events System (`AmbientEventManager.cs`):**
 Server-authoritative dynamic event scheduler triggering 8 arena-wide events during the Battle Royale phase:

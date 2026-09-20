@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://cx4m183k9ptw1"]
+
+[ext_resource type="Script" path="res://Scripts/PossessedCart.cs" id="1_cart"]
+[ext_resource type="Script" uid="uid://bkqkyt10tdw1y" path="res://Scripts/Health.cs" id="2_health"]
+[ext_resource type="PackedScene" uid="uid://b3f54rplox86w" path="res://Prefabs/Explosion.tscn" id="3_expl"]
+[ext_resource type="PackedScene" uid="uid://cyd3uac5c8i7o" path="res://Models/cart.tscn" id="4_cart_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cart"]
+size = Vector3(0.9, 1.1, 1.3)
+
+[node name="PossessedCart" type="CharacterBody3D" unique_id=2088491032 node_paths=PackedStringArray("NavAgent", "Health")]
+collision_mask = 3
+script = ExtResource("1_cart")
+NavAgent = NodePath("NavigationAgent3D")
+Health = NodePath("Health")
+ExplosionScene = ExtResource("3_expl")
+CartModelScene = ExtResource("4_cart_model")
+ModelScale = 1.05
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2088491033]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2088491034]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_cart")
+
+[node name="Health" type="Node" parent="." unique_id=2088491035]
+script = ExtResource("2_health")
+MaxHealth = 150
+CurrentHealth = 150

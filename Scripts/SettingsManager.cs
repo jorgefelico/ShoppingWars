@@ -86,6 +86,51 @@ public static class SettingsManager
             AudioServer.SetBusName(sfxBusIdx, "SFX");
             AudioServer.SetBusSend(sfxBusIdx, "Master");
         }
+
+        int intercomBusIdx = AudioServer.GetBusIndex("Intercom");
+        if (intercomBusIdx == -1)
+        {
+            AudioServer.AddBus();
+            intercomBusIdx = AudioServer.BusCount - 1;
+            AudioServer.SetBusName(intercomBusIdx, "Intercom");
+            AudioServer.SetBusSend(intercomBusIdx, "SFX");
+            SetupIntercomBusEffects(intercomBusIdx);
+        }
+        else if (AudioServer.GetBusEffectCount(intercomBusIdx) == 0)
+        {
+            SetupIntercomBusEffects(intercomBusIdx);
+        }
+    }
+
+    private static void SetupIntercomBusEffects(int busIdx)
+    {
+        if (AudioServer.GetBusEffectCount(busIdx) > 0) return;
+
+        // 1. High-pass filter: roll off deep bass (< 220 Hz) typical of ceiling horn/cone drivers
+        var hpf = new AudioEffectHighPassFilter
+        {
+            CutoffHz = 220.0f
+        };
+        AudioServer.AddBusEffect(busIdx, hpf);
+
+        // 2. Low-pass filter: roll off crisp studio high frequencies (> 5200 Hz) for authentic PA response
+        var lpf = new AudioEffectLowPassFilter
+        {
+            CutoffHz = 5200.0f
+        };
+        AudioServer.AddBusEffect(busIdx, lpf);
+
+        // 3. Supermarket room acoustics reverb: subtle concrete/high ceiling flutter reflection
+        var reverb = new AudioEffectReverb
+        {
+            RoomSize = 0.45f,
+            Damping = 0.5f,
+            Spread = 0.85f,
+            Dry = 0.88f,
+            Wet = 0.18f,
+            PredelayMsec = 20.0f
+        };
+        AudioServer.AddBusEffect(busIdx, reverb);
     }
 
     public static void SetMasterVolume(float linear)

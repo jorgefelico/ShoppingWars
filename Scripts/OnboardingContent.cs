@@ -79,7 +79,7 @@ public static class OnboardingContent
             "📦 7. SCAVENGING: Out of ammo? Grab shelf items mid-fight for free!",
             "💀 8. KILL REWARDS: Eliminating a player awards +35 HP, +$50 & speed boost!",
             "💊 9. HEALING: Press [R] with Pill Bottles or Soda Cans to restore HP!",
-            "🤖 10. HAZARDS: Dodge patrolling Groomba vacuums & dynamic store events!"
+            "🤖 10. HAZARDS: Dodge Groombas, laser cameras, the runaway Cartsferatu cart & store events!"
         };
 
         foreach (var rule in rules)

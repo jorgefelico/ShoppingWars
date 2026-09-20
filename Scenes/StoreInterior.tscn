@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
+[ext_resource type="PackedScene" uid="uid://cx4m183laptw1" path="res://Prefabs/PossessedCart.tscn" id="4_cart"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
@@ -134,6 +135,7 @@ size = Vector3(181, 2, 141)
 size = Vector3(180, 0.2, 140)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_180"]
+lightmap_size_hint = Vector2i(908, 1056)
 material = ExtResource("12_2462t")
 add_uv2 = true
 size = Vector3(0.8, 15, 180)
@@ -145,6 +147,7 @@ size = Vector3(180, 14, 0.8)
 size = Vector3(0.8, 14, 140)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_140"]
+lightmap_size_hint = Vector2i(708, 856)
 material = ExtResource("12_2462t")
 add_uv2 = true
 size = Vector3(0.8, 15, 140)
@@ -153,6 +156,7 @@ size = Vector3(0.8, 15, 140)
 size = Vector3(180, 14, 0.8)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Wall_Front_Center"]
+lightmap_size_hint = Vector2i(908, 1056)
 material = ExtResource("12_2462t")
 add_uv2 = true
 size = Vector3(0.8, 15, 180)
@@ -194,7 +198,9 @@ compositor = SubResource("Compositor_06bnu")
 
 [node name="GameManager" type="Node" parent="WorldStuff" unique_id=268635566 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]
 script = ExtResource("1_510ba")
-ShoppingDuration = 50.0
+ShoppingTransitionDuration = 10.0
+ShoppingDuration = 85.0
+BattleTransitionDuration = 10.0
 BattleDuration = 240.0
 _lightmap = NodePath("../../LightmapGI")
 _worldEnvironment = NodePath("../WorldEnvironment")
@@ -1641,22 +1647,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.06593, 1.2876356, -44.952
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7201505, 0)
 
 [node name="SpawnPoint1" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=1854250749]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, -55)
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -27.452105, 0.5, -42.88466)
 
 [node name="SpawnPoint2" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=141841240]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, -55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.441624, 0.5, -9.914059)
 
 [node name="SpawnPoint3" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=2043293066]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.636032, 0.5, 14.167402)
 
 [node name="SpawnPoint4" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=413023564]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.00016, 0.5, 29.016449)
 
 [node name="SpawnPoint5" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=981000005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7619185, 0.5, 9.06916)
 
 [node name="SpawnPoint6" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=981000006]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0.5, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.985657, 0.5, 5)
 
 [node name="SpawnPoint7" type="Marker3D" parent="RootEntities/SpawnPoints" unique_id=981000007]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0.5, -15)
@@ -1666,6 +1672,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -45)
 
 [node name="Groomba" parent="RootEntities" unique_id=1990442305 instance=ExtResource("3_uw6uw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.585772, 0.10000048, 60.813393)
+
+[node name="PossessedCart" parent="RootEntities" unique_id=1990442306 instance=ExtResource("4_cart")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0.1, -55)
 
 [node name="LaserCamera" parent="RootEntities" unique_id=2054540787 instance=ExtResource("41_r2yec")]
 transform = Transform3D(-0.96592593, -1.1307285e-08, -0.25881916, -0.18301275, 0.7071067, 0.6830127, 0.18301281, 0.7071067, -0.6830126, 68.256584, 8.577382, -67.424545)

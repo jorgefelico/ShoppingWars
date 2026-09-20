@@ -268,7 +268,7 @@ public partial class ArenaZoneManager : Node3D
         AudioStream warningSound = GameManager.Instance.TransitionChime;
         if (warningSound != null)
         {
-            GameManager.Instance.PlaySoundOnSpeakers(warningSound, 0.0f, true);
+            GameManager.Instance.PlaySoundOnSpeakers(warningSound, duckMusic: true);
         }
     }
 

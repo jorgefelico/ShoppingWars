@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="8_k7acu"]
 [ext_resource type="LightmapGIData" uid="uid://b2nn824eo2o5k" path="res://Bakes/world.lmbake" id="9_0fj1v"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_5v1tr"]
+[ext_resource type="PackedScene" uid="uid://cx4m183k9ptw1" path="res://Prefabs/PossessedCart.tscn" id="10_cart"]
 [ext_resource type="Material" uid="uid://bpxyim80h2phd" path="res://Materials/wall_prototype.tres" id="9_ikia7"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="10_0fj1v"]
 
@@ -788,6 +789,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.869183, 0.8930963, 36.9277
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.67864, 0.6515336, 36.39016)
 
 [node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("9_5v1tr")]
+
+[node name="PossessedCart" parent="." unique_id=1744360656 instance=ExtResource("10_cart")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.0, 0.5, -15.0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=752296625]
 environment = SubResource("Environment_y1t4u")

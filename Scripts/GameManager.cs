@@ -40,14 +40,18 @@ public partial class GameManager : Node
     [Export] public bool UseCeilingSpeakers = true;
     [Export] public int CeilingSpeakerCount = 16;
     [Export] public float CeilingSpeakerHeight = 8.7f;
-    [Export] public float SpeakerVolumeDb = -6.0f;
-    [Export] public float SpeakerTransitionSoundVolumeDb = 4.0f;
+    [Export] public float SpeakerVolumeDb = -12.0f;
+    [Export] public float SpeakerTransitionSoundVolumeDb = -2.5f;
+    [Export] public float SpeakerVoiceVolumeDb = 1.0f;
     [Export] public float DuckedMusicVolumeDb = -34.0f;
     [Export] public float MusicDuckFadeDuration = 0.2f;
     [Export] public float MusicRestoreFadeDuration = 0.8f;
-    [Export] public float SpeakerUnitSize = 12.0f;
-    [Export] public float SpeakerMaxDistance = 50.0f;
-    [Export] public float SpeakerPanningStrength = 0.7f;
+    [Export] public float SpeakerUnitSize = 6.0f;
+    [Export] public float SpeakerVoiceUnitSize = 5.0f;
+    [Export] public float SpeakerMaxDistance = 45.0f;
+    [Export] public float SpeakerVoiceMaxDistance = 40.0f;
+    [Export] public float SpeakerPanningStrength = 1.0f;
+    [Export] public bool EnableAcousticPropagationDelay = true;
     [Export] public int SpeakerPlacementSeed = 42;
     [Export] public PackedScene CeilingSpeakerPrefab;
 
@@ -86,8 +90,10 @@ public partial class GameManager : Node
     {
         Instance = this;
 
+        SettingsManager.EnsureAudioBuses();
+
         _audioPlayer = new AudioStreamPlayer();
-        _audioPlayer.Bus = "SFX";
+        _audioPlayer.Bus = "Intercom";
         AddChild(_audioPlayer);
 
         if (ManagerAnnouncer.Instance == null)
@@ -1174,6 +1180,14 @@ public partial class GameManager : Node
         };
         speakerRoot.AddChild(grill);
 
+        MeshInstance3D led = new MeshInstance3D
+        {
+            Name = "BroadcastLed",
+            Mesh = new SphereMesh { Radius = 0.02f, Height = 0.04f },
+            Position = new Vector3(0, -0.565f, 0.2f)
+        };
+        speakerRoot.AddChild(led);
+
         player = new AudioStreamPlayer3D
         {
             Name = "AudioPlayer",
@@ -1208,30 +1222,36 @@ public partial class GameManager : Node
         player.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
         player.MaxPolyphony = 1;
         player.VolumeDb = EffectiveMusicVolumeDb;
+        player.AttenuationFilterCutoffHz = 5000.0f;
+        player.AttenuationFilterDb = -12.0f;
     }
 
     private void ConfigureSpeakerSFXPlayer(AudioStreamPlayer3D sfxPlayer)
     {
-        sfxPlayer.Bus = "SFX";
+        sfxPlayer.Bus = "Intercom";
         sfxPlayer.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
-        sfxPlayer.UnitSize = SpeakerUnitSize + 2.0f;
-        sfxPlayer.MaxDistance = SpeakerMaxDistance + 10.0f;
+        sfxPlayer.UnitSize = SpeakerVoiceUnitSize + 1.0f;
+        sfxPlayer.MaxDistance = SpeakerVoiceMaxDistance + 5.0f;
         sfxPlayer.PanningStrength = SpeakerPanningStrength;
         sfxPlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
         sfxPlayer.MaxPolyphony = 2;
         sfxPlayer.VolumeDb = SpeakerTransitionSoundVolumeDb;
+        sfxPlayer.AttenuationFilterCutoffHz = 5000.0f;
+        sfxPlayer.AttenuationFilterDb = -15.0f;
     }
 
     private void ConfigureSpeakerVoicePlayer(AudioStreamPlayer3D voicePlayer)
     {
-        voicePlayer.Bus = "SFX";
+        voicePlayer.Bus = "Intercom";
         voicePlayer.AttenuationModel = AudioStreamPlayer3D.AttenuationModelEnum.InverseDistance;
-        voicePlayer.UnitSize = SpeakerUnitSize + 4.0f;
-        voicePlayer.MaxDistance = SpeakerMaxDistance + 15.0f;
+        voicePlayer.UnitSize = SpeakerVoiceUnitSize;
+        voicePlayer.MaxDistance = SpeakerVoiceMaxDistance;
         voicePlayer.PanningStrength = SpeakerPanningStrength;
         voicePlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
         voicePlayer.MaxPolyphony = 1;
-        voicePlayer.VolumeDb = 6.0f;
+        voicePlayer.VolumeDb = SpeakerVoiceVolumeDb;
+        voicePlayer.AttenuationFilterCutoffHz = 4500.0f;
+        voicePlayer.AttenuationFilterDb = -18.0f;
     }
 
     private void SetupSpeakerPlayers()
@@ -1256,33 +1276,85 @@ public partial class GameManager : Node
         _ceilingSpeakers[0].Finished += OnMusicTrackFinished;
     }
 
+    private int _voicePlayToken = 0;
+    private int _sfxPlayToken = 0;
+
+    public Vector3 GetListenerPosition()
+    {
+        var viewport = GetViewport();
+        var camera = viewport?.GetCamera3D();
+        if (camera != null && GodotObject.IsInstanceValid(camera))
+        {
+            return camera.GlobalPosition;
+        }
+
+        var player = PlayerController.Instance;
+        if (player != null && GodotObject.IsInstanceValid(player))
+        {
+            return player.GlobalPosition + new Vector3(0, 1.6f, 0);
+        }
+
+        return new Vector3(0, 1.7f, 0);
+    }
+
     public void PlaySoundOnSpeakers(AudioStream sound, float volumeDb = float.NaN, bool duckMusic = false)
     {
         if (sound == null) return;
 
         float targetVol = float.IsNaN(volumeDb) ? SpeakerTransitionSoundVolumeDb : volumeDb;
+        int currentToken = ++_sfxPlayToken;
 
-        if (UseCeilingSpeakers && _ceilingSpeakerSFX.Count > 0)
+        var targetList = (_ceilingSpeakerSFX.Count > 0) ? _ceilingSpeakerSFX : _ceilingSpeakers;
+
+        if (UseCeilingSpeakers && targetList.Count > 0)
         {
-            foreach (var sfx in _ceilingSpeakerSFX)
+            Vector3 listenerPos = GetListenerPosition();
+            float minDistance = float.MaxValue;
+            foreach (var sfx in targetList)
+            {
+                if (GodotObject.IsInstanceValid(sfx) && sfx.IsInsideTree())
+                {
+                    float d = sfx.GlobalPosition.DistanceTo(listenerPos);
+                    if (d < minDistance) minDistance = d;
+                }
+            }
+
+            foreach (var sfx in targetList)
             {
                 if (GodotObject.IsInstanceValid(sfx) && sfx.IsInsideTree())
                 {
                     sfx.VolumeDb = targetVol;
                     sfx.Stream = sound;
-                    sfx.Play();
-                }
-            }
-        }
-        else if (UseCeilingSpeakers && _ceilingSpeakers.Count > 0)
-        {
-            // Fallback if SFXPlayer wasn't found on speakers
-            foreach (var speaker in _ceilingSpeakers)
-            {
-                if (GodotObject.IsInstanceValid(speaker) && speaker.IsInsideTree())
-                {
-                    speaker.Stream = sound;
-                    speaker.Play();
+
+                    if (!EnableAcousticPropagationDelay || minDistance >= float.MaxValue)
+                    {
+                        sfx.Play();
+                    }
+                    else
+                    {
+                        float dist = sfx.GlobalPosition.DistanceTo(listenerPos);
+                        float deltaDist = Mathf.Max(0f, dist - minDistance);
+                        float delaySec = Mathf.Clamp(deltaDist / 343.0f, 0f, 0.10f);
+
+                        if (delaySec <= 0.005f)
+                        {
+                            sfx.Play();
+                        }
+                        else
+                        {
+                            var timer = GetTree().CreateTimer(delaySec);
+                            timer.Timeout += () =>
+                            {
+                                if (_sfxPlayToken == currentToken
+                                    && GodotObject.IsInstanceValid(sfx)
+                                    && sfx.IsInsideTree()
+                                    && sfx.Stream == sound)
+                                {
+                                    sfx.Play();
+                                }
+                            };
+                        }
+                    }
                 }
             }
         }
@@ -1303,17 +1375,59 @@ public partial class GameManager : Node
     {
         if (sound == null) return;
 
-        float targetVol = float.IsNaN(volumeDb) ? 6.0f : volumeDb;
+        float targetVol = float.IsNaN(volumeDb) ? SpeakerVoiceVolumeDb : volumeDb;
+        int currentToken = ++_voicePlayToken;
 
         if (UseCeilingSpeakers && _ceilingSpeakerVoice.Count > 0)
         {
+            Vector3 listenerPos = GetListenerPosition();
+            float minDistance = float.MaxValue;
+            foreach (var voice in _ceilingSpeakerVoice)
+            {
+                if (GodotObject.IsInstanceValid(voice) && voice.IsInsideTree())
+                {
+                    float d = voice.GlobalPosition.DistanceTo(listenerPos);
+                    if (d < minDistance) minDistance = d;
+                }
+            }
+
             foreach (var voice in _ceilingSpeakerVoice)
             {
                 if (GodotObject.IsInstanceValid(voice) && voice.IsInsideTree())
                 {
                     voice.VolumeDb = targetVol;
                     voice.Stream = sound;
-                    voice.Play();
+
+                    if (!EnableAcousticPropagationDelay || minDistance >= float.MaxValue)
+                    {
+                        voice.Play();
+                    }
+                    else
+                    {
+                        float dist = voice.GlobalPosition.DistanceTo(listenerPos);
+                        float deltaDist = Mathf.Max(0f, dist - minDistance);
+                        // Speed of sound = 343 m/s; clamp arrival stagger up to 120ms
+                        float delaySec = Mathf.Clamp(deltaDist / 343.0f, 0f, 0.12f);
+
+                        if (delaySec <= 0.005f)
+                        {
+                            voice.Play();
+                        }
+                        else
+                        {
+                            var timer = GetTree().CreateTimer(delaySec);
+                            timer.Timeout += () =>
+                            {
+                                if (_voicePlayToken == currentToken
+                                    && GodotObject.IsInstanceValid(voice)
+                                    && voice.IsInsideTree()
+                                    && voice.Stream == sound)
+                                {
+                                    voice.Play();
+                                }
+                            };
+                        }
+                    }
                 }
             }
         }
@@ -1338,6 +1452,7 @@ public partial class GameManager : Node
 
     public void StopSpeakerVoice()
     {
+        _voicePlayToken++;
         foreach (var voice in _ceilingSpeakerVoice)
         {
             if (GodotObject.IsInstanceValid(voice) && voice.Playing)
@@ -1349,6 +1464,7 @@ public partial class GameManager : Node
 
     public void StopSpeakerSFX()
     {
+        _sfxPlayToken++;
         foreach (var sfx in _ceilingSpeakerSFX)
         {
             if (GodotObject.IsInstanceValid(sfx) && sfx.Playing)

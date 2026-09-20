@@ -63,10 +63,10 @@ public partial class ManagerAnnouncer : Node
 
         SettingsManager.EnsureAudioBuses();
 
-        _voicePlayer = new AudioStreamPlayer { Name = "VoicePlayer", Bus = "SFX", VolumeDb = 3.5f };
+        _voicePlayer = new AudioStreamPlayer { Name = "VoicePlayer", Bus = "Intercom", VolumeDb = 1.0f };
         AddChild(_voicePlayer);
 
-        _chimePlayer = new AudioStreamPlayer { Name = "ChimePlayer", Bus = "SFX", VolumeDb = 0.5f };
+        _chimePlayer = new AudioStreamPlayer { Name = "ChimePlayer", Bus = "Intercom", VolumeDb = -2.5f };
         AddChild(_chimePlayer);
 
         if (IntercomChime == null)
@@ -185,7 +185,7 @@ public partial class ManagerAnnouncer : Node
         {
             if (useSpatialSpeakers)
             {
-                GameManager.Instance.PlaySoundOnSpeakers(IntercomChime, volumeDb: 4.0f, duckMusic: true);
+                GameManager.Instance.PlaySoundOnSpeakers(IntercomChime, duckMusic: true);
             }
             else
             {
@@ -239,7 +239,7 @@ public partial class ManagerAnnouncer : Node
         bool useSpatialSpeakers = GameManager.Instance != null && GameManager.Instance.HasActiveCeilingSpeakers;
         if (useSpatialSpeakers && GameManager.Instance != null)
         {
-            GameManager.Instance.PlayVoiceOnSpeakers(voiceStream, volumeDb: 6.0f, duckMusic: true);
+            GameManager.Instance.PlayVoiceOnSpeakers(voiceStream, duckMusic: true);
         }
         else
         {
@@ -518,6 +518,27 @@ public partial class ManagerAnnouncer : Node
     public void AnnounceBounty(string playerName, int amount)
     {
         Announce($"Attention shoppers: {playerName} is taking ALL the discounts! A ${amount} STORE BOUNTY has been placed on their head! Terminate their discount!", ManagerEmotion.Greedy, "res://Sounds/henderson_bounty_start_01.wav", 5.0f, priority: 4);
+    }
+
+    public void AnnounceCartRam(string playerName)
+    {
+        string[] lines = {
+            "Attention shoppers: Cartsferatu claims another victim! Return all carts to the corral immediately!",
+            "Clean up in Aisle 3: A runaway shopping cart just turned a customer into a pancake!",
+            "Whoever greased the squeaky wheel on Cart #666, your severance check is ready at customer service!",
+            "Store safety reminder: Shopping carts have the right of way. Especially the possessed ones."
+        };
+        Announce(lines[GD.Randi() % lines.Length], ManagerEmotion.Panicked, priority: 2);
+    }
+
+    public void AnnounceCartDestroyed()
+    {
+        string[] lines = {
+            "Attention shoppers: The possessed cart has been destroyed! Cart deposits will not be refunded.",
+            "Cartsferatu is down! Scrap metal reclamation protocol active in Aisle 5!",
+            "Thank you for destroying that cart. Its squeaky wheel was driving me insane anyway."
+        };
+        Announce(lines[GD.Randi() % lines.Length], ManagerEmotion.Smug, priority: 2);
     }
 
     private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".ogg" };

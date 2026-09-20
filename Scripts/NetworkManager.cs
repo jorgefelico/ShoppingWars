@@ -96,13 +96,23 @@ public partial class NetworkManager : Node
 
         // 4. Sync current Groomba state and smoke to new client
         Groomba groomba = GetTree().CurrentScene?.GetNodeOrNull<Groomba>("Groomba") ?? 
-                          GetTree().CurrentScene?.GetNodeOrNull<Groomba>("WorldStuff/Groomba");
+                          GetTree().CurrentScene?.GetNodeOrNull<Groomba>("WorldStuff/Groomba") ??
+                          GetTree().CurrentScene?.GetNodeOrNull<Groomba>("RootEntities/Groomba");
         if (groomba != null)
         {
             groomba.RpcId(senderId, nameof(PatrolEnemy.RpcSyncPatrolState), (int)groomba.PatrolState);
             if (groomba.Health != null && groomba.Health.CurrentHealth <= groomba.Health.MaxHealth / 2)
             {
                 groomba.RpcId(senderId, nameof(Groomba.RpcSetSmoke), true);
+            }
+        }
+
+        // 4b. Sync PossessedCart (Cartsferatu) state to new client
+        foreach (Node cartNode in GetTree().GetNodesInGroup("PossessedCarts"))
+        {
+            if (cartNode is PossessedCart cart && GodotObject.IsInstanceValid(cart))
+            {
+                cart.RpcId(senderId, "RpcSyncCartState", (int)cart.PatrolState);
             }
         }
 

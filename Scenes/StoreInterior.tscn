@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" uid="uid://bqo6tswn34s4n" path="res://Prefabs/Products/Glizzy.tscn" id="53_u58hr"]
 [ext_resource type="PackedScene" uid="uid://grm1pkumumug" path="res://Models/usflag.glb" id="54_0v6be"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
+[ext_resource type="PackedScene" uid="uid://b8potatogun01prod" path="res://Prefabs/Products/PotatoGun.tscn" id="ext_potatogun"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
 [ext_resource type="PackedScene" uid="uid://8pec71wcoeo7" path="res://Prefabs/Store_GondolaAisle24m.tscn" id="P_Aisle24"]
 [ext_resource type="PackedScene" uid="uid://c47mufmp5i703" path="res://Prefabs/Products/Apple.tscn" id="P_Apple"]
@@ -223,7 +224,7 @@ spawn_path = NodePath("..")
 [node name="SpawnedProjectiles" type="Node3D" parent="." unique_id=577647498]
 
 [node name="ProjectileSpawner" type="MultiplayerSpawner" parent="." unique_id=1052041002]
-_spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq")
+_spawnable_scenes = PackedStringArray("uid://c47mufmp5i703", "uid://34h8fibcrltq", "uid://potatoprojectile01")
 spawn_path = NodePath("../SpawnedProjectiles")
 
 [node name="LightmapGI" type="LightmapGI" parent="." unique_id=1960108528]
@@ -1832,6 +1833,9 @@ transform = Transform3D(1, 0, 0, 0, -0.0055815186, -0.99998444, 0, 0.99998444, -
 
 [node name="Sledgehammer3" parent="RootEntities" unique_id=1173864728 instance=ExtResource("50_tlmvn")]
 transform = Transform3D(1, 0, 0, 0, -0.0055815186, -0.99998444, 0, 0.99998444, -0.0055815186, -14.858701, 1.0608943, 31.794006)
+
+[node name="PotatoGun" parent="RootEntities" unique_id=981273645 instance=ExtResource("ext_potatogun")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.858701, 1.0608943, 27.2)
 
 [node name="PipeWrench" parent="RootEntities" unique_id=561746369 instance=ExtResource("51_tlmvn")]
 transform = Transform3D(1, 0, 0, 0, 0.01252991, -0.99992156, 0, 0.99992156, 0.01252991, -20.189827, 0.44049, -18.097588)

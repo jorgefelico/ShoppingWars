@@ -63,10 +63,10 @@ public partial class ManagerAnnouncer : Node
 
         SettingsManager.EnsureAudioBuses();
 
-        _voicePlayer = new AudioStreamPlayer { Name = "VoicePlayer", Bus = "Intercom", VolumeDb = 1.0f };
+        _voicePlayer = new AudioStreamPlayer { Name = "VoicePlayer", Bus = "Intercom", VolumeDb = 4.5f };
         AddChild(_voicePlayer);
 
-        _chimePlayer = new AudioStreamPlayer { Name = "ChimePlayer", Bus = "Intercom", VolumeDb = -2.5f };
+        _chimePlayer = new AudioStreamPlayer { Name = "ChimePlayer", Bus = "Intercom", VolumeDb = 1.5f };
         AddChild(_chimePlayer);
 
         if (IntercomChime == null)
@@ -448,6 +448,19 @@ public partial class ManagerAnnouncer : Node
             if (lowerWeapon.Contains("propane"))
             {
                 Announce("EXPLOSION IN HARDWARE! Who sold them a live propane tank?! That's a direct code violation!", ManagerEmotion.Panicked, "res://Sounds/henderson_kill_propanetank.wav", 4.5f, priority: 1);
+                return;
+            }
+            if (lowerWeapon.Contains("potato") || lowerWeapon.Contains("spud"))
+            {
+                string[] potatoLines = new[]
+                {
+                    "POTATO CANNON DIRECT HIT! Mashed, boiled, and served cold on Aisle 3!",
+                    "Idaho sends its regards! That shopper was eliminated by high-velocity carbohydrate!",
+                    "Did someone build an artillery piece out of PVC pipe?! That is NOT OSHA approved!",
+                    "Direct spud to the skull! Clean up at customer service!"
+                };
+                string chosenLine = potatoLines[GD.Randi() % potatoLines.Length];
+                Announce(chosenLine, ManagerEmotion.Megaphone, null, 4.5f, priority: 1);
                 return;
             }
         }

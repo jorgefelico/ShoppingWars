@@ -83,6 +83,11 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     public Product HeldItem { get; private set; }
     private float _throwCooldownTimer = 0f;
     public float ThrowCooldownRemaining => _throwCooldownTimer;
+    private float _potatoFireCooldownTimer = 0f;
+    private Tween _potatoRecoilTween;
+    private Control _potatoAmmoWidget;
+    private Label _potatoAmmoCountLabel;
+    private Label _potatoAmmoHintLabel;
     IInteractable _highlightedItem;
     bool InputDisabled = false;
     public bool IsSpectating { get; private set; } = false;
@@ -817,6 +822,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         {
             _meleeCooldownTimer = Mathf.Max(0f, _meleeCooldownTimer - (float)delta);
         }
+        if (_potatoFireCooldownTimer > 0f)
+        {
+            _potatoFireCooldownTimer = Mathf.Max(0f, _potatoFireCooldownTimer - (float)delta);
+        }
+        if (HeldItem is PotatoGun pgActive && pgActive.IsReloading)
+        {
+            UpdatePotatoAmmoHUD();
+        }
 
         if (!IsMultiplayerAuthority()) return;
         if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)) return;
@@ -972,6 +985,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 p.Visible = (HeldItem != null && p == HeldItem);
             }
         }
+        UpdatePotatoAmmoHUD();
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
@@ -987,6 +1001,8 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.DeactivatePhysicsAndSync();
         item.Reparent(ItemHand);
         item.Position = Vector3.Zero;
+        item.Rotation = Vector3.Zero;
+        item.Scale = Vector3.One;
         item.Visible = false;
 
         _playerAudio?.PlayPickupChime();
@@ -1221,7 +1237,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         
         if (isUseKeyPressed && !_wasUseKeyPressed)
         {
-            if (HeldItem != null && HeldItem.IsConsumable && HeldItem.HealAmount > 0)
+            if (HeldItem is PotatoGun potatoGun)
+            {
+                if (potatoGun.TryReload(this))
+                {
+                    UpdatePotatoAmmoHUD();
+                }
+            }
+            else if (HeldItem != null && HeldItem.IsConsumable && HeldItem.HealAmount > 0)
             {
                 if (Health != null && Health.CurrentHealth < Health.MaxHealth)
                 {
@@ -1268,13 +1291,22 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
     private void HandleThrow()
     {
-        // Throwing
-        if (Input.IsActionJustPressed("fire") && HeldItem != null && GameManager.Instance?.CurrentPhase == GamePhase.BattleRoyale)
+        // Throwing / Firing
+        if (Input.IsActionJustPressed("fire") && HeldItem != null)
         {
             if (_throwCooldownTimer > 0f || _isThrowing || _isMeleeSwinging || _punchTimer > 0f) return;
-            _throwCooldownTimer = ThrowCooldown;
 
-            StartThrowSequence();
+            if (HeldItem is PotatoGun potatoGun)
+            {
+                HandlePotatoGunFire(potatoGun);
+                return;
+            }
+
+            if (GameManager.Instance == null || GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
+            {
+                _throwCooldownTimer = ThrowCooldown;
+                StartThrowSequence();
+            }
         }
     }
 
@@ -1406,6 +1438,290 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                     }
                 }
             }
+        }
+    }
+
+    private void HandlePotatoGunFire(PotatoGun potatoGun)
+    {
+        if (_potatoFireCooldownTimer > 0f || potatoGun.IsReloading) return;
+
+        if (potatoGun.CurrentAmmo <= 0)
+        {
+            potatoGun.PlayEmptySound();
+            ShowAmmoAlert("⚠️ NO SPUDS! Press [R] to Reload");
+            potatoGun.TryReload(this);
+            UpdatePotatoAmmoHUD();
+            return;
+        }
+
+        _potatoFireCooldownTimer = potatoGun.FireRate;
+        _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.18f, 0f, 1f);
+
+        Vector3 camPos = Camera != null ? Camera.GlobalPosition : GlobalPosition;
+        Vector3 camForward = Camera != null ? -Camera.GlobalBasis.Z : -GlobalBasis.Z;
+        Vector3 aimPoint = camPos + camForward * 35.0f;
+
+        var spaceState = GetWorld3D()?.DirectSpaceState;
+        if (spaceState != null)
+        {
+            var rayQuery = PhysicsRayQueryParameters3D.Create(camPos, camPos + camForward * 55.0f);
+            rayQuery.CollisionMask = 1 | 2; // World and Players
+            rayQuery.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+            var rayHit = spaceState.IntersectRay(rayQuery);
+            if (rayHit.Count > 0 && rayHit.ContainsKey("position"))
+            {
+                aimPoint = (Vector3)rayHit["position"];
+            }
+        }
+
+        Vector3 muzzlePos = potatoGun.GetMuzzleGlobalPosition();
+        if ((muzzlePos - camPos).Dot(camForward) < 0.3f && Camera != null)
+        {
+            muzzlePos = camPos + camForward * 0.75f + Camera.GlobalBasis.X * 0.22f + (-Camera.GlobalBasis.Y * 0.12f);
+        }
+
+        Vector3 launchDir = (aimPoint - muzzlePos).Normalized();
+        float perkSpeedMultiplier = (CurrentPerk == PlayerPerk.PowerArm) ? 1.30f : 1.0f;
+        float speed = potatoGun.ProjectileSpeed * perkSpeedMultiplier;
+        Vector3 launchVelocity = launchDir * speed;
+        bool isSuperSpud = potatoGun.HasSuperSpuds;
+
+        PlayPotatoGunRecoil();
+
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcFirePotato), muzzlePos, launchVelocity, isSuperSpud);
+        }
+        else
+        {
+            RpcFirePotato(muzzlePos, launchVelocity, isSuperSpud);
+        }
+
+        UpdatePotatoAmmoHUD();
+        InventoryBar?.Refresh(Inventory, Inventory?.selectedItemIndex ?? 0);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcFirePotato(Vector3 muzzlePos, Vector3 launchVelocity, bool isSuperSpud = false)
+    {
+        if (HeldItem is PotatoGun pg)
+        {
+            pg.OnFired(muzzlePos, launchVelocity);
+        }
+        else if (ItemHand != null)
+        {
+            foreach (Node child in ItemHand.GetChildren())
+            {
+                if (child is PotatoGun remotePg && remotePg.Visible)
+                {
+                    remotePg.OnFired(muzzlePos, launchVelocity);
+                    break;
+                }
+            }
+        }
+
+        if (!IsMultiplayerAuthority())
+        {
+            PlayPotatoGunRecoil();
+        }
+
+        SpawnPotatoProjectile(muzzlePos, launchVelocity, isSuperSpud);
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcFirePotato), muzzlePos, launchVelocity, isSuperSpud);
+                    }
+                }
+            }
+        }
+    }
+
+    private void SpawnPotatoProjectile(Vector3 muzzlePos, Vector3 launchVelocity, bool isSuperSpud = false)
+    {
+        PackedScene projScene = GD.Load<PackedScene>("res://Prefabs/PotatoProjectile.tscn");
+        if (projScene == null) return;
+
+        PotatoProjectile proj = projScene.Instantiate<PotatoProjectile>();
+        if (proj == null) return;
+
+        proj.Shooter = this;
+        proj.IsSuperSpud = isSuperSpud;
+
+        Node targetParent = GetTree().CurrentScene?.GetNodeOrNull("SpawnedProjectiles") ?? GetTree().CurrentScene;
+        if (targetParent != null)
+        {
+            targetParent.AddChild(proj);
+            proj.GlobalPosition = muzzlePos;
+            proj.LinearVelocity = launchVelocity;
+
+            if (launchVelocity.LengthSquared() > 1.0f)
+            {
+                proj.LookAt(muzzlePos + launchVelocity.Normalized(), Vector3.Up);
+            }
+
+            proj.AddCollisionExceptionWith(this);
+            if (HeldItem != null)
+            {
+                proj.AddCollisionExceptionWith(HeldItem);
+            }
+        }
+    }
+
+    private void PlayPotatoGunRecoil()
+    {
+        if (ItemHand == null) return;
+
+        _potatoRecoilTween?.Kill();
+        _potatoRecoilTween = CreateTween();
+
+        Vector3 kickPos = _defaultItemHandPosition + new Vector3(0.01f, 0.04f, 0.12f);
+        Vector3 kickRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(12f), Mathf.DegToRad(-3f), Mathf.DegToRad(2f));
+
+        _potatoRecoilTween.TweenProperty(ItemHand, "position", kickPos, 0.04f)
+            .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+        _potatoRecoilTween.Parallel().TweenProperty(ItemHand, "rotation", kickRot, 0.04f)
+            .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+
+        _potatoRecoilTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.16f)
+            .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        _potatoRecoilTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.16f)
+            .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+    }
+
+    public void PlayPotatoGunReloadAnim()
+    {
+        if (ItemHand == null) return;
+
+        _potatoRecoilTween?.Kill();
+        _potatoRecoilTween = CreateTween();
+
+        Vector3 lowerPos = _defaultItemHandPosition + new Vector3(0.0f, -0.10f, 0.05f);
+        Vector3 pumpPos = _defaultItemHandPosition + new Vector3(-0.02f, -0.06f, -0.06f);
+
+        _potatoRecoilTween.TweenProperty(ItemHand, "position", lowerPos, 0.25f)
+            .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        _potatoRecoilTween.TweenProperty(ItemHand, "position", pumpPos, 0.35f)
+            .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.InOut);
+        _potatoRecoilTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.35f)
+            .SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+
+        UpdatePotatoAmmoHUD();
+    }
+
+    public void OnPotatoGunReloadComplete()
+    {
+        UpdatePotatoAmmoHUD();
+        InventoryBar?.Refresh(Inventory, Inventory?.selectedItemIndex ?? 0);
+    }
+
+    private void EnsurePotatoAmmoHUD()
+    {
+        if (_potatoAmmoWidget != null || CrossHair == null || !IsMultiplayerAuthority()) return;
+
+        _potatoAmmoWidget = new Control
+        {
+            Name = "PotatoAmmoWidget",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Visible = false
+        };
+        _potatoAmmoWidget.AnchorLeft = 0.5f;
+        _potatoAmmoWidget.AnchorRight = 0.5f;
+        _potatoAmmoWidget.AnchorTop = 0.5f;
+        _potatoAmmoWidget.AnchorBottom = 0.5f;
+        _potatoAmmoWidget.OffsetLeft = -120f;
+        _potatoAmmoWidget.OffsetRight = 120f;
+        _potatoAmmoWidget.OffsetTop = 36f;
+        _potatoAmmoWidget.OffsetBottom = 96f;
+
+        var vBox = new VBoxContainer
+        {
+            Alignment = BoxContainer.AlignmentMode.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        vBox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _potatoAmmoWidget.AddChild(vBox);
+
+        _potatoAmmoCountLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        _potatoAmmoCountLabel.AddThemeFontSizeOverride("font_size", 18);
+        _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.88f, 0.25f));
+        _potatoAmmoCountLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _potatoAmmoCountLabel.AddThemeConstantOverride("outline_size", 4);
+        vBox.AddChild(_potatoAmmoCountLabel);
+
+        _potatoAmmoHintLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        _potatoAmmoHintLabel.AddThemeFontSizeOverride("font_size", 11);
+        _potatoAmmoHintLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.85f, 0.85f));
+        _potatoAmmoHintLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _potatoAmmoHintLabel.AddThemeConstantOverride("outline_size", 3);
+        vBox.AddChild(_potatoAmmoHintLabel);
+
+        CrossHair.AddChild(_potatoAmmoWidget);
+    }
+
+    public void UpdatePotatoAmmoHUD()
+    {
+        if (!IsMultiplayerAuthority()) return;
+        EnsurePotatoAmmoHUD();
+        if (_potatoAmmoWidget == null) return;
+
+        if (HeldItem is PotatoGun pg)
+        {
+            _potatoAmmoWidget.Visible = true;
+            if (pg.IsReloading)
+            {
+                _potatoAmmoCountLabel.Text = "🔄 RELOADING...";
+                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(0.35f, 0.85f, 1.0f));
+                _potatoAmmoHintLabel.Text = "Pumping PVC Air Chamber...";
+            }
+            else if (pg.CurrentAmmo <= 0)
+            {
+                _potatoAmmoCountLabel.Text = "⚠️ 0 / " + pg.MaxAmmo + " SPUDS";
+                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.25f, 0.25f));
+                _potatoAmmoHintLabel.Text = "PRESS [R] TO RELOAD";
+            }
+            else
+            {
+                if (pg.HasSuperSpuds)
+                {
+                    _potatoAmmoCountLabel.Text = $"🥔✨ {pg.CurrentAmmo} / {pg.MaxAmmo} SUPER SPUDS";
+                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.65f, 0.15f));
+                    _potatoAmmoHintLabel.Text = "[LMB] Fire Super Spud (+15 DMG!)  •  [RMB] Club";
+                }
+                else
+                {
+                    _potatoAmmoCountLabel.Text = $"🥔 {pg.CurrentAmmo} / {pg.MaxAmmo} SPUDS";
+                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.88f, 0.25f));
+                    _potatoAmmoHintLabel.Text = "[LMB] Fire Spud  •  [RMB] PVC Club  •  [R] Pump / Load Spuds";
+                }
+            }
+        }
+        else
+        {
+            _potatoAmmoWidget.Visible = false;
+        }
+    }
+
+    public void ShowAmmoAlert(string message)
+    {
+        if (_potatoAmmoHintLabel != null)
+        {
+            _potatoAmmoHintLabel.Text = message;
+            _potatoAmmoHintLabel.AddThemeColorOverride("font_color", new Color(1f, 0.3f, 0.3f));
         }
     }
 

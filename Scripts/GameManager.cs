@@ -41,15 +41,15 @@ public partial class GameManager : Node
     [Export] public int CeilingSpeakerCount = 16;
     [Export] public float CeilingSpeakerHeight = 8.7f;
     [Export] public float SpeakerVolumeDb = -12.0f;
-    [Export] public float SpeakerTransitionSoundVolumeDb = -2.5f;
-    [Export] public float SpeakerVoiceVolumeDb = 1.0f;
+    [Export] public float SpeakerTransitionSoundVolumeDb = 1.5f;
+    [Export] public float SpeakerVoiceVolumeDb = 4.5f;
     [Export] public float DuckedMusicVolumeDb = -34.0f;
     [Export] public float MusicDuckFadeDuration = 0.2f;
     [Export] public float MusicRestoreFadeDuration = 0.8f;
     [Export] public float SpeakerUnitSize = 6.0f;
-    [Export] public float SpeakerVoiceUnitSize = 5.0f;
+    [Export] public float SpeakerVoiceUnitSize = 8.5f;
     [Export] public float SpeakerMaxDistance = 45.0f;
-    [Export] public float SpeakerVoiceMaxDistance = 40.0f;
+    [Export] public float SpeakerVoiceMaxDistance = 55.0f;
     [Export] public float SpeakerPanningStrength = 1.0f;
     [Export] public bool EnableAcousticPropagationDelay = true;
     [Export] public int SpeakerPlacementSeed = 42;
@@ -1236,8 +1236,8 @@ public partial class GameManager : Node
         sfxPlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
         sfxPlayer.MaxPolyphony = 2;
         sfxPlayer.VolumeDb = SpeakerTransitionSoundVolumeDb;
-        sfxPlayer.AttenuationFilterCutoffHz = 5000.0f;
-        sfxPlayer.AttenuationFilterDb = -15.0f;
+        sfxPlayer.AttenuationFilterCutoffHz = 5500.0f;
+        sfxPlayer.AttenuationFilterDb = -10.0f;
     }
 
     private void ConfigureSpeakerVoicePlayer(AudioStreamPlayer3D voicePlayer)
@@ -1250,8 +1250,8 @@ public partial class GameManager : Node
         voicePlayer.DopplerTracking = AudioStreamPlayer3D.DopplerTrackingEnum.Disabled;
         voicePlayer.MaxPolyphony = 1;
         voicePlayer.VolumeDb = SpeakerVoiceVolumeDb;
-        voicePlayer.AttenuationFilterCutoffHz = 4500.0f;
-        voicePlayer.AttenuationFilterDb = -18.0f;
+        voicePlayer.AttenuationFilterCutoffHz = 6000.0f;
+        voicePlayer.AttenuationFilterDb = -8.0f;
     }
 
     private void SetupSpeakerPlayers()

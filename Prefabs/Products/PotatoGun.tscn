@@ -1,0 +1,129 @@
+[gd_scene format=3 uid="uid://bis3kugqmjxm6"]
+
+[ext_resource type="Script" path="res://Scripts/PotatoGun.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://Icons/potatogun.png" id="2_icon"]
+[ext_resource type="PackedScene" path="res://Models/potatogun.glb" id="3_model"]
+[ext_resource type="AudioStream" path="res://Sounds/potatogun_fire.wav" id="4_fire_snd"]
+[ext_resource type="AudioStream" path="res://Sounds/potatogun_reload.wav" id="5_rel_snd"]
+[ext_resource type="AudioStream" path="res://Sounds/potatogun_empty.wav" id="6_emp_snd"]
+[ext_resource type="Texture2D" uid="uid://dc5e8pin0lbvl" path="res://Textures/particles/smoke_04.png" id="7_smoke"]
+
+[sub_resource type="BoxShape3D" id="ColShape_PotatoGun"]
+size = Vector3(0.18, 0.34, 1.05)
+
+[sub_resource type="SceneReplicationConfig" id="SyncConfig_PotatoGun"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:linear_velocity")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:visible")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:scale")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:CurrentAmmo")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+
+[sub_resource type="QuadMesh" id="QuadMesh_puff"]
+size = Vector2(0.25, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_puff"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.96, 0.96, 0.96, 0.8)
+albedo_texture = ExtResource("7_smoke")
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_puff"]
+offsets = PackedFloat32Array(0, 0.2, 1)
+colors = PackedColorArray(1, 1, 1, 0.85, 1, 1, 1, 0.65, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_puff"]
+gradient = SubResource("Gradient_puff")
+use_hdr = true
+
+[sub_resource type="Curve" id="Curve_puff"]
+_limits = [0.0, 2.0, 0.0, 1.0]
+_data = [Vector2(0, 0.4), 0.0, 2.5, 0, 0, Vector2(1, 1.6), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_puff"]
+curve = SubResource("Curve_puff")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_puff"]
+emission_shape = 1
+emission_sphere_radius = 0.05
+direction = Vector3(0, 0, -1)
+spread = 28.0
+initial_velocity_min = 2.5
+initial_velocity_max = 5.0
+damping_min = 4.0
+damping_max = 8.0
+gravity = Vector3(0, 0.5, 0)
+scale_curve = SubResource("CurveTexture_puff")
+color_ramp = SubResource("GradientTexture1D_puff")
+
+[node name="PotatoGun" type="RigidBody3D"]
+collision_layer = 1
+collision_mask = 3
+mass = 2.8
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 4
+script = ExtResource("1_script")
+DisplayName = &"Potato Gun"
+Price = 35
+Damage = 45
+Icon = ExtResource("2_icon")
+ThrowMultiplier = 0.6
+MeleeDurability = 999
+CurrentAmmo = 6
+MaxAmmo = 6
+FireRate = 0.38
+ProjectileSpeed = 48.0
+ReloadTime = 1.4
+FireSound = ExtResource("4_fire_snd")
+ReloadSound = ExtResource("5_rel_snd")
+EmptySound = ExtResource("6_emp_snd")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.085, -0.245)
+shape = SubResource("ColShape_PotatoGun")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+delta_interval = 0.05
+replication_config = SubResource("SyncConfig_PotatoGun")
+
+[node name="Model" parent="." instance=ExtResource("3_model")]
+transform = Transform3D(0.58, 0, 0, 0, 0.58, 0, 0, 0, 0.58, 0, 0.145, -0.348)
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.145, -0.80)
+
+[node name="MuzzlePuff" type="GPUParticles3D" parent="Muzzle"]
+material_override = SubResource("StandardMaterial3D_puff")
+emitting = false
+amount = 12
+lifetime = 0.22
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_puff")
+draw_pass_1 = SubResource("QuadMesh_puff")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_fire_snd")
+unit_size = 14.0
+max_distance = 45.0
+bus = &"SFX"

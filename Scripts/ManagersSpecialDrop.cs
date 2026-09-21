@@ -23,7 +23,8 @@ public partial class ManagersSpecialDrop : StaticBody3D, IInteractable, IDamagea
         "res://Prefabs/Products/PillBottle.tscn",
         "res://Prefabs/Products/Watermelon.tscn",
         "res://Prefabs/Products/FlatScreenTV.tscn",
-        "res://Prefabs/Products/FireExtinguisher.tscn"
+        "res://Prefabs/Products/FireExtinguisher.tscn",
+        "res://Prefabs/Products/PotatoGun.tscn"
     };
 
     public override void _Ready()

@@ -39,6 +39,7 @@ public partial class Groomba : PatrolEnemy
 
     public override void _Ready()
     {
+        base._Ready();
         AddToGroup("PatrolEnemies");
         AddToGroup("Groombas");
 
@@ -227,7 +228,7 @@ public partial class Groomba : PatrolEnemy
         switch (PatrolState)
         {
             case PatrolEntityState.Patrol:
-                HandlePatrolState(ref velocity);
+                HandlePatrolState(delta, ref velocity);
                 break;
 
             case PatrolEntityState.Attack:
@@ -333,7 +334,7 @@ public partial class Groomba : PatrolEnemy
                         _isInvestigatingNoise = true;
                         _noiseInvestigationPos = player.GlobalPosition;
                         _investigateScanTimer = 0f;
-                        NavAgent.TargetPosition = player.GlobalPosition;
+                        SetFloorTargetPosition(player.GlobalPosition);
                         SetState(PatrolEntityState.Search);
 
                         if (Multiplayer.HasMultiplayerPeer())
@@ -515,7 +516,7 @@ public partial class Groomba : PatrolEnemy
             _noiseInvestigationPos = impactPos;
             _investigateScanTimer = 0f;
             _searchTimer = SearchDuration;
-            NavAgent.TargetPosition = impactPos;
+            SetFloorTargetPosition(impactPos);
             SetState(PatrolEntityState.Search);
 
             string[] noiseLines = isNearMiss
@@ -592,7 +593,7 @@ public partial class Groomba : PatrolEnemy
 
     #region State Handling
 
-    private void HandlePatrolState(ref Vector3 velocity)
+    private void HandlePatrolState(double delta, ref Vector3 velocity)
     {
         DetectPlayer();
         if (_targetPlayer != null && !_targetPlayer.Health.IsDead)
@@ -606,7 +607,7 @@ public partial class Groomba : PatrolEnemy
             SetRandomPatrolTarget();
         }
 
-        MoveAlongPath(PatrolSpeed, ref velocity);
+        MoveAlongPath(PatrolSpeed, delta, ref velocity);
     }
 
     private void HandleAttackState(double delta, ref Vector3 velocity)
@@ -632,13 +633,13 @@ public partial class Groomba : PatrolEnemy
         {
             _lostSightTimer = 0f;
             _lastKnownPlayerPos = _targetPlayer.GlobalPosition;
-            NavAgent.TargetPosition = _targetPlayer.GlobalPosition;
+            SetFloorTargetPosition(_targetPlayer.GlobalPosition);
         }
         else
         {
             // Player broke line of sight (ducked behind shelf) - rush towards last known position
             _lostSightTimer += (float)delta;
-            NavAgent.TargetPosition = _lastKnownPlayerPos;
+            SetFloorTargetPosition(_lastKnownPlayerPos);
 
             if (_lostSightTimer > 2.0f || NavAgent.IsNavigationFinished())
             {
@@ -651,7 +652,7 @@ public partial class Groomba : PatrolEnemy
             }
         }
 
-        MoveAlongPath(ChaseSpeed, ref velocity);
+        MoveAlongPath(ChaseSpeed, delta, ref velocity);
     }
 
     private void HandleSearchState(double delta, ref Vector3 velocity)
@@ -707,7 +708,7 @@ public partial class Groomba : PatrolEnemy
         }
 
         float speed = _isInvestigatingNoise ? InvestigateSpeed : PatrolSpeed;
-        MoveAlongPath(speed, ref velocity);
+        MoveAlongPath(speed, delta, ref velocity);
 
         if (_searchTimer <= 0f)
         {
@@ -736,8 +737,51 @@ public partial class Groomba : PatrolEnemy
         float distance = rng.RandfRange(4.0f, 8.0f);
 
         Vector3 targetPos = GlobalPosition + searchDir * distance;
+        targetPos.Y = 0.2f;
         Rid map = NavAgent.GetNavigationMap();
-        NavAgent.TargetPosition = NavigationServer3D.MapGetClosestPoint(map, targetPos);
+        if (map.IsValid)
+        {
+            Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, targetPos);
+            if (closest.Y <= 0.5f)
+            {
+                NavAgent.TargetPosition = closest;
+                return;
+            }
+        }
+        SetRandomPatrolTarget();
+    }
+
+    protected override void TriggerUnstuck()
+    {
+        base.TriggerUnstuck();
+        if (_faceDisplay != null)
+        {
+            _faceDisplay.Text = "O _ O";
+            _faceResetTimer = 0.6f;
+        }
+    }
+
+    protected override void OnUnstuckComplete()
+    {
+        base.OnUnstuckComplete();
+        if (PatrolState == PatrolEntityState.Search)
+        {
+            _isInvestigatingNoise = false;
+            _investigateScanTimer = 0f;
+            SetForwardSearchTarget();
+        }
+        else if (PatrolState == PatrolEntityState.Attack)
+        {
+            if (_targetPlayer != null && !CanSeePlayer(_targetPlayer, MaxChaseDistance))
+            {
+                _targetPlayer = null;
+                SetState(PatrolEntityState.Search);
+            }
+            else if (_targetPlayer != null)
+            {
+                SetFloorTargetPosition(_targetPlayer.GlobalPosition);
+            }
+        }
     }
 
     protected override void OnStateChanged(PatrolEntityState from, PatrolEntityState to)
@@ -764,11 +808,11 @@ public partial class Groomba : PatrolEnemy
                     _searchTimer = SearchDuration;
                     if (_isInvestigatingNoise && _noiseInvestigationPos != Vector3.Zero)
                     {
-                        NavAgent.TargetPosition = _noiseInvestigationPos;
+                        SetFloorTargetPosition(_noiseInvestigationPos);
                     }
                     else if (_lastKnownPlayerPos != Vector3.Zero)
                     {
-                        NavAgent.TargetPosition = _lastKnownPlayerPos;
+                        SetFloorTargetPosition(_lastKnownPlayerPos);
                     }
                     else
                     {
@@ -863,7 +907,7 @@ public partial class Groomba : PatrolEnemy
                 _isInvestigatingNoise = true;
                 _noiseInvestigationPos = _lastKnownPlayerPos;
                 _investigateScanTimer = 0f;
-                NavAgent.TargetPosition = _lastKnownPlayerPos;
+                SetFloorTargetPosition(_lastKnownPlayerPos);
                 _searchTimer = SearchDuration;
                 SetState(PatrolEntityState.Search);
 

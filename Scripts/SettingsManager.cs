@@ -94,11 +94,16 @@ public static class SettingsManager
             intercomBusIdx = AudioServer.BusCount - 1;
             AudioServer.SetBusName(intercomBusIdx, "Intercom");
             AudioServer.SetBusSend(intercomBusIdx, "SFX");
+            AudioServer.SetBusVolumeDb(intercomBusIdx, 1.5f);
             SetupIntercomBusEffects(intercomBusIdx);
         }
-        else if (AudioServer.GetBusEffectCount(intercomBusIdx) == 0)
+        else
         {
-            SetupIntercomBusEffects(intercomBusIdx);
+            AudioServer.SetBusVolumeDb(intercomBusIdx, 1.5f);
+            if (AudioServer.GetBusEffectCount(intercomBusIdx) == 0)
+            {
+                SetupIntercomBusEffects(intercomBusIdx);
+            }
         }
     }
 
@@ -106,29 +111,29 @@ public static class SettingsManager
     {
         if (AudioServer.GetBusEffectCount(busIdx) > 0) return;
 
-        // 1. High-pass filter: roll off deep bass (< 220 Hz) typical of ceiling horn/cone drivers
+        // 1. High-pass filter: roll off deep bass (< 200 Hz) typical of ceiling horn/cone drivers
         var hpf = new AudioEffectHighPassFilter
         {
-            CutoffHz = 220.0f
+            CutoffHz = 200.0f
         };
         AudioServer.AddBusEffect(busIdx, hpf);
 
-        // 2. Low-pass filter: roll off crisp studio high frequencies (> 5200 Hz) for authentic PA response
+        // 2. Low-pass filter: roll off frequencies > 6500 Hz while keeping speech articulation crisp
         var lpf = new AudioEffectLowPassFilter
         {
-            CutoffHz = 5200.0f
+            CutoffHz = 6500.0f
         };
         AudioServer.AddBusEffect(busIdx, lpf);
 
         // 3. Supermarket room acoustics reverb: subtle concrete/high ceiling flutter reflection
         var reverb = new AudioEffectReverb
         {
-            RoomSize = 0.45f,
+            RoomSize = 0.40f,
             Damping = 0.5f,
             Spread = 0.85f,
-            Dry = 0.88f,
-            Wet = 0.18f,
-            PredelayMsec = 20.0f
+            Dry = 0.95f,
+            Wet = 0.14f,
+            PredelayMsec = 18.0f
         };
         AudioServer.AddBusEffect(busIdx, reverb);
     }

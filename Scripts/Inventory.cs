@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -307,5 +308,41 @@ public partial class Inventory : Node
             return a.DisplayName == b.DisplayName;
         }
         return a.Name == b.Name;
+    }
+
+    public bool HasItemByName(string nameSubstring)
+    {
+        if (_slots == null) return false;
+        for (int i = 0; i < InventorySize; i++)
+        {
+            if (_slots[i].Count > 0)
+            {
+                Product p = _slots[i][0];
+                if (p != null && (p.DisplayName.ToString().Contains(nameSubstring, StringComparison.OrdinalIgnoreCase) ||
+                                  p.Name.ToString().Contains(nameSubstring, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Product ConsumeItemByName(string nameSubstring)
+    {
+        if (_slots == null) return null;
+        for (int i = 0; i < InventorySize; i++)
+        {
+            if (_slots[i].Count > 0)
+            {
+                Product p = _slots[i][0];
+                if (p != null && (p.DisplayName.ToString().Contains(nameSubstring, StringComparison.OrdinalIgnoreCase) ||
+                                  p.Name.ToString().Contains(nameSubstring, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return RemoveItemFromSlot(i);
+                }
+            }
+        }
+        return null;
     }
 }

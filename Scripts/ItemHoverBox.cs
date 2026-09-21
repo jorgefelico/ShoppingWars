@@ -376,11 +376,11 @@ public partial class ItemHoverBox : Control
 
         // Damage calculation (including Power Arm perk bonus)
         int baseDamage = product.Damage;
+        bool hasPowerArm = player != null && player.CurrentPerk == PlayerPerk.PowerArm;
+        int effectiveDamage = hasPowerArm ? Mathf.RoundToInt(baseDamage * 1.25f) : baseDamage;
+
         if (baseDamage > 0)
         {
-            bool hasPowerArm = player != null && player.CurrentPerk == PlayerPerk.PowerArm;
-            int effectiveDamage = hasPowerArm ? Mathf.RoundToInt(baseDamage * 1.25f) : baseDamage;
-
             _damageHBox.Visible = true;
             _damageLabel.Text = hasPowerArm
                 ? $"💥 {effectiveDamage} DMG (+25%)"
@@ -420,6 +420,18 @@ public partial class ItemHoverBox : Control
         {
             _specialLabel.Visible = true;
             _specialLabel.Text = "💣 EXPLOSIVE BLAST ON IMPACT";
+            hasAnyEffect = true;
+        }
+        else if (product is PotatoGun pg)
+        {
+            _damageLabel.Text = hasPowerArm
+                ? $"💥 {effectiveDamage} SPUD DMG (+25%)"
+                : $"💥 {effectiveDamage} SPUD DMG";
+            _durabilityLabel.Visible = true;
+            _durabilityLabel.Text = "• 🔨 Indestructible PVC Club";
+
+            _specialLabel.Visible = true;
+            _specialLabel.Text = $"🥔 PNEUMATIC SPUD CANNON ({pg.CurrentAmmo}/{pg.MaxAmmo} AMMO)";
             hasAnyEffect = true;
         }
         else

@@ -37,6 +37,18 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
     private float _wobblyWheelTimer = 0f;
     private bool _isDestroyed = false;
 
+    // Navigation stuck detection & corner recovery
+    private float _stuckTimer = 0f;
+    private float _unstuckTimer = 0f;
+    private Vector3 _unstuckDir = Vector3.Zero;
+    private Vector3 _lastStuckPos = Vector3.Zero;
+    private float _stuckPosCheckTimer = 0f;
+    private const float CartStuckCheckInterval = 0.25f;
+    private const float CartStuckMinDistance = 0.04f;
+    private const float CartStuckThresholdTime = 0.55f;
+    private float _chargeStuckTimer = 0f;
+    private Vector3 _lastChargePos = Vector3.Zero;
+
     // Visual nodes
     private Node3D _cartVisuals;
     private MeshInstance3D _wobblyWheelMesh;
@@ -71,6 +83,15 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
 
         if (Health == null) Health = GetNodeOrNull<Health>("Health");
         if (NavAgent == null) NavAgent = GetNodeOrNull<NavigationAgent3D>("NavigationAgent3D");
+        if (NavAgent != null)
+        {
+            NavAgent.PathDesiredDistance = 0.55f;
+            NavAgent.TargetDesiredDistance = 1.0f;
+            NavAgent.PathMaxDistance = 3.0f;
+            NavAgent.PathPostprocessing = NavigationPathQueryParameters3D.PathPostProcessing.Edgecentered;
+        }
+        _lastStuckPos = GlobalPosition;
+        _lastChargePos = GlobalPosition;
 
         BuildCartVisuals();
         InitializeAudio();
@@ -669,7 +690,7 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
         switch (_state)
         {
             case CartState.Patrol:
-                HandlePatrolState(ref velocity);
+                HandlePatrolState(delta, ref velocity);
                 break;
 
             case CartState.Windup:
@@ -722,7 +743,7 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
 
     #region AI State Handlers
 
-    private void HandlePatrolState(ref Vector3 velocity)
+    private void HandlePatrolState(double delta, ref Vector3 velocity)
     {
         // Detect players to ram!
         if (_chargeCooldown <= 0f)
@@ -740,7 +761,7 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
             SetRandomPatrolTarget();
         }
 
-        MoveAlongNavPath(PatrolSpeed, ref velocity);
+        MoveAlongNavPath(PatrolSpeed, delta, ref velocity);
     }
 
     private void HandleWindupState(double delta, ref Vector3 velocity)
@@ -824,7 +845,7 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
                 SetCartState(CartState.Patrol);
                 return;
             }
-            else if (col.GetNormal().Dot(-_chargeDirection) > 0.45f)
+            else if (col.GetNormal().Dot(-_chargeDirection) > 0.35f)
             {
                 // Slammed into solid wall or gondola shelf!
                 _crashPlayer?.Play();
@@ -834,6 +855,26 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
                 return;
             }
         }
+
+        // Corner-grazing or obstacle-wedging check during charge
+        if (GetSlideCollisionCount() > 0 && GlobalPosition.DistanceTo(_lastChargePos) < 0.05f)
+        {
+            _chargeStuckTimer += (float)delta;
+            if (_chargeStuckTimer > 0.2f)
+            {
+                _chargeStuckTimer = 0f;
+                _crashPlayer?.Play();
+                velocity = -_chargeDirection * 2.5f;
+                RpcShowReaction("CLANG!", new Color(1.0f, 0.85f, 0.2f));
+                SetCartState(CartState.Stunned);
+                return;
+            }
+        }
+        else
+        {
+            _chargeStuckTimer = 0f;
+        }
+        _lastChargePos = GlobalPosition;
 
         if (_stateTimer <= 0f)
         {
@@ -959,12 +1000,37 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
         if (_underglow != null) _underglow.LightEnergy = energy * 0.5f;
     }
 
-    private void MoveAlongNavPath(float speed, ref Vector3 velocity)
+    private void MoveAlongNavPath(float speed, double delta, ref Vector3 velocity)
     {
-        if (NavAgent == null || NavAgent.IsNavigationFinished())
+        if (NavAgent == null) return;
+
+        // Active unstuck maneuver (backing out and turning away from obstacle)
+        if (_unstuckTimer > 0f)
+        {
+            _unstuckTimer -= (float)delta;
+            velocity.X = _unstuckDir.X * (speed * 0.85f) * SpeedMultiplier;
+            velocity.Z = _unstuckDir.Z * (speed * 0.85f) * SpeedMultiplier;
+
+            if (_unstuckDir.LengthSquared() > 0.01f)
+            {
+                float targetAngle = Mathf.Atan2(-_unstuckDir.X, -_unstuckDir.Z);
+                Rotation = new Vector3(Rotation.X, Mathf.LerpAngle(Rotation.Y, targetAngle, (float)delta * 8.0f), Rotation.Z);
+            }
+
+            if (_unstuckTimer <= 0f)
+            {
+                _stuckTimer = 0f;
+                _lastStuckPos = GlobalPosition;
+                SetRandomPatrolTarget();
+            }
+            return;
+        }
+
+        if (NavAgent.IsNavigationFinished())
         {
             velocity.X = 0;
             velocity.Z = 0;
+            _stuckTimer = 0f;
             return;
         }
 
@@ -972,20 +1038,135 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
         Vector3 dir = nextPos - GlobalPosition;
         dir.Y = 0;
 
-        if (dir.LengthSquared() > 0.01f)
+        if (dir.LengthSquared() > 0.001f)
         {
-            LookAt(GlobalPosition + dir, Vector3.Up);
-            velocity.X = dir.Normalized().X * speed * SpeedMultiplier;
-            velocity.Z = dir.Normalized().Z * speed * SpeedMultiplier;
+            dir = dir.Normalized();
+
+            // Wall and corner sliding deflection
+            int colCount = GetSlideCollisionCount();
+            for (int i = 0; i < colCount; i++)
+            {
+                KinematicCollision3D col = GetSlideCollision(i);
+                Vector3 normal = col.GetNormal();
+                if (normal.Y < 0.4f)
+                {
+                    normal.Y = 0;
+                    if (normal.LengthSquared() > 0.01f)
+                    {
+                        normal = normal.Normalized();
+                        float dot = dir.Dot(normal);
+                        if (dot < 0f)
+                        {
+                            Vector3 slideDir = dir - dot * normal;
+                            if (slideDir.LengthSquared() > 0.05f)
+                            {
+                                dir = slideDir.Normalized();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Smooth rotation towards travel direction (avoids snapping collision shape into walls)
+            float targetAngle = Mathf.Atan2(-dir.X, -dir.Z);
+            Rotation = new Vector3(Rotation.X, Mathf.LerpAngle(Rotation.Y, targetAngle, (float)delta * 10.0f), Rotation.Z);
+
+            velocity.X = dir.X * speed * SpeedMultiplier;
+            velocity.Z = dir.Z * speed * SpeedMultiplier;
+
+            // Stuck detection
+            _stuckPosCheckTimer += (float)delta;
+            if (_stuckPosCheckTimer >= CartStuckCheckInterval)
+            {
+                _stuckPosCheckTimer = 0f;
+                float distMoved = GlobalPosition.DistanceTo(_lastStuckPos);
+                if (distMoved < CartStuckMinDistance)
+                {
+                    _stuckTimer += CartStuckCheckInterval;
+                }
+                else
+                {
+                    _stuckTimer = Mathf.Max(0f, _stuckTimer - CartStuckCheckInterval * 1.5f);
+                }
+                _lastStuckPos = GlobalPosition;
+
+                if (_stuckTimer >= CartStuckThresholdTime)
+                {
+                    TriggerCartUnstuck();
+                }
+            }
         }
+        else
+        {
+            velocity.X = 0;
+            velocity.Z = 0;
+        }
+    }
+
+    public void MoveAlongPath(float speed, ref Vector3 velocity)
+    {
+        MoveAlongNavPath(speed, GetPhysicsProcessDeltaTime(), ref velocity);
+    }
+
+    private void TriggerCartUnstuck()
+    {
+        _stuckTimer = 0f;
+        _unstuckTimer = 0.45f;
+
+        Vector3 escapeDir = Vector3.Zero;
+        int colCount = GetSlideCollisionCount();
+        for (int i = 0; i < colCount; i++)
+        {
+            KinematicCollision3D col = GetSlideCollision(i);
+            Vector3 normal = col.GetNormal();
+            if (normal.Y < 0.4f)
+            {
+                normal.Y = 0;
+                escapeDir += normal;
+            }
+        }
+
+        if (escapeDir.LengthSquared() > 0.01f)
+        {
+            _unstuckDir = (escapeDir.Normalized() * 0.7f + GlobalTransform.Basis.Z * 0.5f).Normalized();
+        }
+        else
+        {
+            _unstuckDir = GlobalTransform.Basis.Z;
+            _unstuckDir.Y = 0;
+            if (_unstuckDir.LengthSquared() > 0.01f) _unstuckDir = _unstuckDir.Normalized();
+            else _unstuckDir = Vector3.Back;
+        }
+
+        SetRandomPatrolTarget();
     }
 
     public void SetRandomPatrolTarget()
     {
         if (NavAgent == null) return;
         Rid map = NavAgent.GetNavigationMap();
-        Vector3 randomPoint = NavigationServer3D.MapGetRandomPoint(map, NavAgent.NavigationLayers, false);
-        NavAgent.TargetPosition = randomPoint;
+        if (!map.IsValid) return;
+
+        // Try up to 15 times to find a valid floor-level point (reject shelf tops, table tops, ceiling rafters)
+        for (int attempt = 0; attempt < 15; attempt++)
+        {
+            Vector3 candidate = NavigationServer3D.MapGetRandomPoint(map, NavAgent.NavigationLayers, false);
+            // Ground floor in the supermarket is Y = 0.0 to 0.35m
+            if (candidate.Y >= -0.2f && candidate.Y <= 0.5f)
+            {
+                NavAgent.TargetPosition = candidate;
+                return;
+            }
+        }
+
+        // Fallback: project a random candidate to floor level
+        Vector3 fallback = NavigationServer3D.MapGetRandomPoint(map, NavAgent.NavigationLayers, false);
+        fallback.Y = 0.2f;
+        Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, fallback);
+        if (closest.Y <= 0.5f)
+        {
+            NavAgent.TargetPosition = closest;
+        }
     }
 
     #endregion
@@ -1156,6 +1337,7 @@ public partial class PossessedCart : CharacterBody3D, IDamageable, IPatrol
     {
         string[] highTierWeapons = {
             "res://Prefabs/Products/Sledgehammer.tscn",
+            "res://Prefabs/Products/PotatoGun.tscn",
             "res://Prefabs/Products/Watermelon.tscn",
             "res://Prefabs/Products/FryingPan.tscn",
             "res://Prefabs/Products/SodaCan.tscn"

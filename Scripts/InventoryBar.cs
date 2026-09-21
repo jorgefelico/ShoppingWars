@@ -96,7 +96,14 @@ public partial class InventoryBar : CanvasLayer
                     if (textureRect != null) textureRect.Texture = product.Icon;
                 }
 
-                countLabel.Text = count > 1 ? count.ToString() : "";
+                if (product is PotatoGun pg)
+                {
+                    countLabel.Text = pg.IsReloading ? "🔄" : $"🥔{pg.CurrentAmmo}";
+                }
+                else
+                {
+                    countLabel.Text = count > 1 ? count.ToString() : "";
+                }
             }
             else
             {

@@ -125,7 +125,10 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
 - **Shrinking Arena Safe Zone (`ArenaZoneManager.cs`)**: Battle royale ring that contracts in stages during combat (116m $\to$ 58m $\to$ 28m $\to$ 12m), rendering an energy barrier visual and ticking 6 DPS to players trapped outside the safe zone.
 - **Security Camera Lasers (`LaserCamera.cs`)**: Sweeping wall/ceiling cameras with scanning yaw/pitch, spotlight vision cones, player target tracking, and continuous damage ticks during the Battle phase.
 - **Groomba Robot Vacuum (`Groomba.cs`, inherits `PatrolEnemy.cs`):**
-  - Pathfinds using `NavigationAgent3D` and `NavigationRegion3D`.
+  - Pathfinds using `NavigationAgent3D` (Edge-centered corridor pathing, 0.45m waypoint threshold, 3m repath radius) and floor-filtered navmesh targets.
+  - Features dynamic **Stuck Detection & Corner Recovery**: detects obstacle entrapment (>0.55s stuck), triggers an active reverse/deflection maneuver with an alarmed expression (`O _ O`), and repaths automatically.
+  - Active wall/corner sliding deflection (`KinematicCollision3D` normal projection) and smooth yaw turning prevent grinding or pinning on gondola shelf corners.
+  - Calibrated 0.38m cylinder collision radius provides a 12cm clearance cushion inside the 0.5m NavMesh margin.
   - **Sentient Perception & Senses**:
     - *Aisle Vision*: Forward vision cone with physics raycast line-of-sight up to 18m (22m in Search/alerted mode).
     - *360° Ultrasonic Proximity*: Detects players sneaking within 5m in any direction.
@@ -136,6 +139,9 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
   - Deals 15 contact damage with cooldown, displays kill reaction (`˘ ‿ ˘`, `"TRASH DISPOSED!"`), and self-destructs or detonates when destroyed via thrown items (`FloatingDamageNumber` displays `K.O.!`).
 - **Possessed Shopping Cart — "Cartsferatu" (`PossessedCart.cs`):**
   - Terrifying runaway supermarket shopping cart with wobbly squeaking caster wheel, piercing crimson headlights, and red undercarriage glow.
+  - Physics model upgraded from a square box shape to a **0.44m radius CylinderShape3D**, eliminating sharp 90-degree box corners that snared on shelves and table corners.
+  - Features dynamic **Stuck Detection & Corner Recovery**: detects entrapment during patrol, reverses away from collision normals, and picks fresh ground-level destinations. During charge, detects oblique corner impacts (>0.2s caught) to trigger wall crash recoil and dizzy stun (`CLANG!`).
+  - Edge-centered `NavigationAgent3D` pathing (0.55m waypoint threshold) with ground-floor target validation prevents picking unreachable elevated shelf tops.
   - **FSM States**:
     - *Patrol*: Cruises aisles at 2.5 m/s emitting rhythmic squeaky wheel clatter.
     - *Windup*: On spotting a player down an aisle, halts for 0.75s, flares headlights, rings frantic service bell (`DING DING DING!`), and spins wheels with comic spark particles (`"RAMMING SPEED!"`).
@@ -160,7 +166,8 @@ Server-authoritative dynamic event scheduler triggering 8 arena-wide events duri
 - **Procedural Stocking (`ProceduralShelfFiller.cs`)**: Batched, asynchronous stock generator supporting 35 item varieties with department clustering, category-specific limits, and runtime seed resets.
 - **Stylization Caching (`StylizationHelper.cs`)**: Cached toon materials and ink outlines (`_outlineMatCache`, `_toonMatCache`) to prevent material duplication and shader overhead across hundreds of shelf items.
 
-**Products & Weapons Arsenal (35 Throwable Items):**
+**Products & Weapons Arsenal (36 Items — 35 Throwables + 1 Firearm):**
+- *Firearms & Launchers:* **Potato Gun** ($35, 45 direct spud damage, 6-round pneumatic magazine, 48 m/s projectile velocity, +25% Power Arm scaling, raycast convergence, pneumatic compressed gas puff FX, mashed potato splatter, pump reload `[R]`, indestructible PVC club melee `[RMB]`).
 - *Produce & Groceries:* Apple ($3, 20 dmg), Avocado ($4, 18 dmg), Baguette ($3, 10 dmg), Banana ($2, 12 dmg), CerealBox ($4, 15 dmg), ChipsBag ($2, 8 dmg), ChocolateCake ($6, 16 dmg), FrozenPizza ($6, 22 dmg), Glizzy ($2, 10 dmg), Lemon ($2, 10 dmg), MilkGallon ($4, 18 dmg), Onion ($2, 10 dmg), SodaCan ($2, 12 dmg, consumable heal), SweetPotato ($3, 14 dmg), Watermelon ($5, 30 dmg), WineBottle ($8, 25 dmg).
 - *Hardware & Tools:* Crowbar ($15, 35 dmg), PipeWrench ($12, 30 dmg), PowerDrill ($18, 35 dmg), Sledgehammer ($25, 45 dmg), PropaneTank ($30, 50 dmg + radial explosion).
 - *Household & Appliances:* AlarmClock ($8, 15 dmg), Boombox ($16, 22 dmg), CookingPot ($10, 22 dmg), DetergentJug ($6, 20 dmg), FireExtinguisher ($14, 28 dmg), FlatScreenTV ($40, 50 dmg), FryingPan ($8, 20 dmg), Toaster ($10, 22 dmg), WetFloorSign ($7, 16 dmg).

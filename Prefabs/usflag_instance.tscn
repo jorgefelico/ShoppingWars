@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://b5shcrom3u8c4"]
+
+[ext_resource type="PackedScene" uid="uid://grm1pkumumug" path="res://Models/usflag.glb" id="1_sl1gy"]
+[ext_resource type="Material" uid="uid://ctri0ynmn2jy5" path="res://Materials/WavingFlag.tres" id="2_dq2dv"]
+
+[node name="usflag" unique_id=1922159656 instance=ExtResource("1_sl1gy")]
+
+[node name="Grid" parent="." index="0" unique_id=1800240964]
+surface_material_override/0 = ExtResource("2_dq2dv")

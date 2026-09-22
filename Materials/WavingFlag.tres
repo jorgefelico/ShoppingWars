@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://ctri0ynmn2jy5"]
+
+[ext_resource type="Shader" uid="uid://ddiux2armk0rk" path="res://Shaders/WavingFlag.gdshader" id="1_x2amg"]
+[ext_resource type="Texture2D" uid="uid://47kaabolcita" path="res://Models/usflag_Flag_of_the_United_States.png" id="2_ovhmx"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_x2amg")
+shader_parameter/flagTexture = ExtResource("2_ovhmx")

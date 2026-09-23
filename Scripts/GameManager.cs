@@ -1571,6 +1571,7 @@ public partial class GameManager : Node
 
         RpcId(peerId, nameof(RpcSyncState), (int)CurrentPhase, TimeRemaining, WinnerName, IsDraw);
         AmbientEventManager.Instance?.SyncStateToClient(peerId);
+        ArenaZoneManager.Instance?.SyncStateToClient(peerId);
     }
 
     [Signal]
@@ -1585,6 +1586,14 @@ public partial class GameManager : Node
         if (!Multiplayer.IsServer()) return;
 
         Vector3 dropPos = new Vector3(0, 0, 0);
+        if (ArenaZoneManager.Instance != null && ArenaZoneManager.Instance.IsActive)
+        {
+            Vector3 center = ArenaZoneManager.Instance.CurrentCenter;
+            float jitterX = (float)GD.RandRange(-6.0f, 6.0f);
+            float jitterZ = (float)GD.RandRange(-6.0f, 6.0f);
+            dropPos = new Vector3(center.X + jitterX, 0f, center.Z + jitterZ);
+        }
+
         if (Multiplayer.HasMultiplayerPeer())
         {
             Rpc(nameof(RpcSyncSpawnSpecialDrop), dropPos);

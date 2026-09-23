@@ -9,6 +9,13 @@ public partial class ComicCrosshair : Control
     private Color _targetColor = UITheme.PaperWhite;
     private bool _isTargetingInteractable = false;
     private float _pulseTimer = 0f;
+    private float _chargeProgress = 0f;
+
+    public void SetChargeProgress(float progress)
+    {
+        _chargeProgress = Mathf.Clamp(progress, 0f, 1f);
+        QueueRedraw();
+    }
 
     public const float BaseSpread = 9.0f;
     public const float WalkSpread = 14.0f;
@@ -101,11 +108,48 @@ public partial class ComicCrosshair : Control
             spread += Mathf.Sin(_pulseTimer) * 1.5f;
         }
 
+        // Fastball primed energetic tremor
+        if (_chargeProgress >= 0.85f)
+        {
+            spread += (float)GD.RandRange(-0.8, 0.8);
+        }
+
         // Shadow / Outline Pass (Thick black underlay for 100% readability against any supermarket lighting)
         DrawReticleTicks(center, spread, tickLen, tickWidth + 2.0f, UITheme.InkBlack);
 
         // Foreground Crisp Color Pass
         DrawReticleTicks(center, spread, tickLen, tickWidth, _currentColor);
+
+        // 3. Throw Charge Arc Meter
+        if (_chargeProgress > 0.02f)
+        {
+            float gaugeRadius = 13.0f;
+            // Dark ink outline ring
+            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, UITheme.InkBlack, 3.6f, true);
+            // Gauge track underlay
+            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, new Color(0.15f, 0.15f, 0.20f, 0.65f), 2.2f, true);
+
+            // Progress fill arc
+            float startAngle = -Mathf.Pi / 2.0f;
+            float sweep = _chargeProgress * Mathf.Tau;
+            Color chargeCol = (_chargeProgress < 0.85f)
+                ? UITheme.FlyerYellow.Lerp(UITheme.ClearanceOrange, _chargeProgress / 0.85f)
+                : ((Mathf.Sin(_pulseTimer * 3.5f) > 0f) ? UITheme.ActionRed : UITheme.FlyerYellow);
+
+            DrawArc(center, gaugeRadius, startAngle, startAngle + sweep, 28, chargeCol, 2.4f, true);
+
+            // Primed fastball corner flares
+            if (_chargeProgress >= 0.85f)
+            {
+                float flareDist = 16.5f + Mathf.Sin(_pulseTimer * 4.0f) * 1.2f;
+                float[] angles = { Mathf.Pi * 0.25f, Mathf.Pi * 0.75f, Mathf.Pi * 1.25f, Mathf.Pi * 1.75f };
+                foreach (float angle in angles)
+                {
+                    Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                    DrawLine(center + dir * flareDist, center + dir * (flareDist + 3.8f), chargeCol, 2.0f, true);
+                }
+            }
+        }
 
         // 3. Special Interaction Reticle Corners when hovering items
         if (_isTargetingInteractable)

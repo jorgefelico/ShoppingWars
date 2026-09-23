@@ -554,6 +554,17 @@ public partial class ManagerAnnouncer : Node
         Announce(lines[GD.Randi() % lines.Length], ManagerEmotion.Smug, priority: 2);
     }
 
+    public void AnnounceHomeRun(string batterName)
+    {
+        string[] lines = {
+            $"HOLY CANNOLI! {batterName} just hit a projectile clear into the frozen food section!",
+            $"Attention shoppers: That was outta the park! Somebody sign {batterName} to the major leagues!",
+            "GRAND SLAM! That merchandise just got sent express delivery back to sender!",
+            "Store policy reminder: Please refrain from hitting store goods with baseball bats. We're a market, not Yankee Stadium!"
+        };
+        Announce(lines[GD.Randi() % lines.Length], ManagerEmotion.Megaphone, priority: 2);
+    }
+
     private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".ogg" };
 
     public static string ResolveAudioFile(string path)

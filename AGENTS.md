@@ -95,7 +95,23 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
 - **In-Game Guide Modal:** Instantly toggled with `[H]` during gameplay.
 
 **Combat, Melee & Consumables:**
-- **Throwing (`LMB` / `fire`)**: Throws held item with physics velocity. Items deal damage based on speed and base damage, triggering impact effects and consumable/splatter physics.
+- **Throwing & Charged Fastballs (`LMB` / `fire`)**: 
+  - *Quick Throw*: Tap `LMB` (<0.12s) to throw held item with standard physics velocity and base damage.
+  - *Charged Fastball Throw*: Hold `LMB` (0.12s–0.55s) to charge up a blazing fastball! Delivers up to **+50% projectile velocity**, **+35% bonus kinetic damage**, smooth pitcher windup hand pullback animation, energetic bracket tremor, and reticle charge arc indicator on `ComicCrosshair` that flashes gold/crimson when primed (`FASTBALL!`).
+- **Mid-Air Batting & Parrying (`RMB` / `alt_fire`)**:
+  - Timing a melee strike with held weapons against incoming airborne projectiles bats and deflects them back along player aim at **1.35x–1.65x speed** with bonus kinetic damage!
+  - *Baseball Bat*: Knocks home runs (`⚾ HOME RUN!`, 1.6x speed, wooden bat crack SFX, and chance of Mr. Henderson stadium commentary).
+  - *Metal Cookware & Tools* (Frying Pan, Sledgehammer, Pipe Wrench, Crowbar): Clangs projectiles back (`💥 CLANG! DEFLECTED!`, 1.5x speed, metallic clang SFX).
+  - *Bare Fists*: Parries projectiles (`💥 PARRY!`, 1.35x speed, punch thud SFX).
+  - Transfers thrower ownership to the batter with multiplayer synchronization (`RpcBatProjectile`), authoritatively crediting hits and eliminations to the deflector.
+- **Comic Speed Trails & Wind Whooshes (`Product.cs`, `PlayerAudio.cs`)**:
+  - High-speed and fastball throws leave category-specific world-space particle trails (`CpuParticles3D`, `LocalCoords = false`):
+    - *Soda*: Fizzy carbonated cola bubbles.
+    - *Electronics*: Electric cyan/blue zap sparks.
+    - *Soaps & Detergents*: Bubbly soapy foam suds.
+    - *Produce & Fruit*: Juicy fruit droplets matching the fruit's interior color.
+    - *Fastballs & Heavy Items*: Slicing comic wind streaks, golden speed lines, dynamic point light illumination, and procedural whipping fastball whoosh SFX.
+    - Particles smoothly dissipate on impact without abrupt vanishing.
 - **Melee Strikes (`RMB` / `alt_fire`)**: Raycast melee attack with camera trauma and hit animation.
   - Bare fists deal 12 damage.
   - Held items act as blunt melee weapons dealing 60% of item damage (min 15 dmg) with item durability (`MeleeDurability`, default 4 hits) before shattering.
@@ -122,7 +138,7 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
 - **Audio Buses & Settings (`SettingsManager.cs`)**: Three managed audio buses (`Master`, `Music`, `SFX`) configured with persistent user volume sliders, FOV adjustment, mouse sensitivity, and display modes saved to `user://settings.cfg`.
 
 **Hazards & Arena Dynamics:**
-- **Shrinking Arena Safe Zone (`ArenaZoneManager.cs`)**: Battle royale ring that contracts in stages during combat (116m $\to$ 58m $\to$ 28m $\to$ 12m), rendering an energy barrier visual and ticking 6 DPS to players trapped outside the safe zone.
+- **Shrinking Arena Safe Zone (`ArenaZoneManager.cs`)**: Server-authoritative Battle Royale safe zone ring that contracts in stages to unpredictable, randomized supermarket departments and aisles (nested circle progression: 116m whole store $\to$ 58m $\to$ 28m $\to$ 12m final showdown on playable floor). Renders an animated glowing floor-to-ceiling energy barrier, broadcasts department-aware HUD status and directional alerts, synchronizes positions and radii to multiplayer clients, directs Manager's Special drops into active zones, and ticks 6 DPS to players caught outside.
 - **Security Camera Lasers (`LaserCamera.cs`)**: Sweeping wall/ceiling cameras with scanning yaw/pitch, spotlight vision cones, player target tracking, and continuous damage ticks during the Battle phase.
 - **Groomba Robot Vacuum (`Groomba.cs`, inherits `PatrolEnemy.cs`):**
   - Pathfinds using `NavigationAgent3D` (Edge-centered corridor pathing, 0.45m waypoint threshold, 3m repath radius) and floor-filtered navmesh targets.
@@ -136,6 +152,11 @@ Shopping Wars is designed as a **4-player** store battle royale with **Steam P2P
     - *Acoustic Disturbance & Litter Detection*: Hears thrown products impacting or landing within a 22m radius. If line-of-sight to the thrower is clear, Groomba identifies the culprit, becomes enraged (`> 皿 <`), and charges to attack (`"NO LITTERING!"`, `"YOU THREW THAT!"`, `"CLEANING VIOLATION!"`). If the thrower threw from behind cover, Groomba investigates the impact site at accelerated speed (4.2 m/s), inspects the mess with a judgemental face (`ಠ _ ಠ`), and performs a swivel scan.
     - *Near-Miss Evasion*: In-flight projectiles passing within 2.8m or landing within 3.5m trigger an emergency flinch/jolt (`O _ O`, `"WHOA!"`, `"DODGE!"`) and turn Groomba towards the attacker.
   - **FSM States**: `Patrol` (green ring, `^ ‿ ^` face), `Attack` (red ring, `> 皿 <` face, 28m chase with corner memory), `Search` (amber ring, `⊙ _ ⊙` / `! _ !` / `ಠ _ ಠ` face, investigates disturbances and scans last known positions).
+  - **Ground Objects Suction & Dustbin Drop (`VacuumRadius = 1.4m`)**:
+    - During patrol and movement, actively scans for loose products lying on the ground within a 1.4m radius.
+    - Sucks up ground objects with procedural cartoon suction audio (`*SLURP!*`), nozzle intake vortex particles, and expressive digital LED reactions (`( ˶˘ ³˶ )`, `"CLEANED!"`, `"VACUUMED!"`, `"DUSTBIN +1"`), storing them inside its internal dustbin.
+    - Preserves shelved and held products, selectively targeting dropped, thrown, or dislodged floor items.
+    - Upon destruction (`K.O.!`), Groomba detonates and violently ejects all swallowed items from its dustbin outward in a high-velocity loot spray for shoppers to claim.
   - Deals 15 contact damage with cooldown, displays kill reaction (`˘ ‿ ˘`, `"TRASH DISPOSED!"`), and self-destructs or detonates when destroyed via thrown items (`FloatingDamageNumber` displays `K.O.!`).
 - **Possessed Shopping Cart — "Cartsferatu" (`PossessedCart.cs`):**
   - Terrifying runaway supermarket shopping cart with wobbly squeaking caster wheel, piercing crimson headlights, and red undercarriage glow.

@@ -29,6 +29,12 @@ public partial class Product : RigidBody3D, IInteractable
     private MultiplayerSynchronizer _synchronizer;
     private float _settleTimer = 0f;
 
+    // Charged fastball & combat mechanics
+    public bool IsFastball { get; set; } = false;
+    public float LaunchPowerMultiplier { get; set; } = 1.0f;
+    private CpuParticles3D _trailParticles;
+    private OmniLight3D _trailLight;
+
     public void ResetImpact()
     {
         _hasImpacted = false;
@@ -73,6 +79,7 @@ public partial class Product : RigidBody3D, IInteractable
         }
 
         BodyEntered += OnBodyEntered;
+        AddToGroup("Products");
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged += OnGamePhaseChanged;
@@ -118,6 +125,7 @@ public partial class Product : RigidBody3D, IInteractable
 
     public void DeactivatePhysicsAndSync()
     {
+        DeactivateTrail();
         if (_synchronizer != null && GodotObject.IsInstanceValid(_synchronizer))
         {
             _synchronizer.ProcessMode = ProcessModeEnum.Disabled;
@@ -220,8 +228,13 @@ public partial class Product : RigidBody3D, IInteractable
         if (body is IDamageable target)
         {
             float perkDmgMult = (Thrower is PlayerController pc && pc.CurrentPerk == PlayerPerk.PowerArm) ? 1.25f : 1.0f;
-            int actualDamage = (int)(Damage * PlayerController.GlobalDamageMultiplier * perkDmgMult);
+            int actualDamage = (int)(Damage * PlayerController.GlobalDamageMultiplier * perkDmgMult * LaunchPowerMultiplier);
             target.TakeDamage(actualDamage, Thrower);
+
+            if (IsFastball)
+            {
+                FloatingDamageNumber.SpawnText(this, impactPos + Vector3.Up * 0.45f, "FASTBALL!", UITheme.ActionRed, 46);
+            }
 
             // Confirm hit to Thrower for hit marker & audio tick
             if (Thrower is PlayerController throwerPlayer && GodotObject.IsInstanceValid(throwerPlayer))
@@ -256,6 +269,7 @@ public partial class Product : RigidBody3D, IInteractable
     {
         if (IsQueuedForDeletion()) return;
 
+        DeactivateTrail();
         _hasImpacted = true;
         Visible = false;
         Freeze = true;
@@ -489,8 +503,176 @@ public partial class Product : RigidBody3D, IInteractable
         }
     }
 
+    public void ActivateTrail(bool isFastball)
+    {
+        IsFastball = isFastball;
+        DeactivateTrail();
+
+        string pName = (DisplayName != null && !string.IsNullOrEmpty(DisplayName.ToString())) ? DisplayName.ToString() : Name.ToString();
+        _trailParticles = new CpuParticles3D
+        {
+            Name = "SpeedTrail",
+            Emitting = true,
+            OneShot = false,
+            LocalCoords = false,
+            Gravity = Vector3.Zero,
+            Lifetime = isFastball ? 0.38f : 0.28f,
+            Amount = isFastball ? 36 : 22,
+            InitialVelocityMin = 0.2f,
+            InitialVelocityMax = 0.6f,
+            Spread = 15.0f
+        };
+
+        if (pName.Contains("Soda", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Carbonated fizzy cola bubbles
+            var mat = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(0.95f, 0.45f, 0.15f, 0.8f),
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                Roughness = 0.1f,
+                Metallic = 0.1f,
+                RimEnabled = true,
+                Rim = 0.8f,
+                RimTint = 0.4f
+            };
+            _trailParticles.Mesh = new SphereMesh
+            {
+                Radius = 0.045f,
+                Height = 0.09f,
+                Material = mat
+            };
+        }
+        else if (pName.Contains("TV", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Drill", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Toaster", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Alarm", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Boombox", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Electric blue / cyan zap sparks
+            var mat = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(0.2f, 0.85f, 1.0f),
+                EmissionEnabled = true,
+                Emission = new Color(0.25f, 0.9f, 1.0f),
+                EmissionEnergyMultiplier = 4.0f,
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded
+            };
+            _trailParticles.Mesh = new BoxMesh
+            {
+                Size = new Vector3(0.04f, 0.04f, 0.04f),
+                Material = mat
+            };
+        }
+        else if (pName.Contains("Bleach", System.StringComparison.OrdinalIgnoreCase) || pName.Contains("Detergent", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Bubbly soapy suds
+            var mat = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(0.85f, 0.98f, 1.0f, 0.85f),
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                Roughness = 0.1f,
+                RimEnabled = true,
+                Rim = 0.7f
+            };
+            _trailParticles.Mesh = new SphereMesh
+            {
+                Radius = 0.05f,
+                Height = 0.10f,
+                Material = mat
+            };
+        }
+        else if (IsFruitProduct() || pName.Contains("Watermelon", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Juicy fruit droplets
+            Color fruitCol = pName.Contains("Watermelon", System.StringComparison.OrdinalIgnoreCase)
+                ? new Color(0.92f, 0.15f, 0.18f)
+                : GetFruitSplatColor();
+            var mat = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(fruitCol.R, fruitCol.G, fruitCol.B, 0.85f),
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                Roughness = 0.2f
+            };
+            _trailParticles.Mesh = new SphereMesh
+            {
+                Radius = 0.04f,
+                Height = 0.08f,
+                Material = mat
+            };
+        }
+        else
+        {
+            // Comic wind streaks / fastball speed lines
+            Color trailColor = isFastball ? new Color(1.0f, 0.88f, 0.35f, 0.9f) : new Color(0.95f, 0.95f, 1.0f, 0.75f);
+            var mat = new StandardMaterial3D
+            {
+                AlbedoColor = trailColor,
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                EmissionEnabled = isFastball,
+                Emission = isFastball ? new Color(1.0f, 0.75f, 0.2f) : Colors.White,
+                EmissionEnergyMultiplier = isFastball ? 2.5f : 0.8f,
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded
+            };
+            _trailParticles.Mesh = new BoxMesh
+            {
+                Size = isFastball ? new Vector3(0.04f, 0.04f, 0.12f) : new Vector3(0.035f, 0.035f, 0.08f),
+                Material = mat
+            };
+        }
+
+        AddChild(_trailParticles);
+
+        if (isFastball && _trailLight == null)
+        {
+            _trailLight = new OmniLight3D
+            {
+                LightColor = new Color(1.0f, 0.85f, 0.35f),
+                LightEnergy = 1.6f,
+                OmniRange = 3.0f,
+                OmniAttenuation = 1.6f
+            };
+            AddChild(_trailLight);
+        }
+    }
+
+    public void DeactivateTrail()
+    {
+        if (_trailLight != null && GodotObject.IsInstanceValid(_trailLight))
+        {
+            _trailLight.QueueFree();
+            _trailLight = null;
+        }
+
+        if (_trailParticles != null && GodotObject.IsInstanceValid(_trailParticles))
+        {
+            _trailParticles.Emitting = false;
+            if (_trailParticles.GetParent() == this)
+            {
+                Node currentScene = GetTree()?.CurrentScene;
+                if (currentScene != null && GodotObject.IsInstanceValid(currentScene))
+                {
+                    Vector3 gpos = _trailParticles.GlobalPosition;
+                    _trailParticles.Reparent(currentScene);
+                    _trailParticles.GlobalPosition = gpos;
+                    var particlesRef = _trailParticles;
+                    _trailParticles.GetTree()?.CreateTimer(0.45f).Connect(SceneTreeTimer.SignalName.Timeout, Callable.From(() =>
+                    {
+                        if (GodotObject.IsInstanceValid(particlesRef))
+                        {
+                            particlesRef.QueueFree();
+                        }
+                    }));
+                }
+                else
+                {
+                    _trailParticles.QueueFree();
+                }
+            }
+            _trailParticles = null;
+        }
+    }
+
     public override void _ExitTree()
     {
+        DeactivateTrail();
+        RemoveFromGroup("Products");
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GamePhaseChanged -= OnGamePhaseChanged;

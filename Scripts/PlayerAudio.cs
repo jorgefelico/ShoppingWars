@@ -16,6 +16,10 @@ public partial class PlayerAudio : Node3D
     private AudioStream[] _throwWhooshSounds;
     private AudioStream _pickupBeepSound;
     private AudioStream _itemSwitchSound;
+    private AudioStream _fastballWhooshSound;
+    private AudioStream _batCrackSound;
+    private AudioStream _metalClangSound;
+    private AudioStream _parryThudSound;
 
     private int _leftStepIndex = 0;
     private int _rightStepIndex = 0;
@@ -160,6 +164,12 @@ public partial class PlayerAudio : Node3D
         // 5. Item Switch and Pickup Sounds
         _itemSwitchSound = LoadStream("res://Sounds/Player/item_switch.ogg") ?? GenerateThrowWhoosh();
         _pickupBeepSound = LoadStream("res://Sounds/Player/pickup_beep.ogg") ?? GeneratePickupBeep();
+
+        // 6. Fastball and Batting / Deflect Sounds
+        _fastballWhooshSound = GenerateFastballWhoosh();
+        _batCrackSound = GenerateBatCrack();
+        _metalClangSound = GenerateMetalClang();
+        _parryThudSound = GenerateParryThud();
     }
 
     private static AudioStream LoadStream(string resPath)
@@ -279,6 +289,39 @@ public partial class PlayerAudio : Node3D
         _actionPlayer.Stream = _itemSwitchSound;
         _actionPlayer.VolumeDb = -8.0f;
         _actionPlayer.PitchScale = (float)GD.RandRange(0.97, 1.03);
+        _actionPlayer.Play();
+    }
+
+    public void PlayFastballWhoosh()
+    {
+        if (_actionPlayer == null || _fastballWhooshSound == null) return;
+        _actionPlayer.Stream = _fastballWhooshSound;
+        _actionPlayer.VolumeDb = 1.5f;
+        _actionPlayer.PitchScale = (float)GD.RandRange(1.05, 1.18);
+        _actionPlayer.Play();
+    }
+
+    public void PlayBatDeflect(bool isMetallic, bool isBaseballBat)
+    {
+        if (_actionPlayer == null) return;
+        if (isBaseballBat && _batCrackSound != null)
+        {
+            _actionPlayer.Stream = _batCrackSound;
+            _actionPlayer.VolumeDb = 3.5f;
+            _actionPlayer.PitchScale = (float)GD.RandRange(0.96, 1.04);
+        }
+        else if (isMetallic && _metalClangSound != null)
+        {
+            _actionPlayer.Stream = _metalClangSound;
+            _actionPlayer.VolumeDb = 3.0f;
+            _actionPlayer.PitchScale = (float)GD.RandRange(0.95, 1.05);
+        }
+        else if (_parryThudSound != null)
+        {
+            _actionPlayer.Stream = _parryThudSound;
+            _actionPlayer.VolumeDb = 2.0f;
+            _actionPlayer.PitchScale = (float)GD.RandRange(0.97, 1.03);
+        }
         _actionPlayer.Play();
     }
 
@@ -440,6 +483,141 @@ public partial class PlayerAudio : Node3D
 
             float sample = (freq > 0) ? (Mathf.Sin(t * Mathf.Tau * freq) * 0.7f + Mathf.Sin(t * Mathf.Tau * freq * 2f) * 0.3f) * env : 0f;
             short pcm = (short)(Mathf.Clamp(sample, -1f, 1f) * short.MaxValue * 0.7f);
+            data[i * 2] = (byte)(pcm & 0xFF);
+            data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
+        }
+
+        return new AudioStreamWav
+        {
+            Format = AudioStreamWav.FormatEnum.Format16Bits,
+            MixRate = sampleRate,
+            Data = data
+        };
+    }
+
+    private static AudioStreamWav GenerateFastballWhoosh()
+    {
+        int sampleRate = 22050;
+        float duration = 0.20f;
+        int numSamples = (int)(sampleRate * duration);
+        byte[] data = new byte[numSamples * 2];
+
+        for (int i = 0; i < numSamples; i++)
+        {
+            float t = (float)i / sampleRate;
+            float progress = t / duration;
+            float env = Mathf.Sin(progress * Mathf.Pi);
+            env = env * env;
+            float freq = Mathf.Lerp(380f, 1400f, Mathf.Sin(progress * Mathf.Pi));
+            float tone = Mathf.Sin(t * Mathf.Tau * freq) * env;
+            float windNoise = (float)GD.RandRange(-0.45, 0.45) * env;
+
+            float sample = tone * 0.45f + windNoise * 0.55f;
+            short pcm = (short)(Mathf.Clamp(sample, -1f, 1f) * short.MaxValue * 0.95f);
+            data[i * 2] = (byte)(pcm & 0xFF);
+            data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
+        }
+
+        return new AudioStreamWav
+        {
+            Format = AudioStreamWav.FormatEnum.Format16Bits,
+            MixRate = sampleRate,
+            Data = data
+        };
+    }
+
+    private static AudioStreamWav GenerateBatCrack()
+    {
+        int sampleRate = 22050;
+        float duration = 0.18f;
+        int numSamples = (int)(sampleRate * duration);
+        byte[] data = new byte[numSamples * 2];
+
+        for (int i = 0; i < numSamples; i++)
+        {
+            float t = (float)i / sampleRate;
+            float progress = t / duration;
+
+            // Sharp initial transient "CRACK"
+            float popEnv = Mathf.Clamp(1.0f - (progress / 0.15f), 0f, 1f);
+            popEnv = popEnv * popEnv * popEnv;
+            float popTone = Mathf.Sin(t * Mathf.Tau * 1450f) * popEnv;
+            float noisePop = (float)GD.RandRange(-0.6, 0.6) * popEnv;
+
+            // Hollow wooden bat body resonance
+            float woodEnv = Mathf.Clamp(1.0f - progress, 0f, 1f);
+            woodEnv = woodEnv * woodEnv;
+            float woodTone = (Mathf.Sin(t * Mathf.Tau * 420f) * 0.6f + Mathf.Sin(t * Mathf.Tau * 780f) * 0.4f) * woodEnv;
+
+            float sample = (popTone * 0.5f + noisePop * 0.5f) * 0.7f + woodTone * 0.6f;
+            short pcm = (short)(Mathf.Clamp(sample, -1f, 1f) * short.MaxValue * 0.95f);
+            data[i * 2] = (byte)(pcm & 0xFF);
+            data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
+        }
+
+        return new AudioStreamWav
+        {
+            Format = AudioStreamWav.FormatEnum.Format16Bits,
+            MixRate = sampleRate,
+            Data = data
+        };
+    }
+
+    private static AudioStreamWav GenerateMetalClang()
+    {
+        int sampleRate = 22050;
+        float duration = 0.25f;
+        int numSamples = (int)(sampleRate * duration);
+        byte[] data = new byte[numSamples * 2];
+
+        for (int i = 0; i < numSamples; i++)
+        {
+            float t = (float)i / sampleRate;
+            float progress = t / duration;
+
+            // Sharp bright metal clang with ringing overtone
+            float ringEnv = Mathf.Exp(-progress * 9.0f);
+            float f1 = 1680f;
+            float f2 = 2540f;
+            float clang = (Mathf.Sin(t * Mathf.Tau * f1) * 0.6f + Mathf.Sin(t * Mathf.Tau * f2) * 0.4f) * ringEnv;
+
+            // Initial strike tap
+            float tapEnv = Mathf.Clamp(1.0f - (progress / 0.08f), 0f, 1f);
+            float tap = (float)GD.RandRange(-0.4, 0.4) * tapEnv;
+
+            float sample = clang * 0.75f + tap * 0.25f;
+            short pcm = (short)(Mathf.Clamp(sample, -1f, 1f) * short.MaxValue * 0.95f);
+            data[i * 2] = (byte)(pcm & 0xFF);
+            data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
+        }
+
+        return new AudioStreamWav
+        {
+            Format = AudioStreamWav.FormatEnum.Format16Bits,
+            MixRate = sampleRate,
+            Data = data
+        };
+    }
+
+    private static AudioStreamWav GenerateParryThud()
+    {
+        int sampleRate = 22050;
+        float duration = 0.14f;
+        int numSamples = (int)(sampleRate * duration);
+        byte[] data = new byte[numSamples * 2];
+
+        for (int i = 0; i < numSamples; i++)
+        {
+            float t = (float)i / sampleRate;
+            float progress = t / duration;
+            float env = Mathf.Clamp(1.0f - progress, 0f, 1f);
+            env = env * env * env;
+            float freq = Mathf.Lerp(450f, 120f, progress);
+            float thud = Mathf.Sin(t * Mathf.Tau * freq) * env;
+            float slap = (float)GD.RandRange(-0.3, 0.3) * Mathf.Clamp(1.0f - (progress / 0.2f), 0f, 1f);
+
+            float sample = thud * 0.65f + slap * 0.35f;
+            short pcm = (short)(Mathf.Clamp(sample, -1f, 1f) * short.MaxValue * 0.9f);
             data[i * 2] = (byte)(pcm & 0xFF);
             data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
         }

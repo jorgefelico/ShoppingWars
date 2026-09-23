@@ -365,14 +365,16 @@ public partial class GamePhaseHUD : CanvasLayer
                     if (targetOutside && !isSpectating)
                     {
                         float dist = ArenaZoneManager.Instance.GetDistanceToSafeZone(targetPos);
-                        PhaseLabel.Text = $"⚠️ OUTSIDE SAFE ZONE! (-6 HP/s) — RETURN TO AISLES ({dist:0.0}m) ⚠️";
+                        string dept = ArenaZoneManager.Instance.TargetDepartmentName;
+                        PhaseLabel.Text = $"⚠️ OUTSIDE SAFE ZONE! (-6 HP/s) — HEAD TO {dept.ToUpper()} ({dist:0.0}m) ⚠️";
                         PhaseLabel.Modulate = (Time.GetTicksMsec() % 500 < 250) ? Colors.Red : Colors.Yellow;
                     }
                     else if (targetOutside && isSpectating)
                     {
                         string spectatedName = activeTarget.PlayerName;
                         float dist = ArenaZoneManager.Instance.GetDistanceToSafeZone(targetPos);
-                        PhaseLabel.Text = $"⚠️ {spectatedName} IS OUTSIDE SAFE ZONE! ({dist:0.0}m) ⚠️";
+                        string dept = ArenaZoneManager.Instance.TargetDepartmentName;
+                        PhaseLabel.Text = $"⚠️ {spectatedName} IS OUTSIDE SAFE ZONE! ({dist:0.0}m) — ZONE AT {dept.ToUpper()} ⚠️";
                         PhaseLabel.Modulate = (Time.GetTicksMsec() % 500 < 250) ? Colors.OrangeRed : Colors.Yellow;
                     }
                     else

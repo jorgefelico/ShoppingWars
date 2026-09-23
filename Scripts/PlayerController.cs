@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class PlayerController : CharacterBody3D, IDamageable
@@ -122,6 +123,9 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private Tween _meleeTween;
     private Vector3 _defaultItemHandPosition = new Vector3(0.28f, -0.22f, -0.38f);
     private Vector3 _defaultItemHandRotation = Vector3.Zero;
+    private bool _isChargingThrow = false;
+    private float _throwChargeTimer = 0f;
+    private const float MaxThrowChargeTime = 0.55f;
 
     public override void _Ready()
     {
@@ -848,7 +852,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
         if (!IsMultiplayerAuthority()) return;
         if (InputDisabled || GameManager.Instance?.CurrentPhase == GamePhase.GameOver || (GamePhaseHUD.Instance != null && GamePhaseHUD.Instance.IsAnyModalOpen)) return;
-        HandleThrow();
+        HandleThrow(delta);
         HandleMelee();
         HandleUseItem();
         UpdateTargeting();
@@ -982,6 +986,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (InputDisabled || _isThrowing || _isMeleeSwinging) return;
         if (!Input.IsActionJustPressed("drop_item")) return;
 
+        CancelThrowCharge();
         if (HeldItem != null)
         {
             if (GameManager.Instance?.CurrentPhase == GamePhase.Shopping) HeldItem.IsForSale = true;
@@ -1304,57 +1309,124 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
     }
 
-    private void HandleThrow()
+    private void CancelThrowCharge()
     {
-        // Throwing / Firing
-        if (Input.IsActionJustPressed("fire") && HeldItem != null)
+        if (_isChargingThrow)
         {
-            if (_throwCooldownTimer > 0f || _isThrowing || _isMeleeSwinging || _punchTimer > 0f) return;
-
-            if (HeldItem is PotatoGun potatoGun)
+            _isChargingThrow = false;
+            _throwChargeTimer = 0f;
+            _comicCrosshair?.SetChargeProgress(0f);
+            if (ItemHand != null && !_isThrowing && !_isMeleeSwinging)
             {
-                HandlePotatoGunFire(potatoGun);
-                return;
-            }
-
-            if (GameManager.Instance == null || GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
-            {
-                _throwCooldownTimer = ThrowCooldown;
-                StartThrowSequence();
+                ItemHand.Position = _defaultItemHandPosition;
+                ItemHand.Rotation = _defaultItemHandRotation;
             }
         }
     }
 
-    private void StartThrowSequence()
+    private void HandleThrow(double delta)
+    {
+        if (HeldItem is PotatoGun potatoGun)
+        {
+            if (Input.IsActionJustPressed("fire"))
+            {
+                if (_throwCooldownTimer > 0f || _isThrowing || _isMeleeSwinging || _punchTimer > 0f) return;
+                HandlePotatoGunFire(potatoGun);
+            }
+            return;
+        }
+
+        // Regular throwable item charging & throwing
+        if (_isChargingThrow)
+        {
+            // Validation: cancel if item lost, dead, or swinging
+            if (HeldItem == null || !GodotObject.IsInstanceValid(HeldItem) || (Health != null && Health.IsDead) || _isMeleeSwinging)
+            {
+                CancelThrowCharge();
+                return;
+            }
+
+            _throwChargeTimer += (float)delta;
+            float chargeRatio = Mathf.Clamp(_throwChargeTimer / MaxThrowChargeTime, 0f, 1f);
+
+            // Reticle charge indication
+            _comicCrosshair?.SetChargeProgress(chargeRatio);
+
+            // Hand wind-up pullback animation during charging
+            if (ItemHand != null && !_isThrowing)
+            {
+                Vector3 pullbackOffset = new Vector3(0.04f, 0.05f, 0.12f) * chargeRatio;
+                Vector3 pullbackRot = new Vector3(Mathf.DegToRad(16f), Mathf.DegToRad(10f), Mathf.DegToRad(-8f)) * chargeRatio;
+                Vector3 jitter = chargeRatio >= 0.85f
+                    ? new Vector3((float)GD.RandRange(-0.002, 0.002), (float)GD.RandRange(-0.002, 0.002), (float)GD.RandRange(-0.002, 0.002))
+                    : Vector3.Zero;
+
+                ItemHand.Position = _defaultItemHandPosition + pullbackOffset + jitter;
+                ItemHand.Rotation = _defaultItemHandRotation + pullbackRot;
+            }
+
+            // Release on button release
+            if (!Input.IsActionPressed("fire"))
+            {
+                float finalRatio = chargeRatio;
+                CancelThrowCharge();
+
+                if (GameManager.Instance == null || GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
+                {
+                    _throwCooldownTimer = ThrowCooldown;
+                    float chargePower = Mathf.Lerp(1.0f, 1.50f, finalRatio);
+                    float dmgMultiplier = Mathf.Lerp(1.0f, 1.35f, finalRatio);
+                    bool isFastball = finalRatio >= 0.82f;
+                    StartThrowSequence(chargePower, dmgMultiplier, isFastball);
+                }
+            }
+        }
+        else if (Input.IsActionJustPressed("fire") && HeldItem != null)
+        {
+            if (_throwCooldownTimer > 0f || _isThrowing || _isMeleeSwinging || _punchTimer > 0f) return;
+
+            if (GameManager.Instance == null || GameManager.Instance.CurrentPhase == GamePhase.BattleRoyale)
+            {
+                _isChargingThrow = true;
+                _throwChargeTimer = 0f;
+            }
+        }
+    }
+
+    private void StartThrowSequence(float chargePower = 1.0f, float dmgMultiplier = 1.0f, bool isFastball = false)
     {
         if (ItemHand == null || HeldItem == null) return;
 
         _isThrowing = true;
-        _throwTimer = 0.35f;
+        _throwTimer = isFastball ? 0.28f : 0.35f;
 
         // Kill any existing throw tween
         _throwTween?.Kill();
         _throwTween = CreateTween();
 
-        // 1. Wind-up (Cock back arm and item): 0.07s
+        float windupDuration = isFastball ? 0.05f : 0.07f;
+        float whipDuration = isFastball ? 0.045f : 0.06f;
+        float followDuration = isFastball ? 0.10f : 0.12f;
+
+        // 1. Wind-up (Cock back arm and item)
         Vector3 windupPos = _defaultItemHandPosition + new Vector3(0.04f, 0.06f, 0.10f);
         Vector3 windupRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(20f), Mathf.DegToRad(10f), Mathf.DegToRad(-8f));
 
-        _throwTween.TweenProperty(ItemHand, "position", windupPos, 0.07f)
+        _throwTween.TweenProperty(ItemHand, "position", windupPos, windupDuration)
             .SetTrans(Tween.TransitionType.Quad)
             .SetEase(Tween.EaseType.Out);
-        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", windupRot, 0.07f)
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", windupRot, windupDuration)
             .SetTrans(Tween.TransitionType.Quad)
             .SetEase(Tween.EaseType.Out);
 
-        // 2. Forward Whip stroke: 0.06s
+        // 2. Forward Whip stroke
         Vector3 whipPos = _defaultItemHandPosition + new Vector3(-0.04f, -0.04f, -0.16f);
         Vector3 whipRot = _defaultItemHandRotation + new Vector3(Mathf.DegToRad(-24f), Mathf.DegToRad(-10f), Mathf.DegToRad(10f));
 
-        _throwTween.TweenProperty(ItemHand, "position", whipPos, 0.06f)
+        _throwTween.TweenProperty(ItemHand, "position", whipPos, whipDuration)
             .SetTrans(Tween.TransitionType.Cubic)
             .SetEase(Tween.EaseType.In);
-        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", whipRot, 0.06f)
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", whipRot, whipDuration)
             .SetTrans(Tween.TransitionType.Cubic)
             .SetEase(Tween.EaseType.In);
 
@@ -1372,18 +1444,18 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Vector3 spawnPos = ItemHand != null ? ItemHand.GlobalPosition : (Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f));
             Vector3 dir = (aimPoint - spawnPos).Normalized();
             float perkThrowMultiplier = (CurrentPerk == PlayerPerk.PowerArm) ? 1.30f : 1.0f;
-            float speed = ThrowVelocity * HeldItem.ThrowMultiplier * perkThrowMultiplier;
+            float speed = ThrowVelocity * HeldItem.ThrowMultiplier * perkThrowMultiplier * chargePower;
             NodePath itemPath = HeldItem.GetPath();
 
-            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.08f, 0f, 1f);
-            Rpc(nameof(RpcThrowItem), itemPath, dir * speed);
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + (isFastball ? 0.18f : 0.08f), 0f, 1f);
+            Rpc(nameof(RpcThrowItem), itemPath, dir * speed, dmgMultiplier, isFastball);
         }));
 
-        // 4. Follow-through & Reset: 0.12s
-        _throwTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, 0.12f)
+        // 4. Follow-through & Reset
+        _throwTween.TweenProperty(ItemHand, "position", _defaultItemHandPosition, followDuration)
             .SetTrans(Tween.TransitionType.Quad)
             .SetEase(Tween.EaseType.Out);
-        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, 0.12f)
+        _throwTween.Parallel().TweenProperty(ItemHand, "rotation", _defaultItemHandRotation, followDuration)
             .SetTrans(Tween.TransitionType.Quad)
             .SetEase(Tween.EaseType.Out);
 
@@ -1395,13 +1467,17 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void RpcThrowItem(NodePath itemPath, Vector3 launchVelocity)
+    private void RpcThrowItem(NodePath itemPath, Vector3 launchVelocity, float dmgMultiplier = 1.0f, bool isFastball = false)
     {
         Product item = GetNodeOrNull<Product>(itemPath);
         if (item == null) return;
 
         item.Thrower = this;
         item.ResetImpact();
+        item.LaunchPowerMultiplier = dmgMultiplier;
+        item.IsFastball = isFastball;
+        item.ActivateTrail(isFastball);
+
         item.Reparent(GetTree().CurrentScene);
         Vector3 spawnPos = ItemHand != null ? ItemHand.GlobalPosition : (Camera.GlobalPosition + (-Camera.GlobalBasis.Z * 0.5f));
         item.GlobalPosition = spawnPos;
@@ -1411,7 +1487,15 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         item.ActivatePhysicsAndSync();
         item.Visible = true;
         item.LinearVelocity = launchVelocity;
-        _playerAudio?.PlayThrowWhoosh();
+
+        if (isFastball)
+        {
+            _playerAudio?.PlayFastballWhoosh();
+        }
+        else
+        {
+            _playerAudio?.PlayThrowWhoosh();
+        }
 
         // Visual throw whip on remote player model
         if (!IsMultiplayerAuthority() && ItemHand != null)
@@ -1449,7 +1533,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
                 {
                     if (peerId != senderId)
                     {
-                        RpcId(peerId, nameof(RpcThrowItem), itemPath, launchVelocity);
+                        RpcId(peerId, nameof(RpcThrowItem), itemPath, launchVelocity, dmgMultiplier, isFastball);
                     }
                 }
             }
@@ -1750,6 +1834,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         if (isAltPressed)
         {
             if (_meleeCooldownTimer > 0f || _isThrowing || _isMeleeSwinging) return;
+            CancelThrowCharge();
             _meleeCooldownTimer = MeleeCooldown;
 
             StartMeleeSwingSequence();
@@ -1902,6 +1987,76 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             shouldBreak = false;
         }
 
+        // --- Mid-Air Batting & Deflection Sweep ---
+        Product bestBatTarget = null;
+        float bestDist = float.MaxValue;
+        Vector3 camPos = Camera != null ? Camera.GlobalPosition : GlobalPosition;
+        Vector3 camForward = Camera != null ? -Camera.GlobalBasis.Z : -GlobalBasis.Z;
+
+        var products = GetTree().GetNodesInGroup("Products");
+        foreach (var node in products)
+        {
+            if (node is Product product && GodotObject.IsInstanceValid(product))
+            {
+                if (product == swingItem || product.GetParent() != GetTree().CurrentScene) continue;
+                if (product.Freeze) continue;
+                if (product.LinearVelocity.LengthSquared() < 9.0f) continue; // Moving fast enough to be airborne projectile
+
+                Vector3 toProd = product.GlobalPosition - camPos;
+                float dist = toProd.Length();
+                if (dist > 3.2f || dist < 0.2f) continue;
+
+                float dot = camForward.Dot(toProd.Normalized());
+                if (dot > 0.35f && dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestBatTarget = product;
+                }
+            }
+        }
+
+        if (bestBatTarget != null)
+        {
+            string swingName = swingItem != null ? (swingItem.DisplayName?.ToString() ?? swingItem.Name.ToString()) : "";
+            bool isBat = swingName.Contains("Bat", StringComparison.OrdinalIgnoreCase);
+            bool isMetalTool = swingName.Contains("Pan", StringComparison.OrdinalIgnoreCase)
+                            || swingName.Contains("Sledge", StringComparison.OrdinalIgnoreCase)
+                            || swingName.Contains("Wrench", StringComparison.OrdinalIgnoreCase)
+                            || swingName.Contains("Crowbar", StringComparison.OrdinalIgnoreCase);
+
+            float speedMult = isBat ? 1.60f : (isMetalTool ? 1.50f : 1.35f);
+            float minSpeed = isBat ? 36.0f : (isMetalTool ? 32.0f : 28.0f);
+            float dmgBonus = isBat ? 1.50f : (isMetalTool ? 1.35f : 1.20f);
+
+            string popupText = isBat ? "⚾ HOME RUN!" : (isMetalTool ? "💥 CLANG! DEFLECTED!" : "💥 PARRY!");
+            Color popupCol = isBat ? new Color(1.0f, 0.88f, 0.2f) : (isMetalTool ? new Color(0.2f, 0.85f, 1.0f) : new Color(1.0f, 0.55f, 0.15f));
+
+            Vector3 batDir = (camForward + Vector3.Up * 0.08f).Normalized();
+            float incomingSpeed = bestBatTarget.LinearVelocity.Length();
+            float newSpeed = Mathf.Max(minSpeed, incomingSpeed * speedMult);
+            Vector3 newVelocity = batDir * newSpeed;
+
+            // Apply deflection immediately on authority
+            bestBatTarget.Thrower = this;
+            bestBatTarget.ResetImpact();
+            bestBatTarget.IsFastball = true;
+            bestBatTarget.LaunchPowerMultiplier = Mathf.Max(bestBatTarget.LaunchPowerMultiplier, 1.0f) * dmgBonus;
+            bestBatTarget.LinearVelocity = newVelocity;
+            bestBatTarget.ActivateTrail(true);
+
+            _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.32f, 0f, 1f);
+            FloatingDamageNumber.SpawnText(this, bestBatTarget.GlobalPosition + Vector3.Up * 0.35f, popupText, popupCol, 52);
+            CombatHitEffect.Spawn(this, bestBatTarget.GlobalPosition);
+            _playerAudio?.PlayBatDeflect(isMetalTool || isBat, isBat);
+
+            if (isBat && ManagerAnnouncer.Instance != null && GD.Randf() < 0.65f)
+            {
+                ManagerAnnouncer.Instance.AnnounceHomeRun(PlayerName);
+            }
+
+            Rpc(nameof(RpcBatProjectile), bestBatTarget.GetPath(), newVelocity, isBat, isMetalTool, popupText);
+        }
+
         // Raycast forward from camera
         var spaceState = GetWorld3D().DirectSpaceState;
         Vector3 from = Camera.GlobalPosition;
@@ -1936,7 +2091,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             CombatHitEffect.Spawn(this, hitPos);
             Rpc(nameof(RpcOnMeleeSwing), hitPos, true, hasItem);
         }
-        else
+        else if (bestBatTarget == null)
         {
             _cameraTrauma = Mathf.Clamp(_cameraTrauma + 0.05f, 0f, 1f);
             Rpc(nameof(RpcOnMeleeSwing), Camera.GlobalPosition - Camera.GlobalBasis.Z * 1.5f, false, hasItem);
@@ -1947,6 +2102,39 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             Inventory?.RemoveItem(swingItem);
             UpdateHandItemVisibility();
             swingItem.QueueFree();
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void RpcBatProjectile(NodePath itemPath, Vector3 newVelocity, bool isBat, bool isMetalTool, string popupText)
+    {
+        Product item = GetNodeOrNull<Product>(itemPath);
+        if (item == null || !GodotObject.IsInstanceValid(item)) return;
+
+        item.Thrower = this;
+        item.ResetImpact();
+        item.IsFastball = true;
+        item.LinearVelocity = newVelocity;
+        item.ActivateTrail(true);
+
+        Color popupCol = isBat ? new Color(1.0f, 0.88f, 0.2f) : (isMetalTool ? new Color(0.2f, 0.85f, 1.0f) : new Color(1.0f, 0.55f, 0.15f));
+        FloatingDamageNumber.SpawnText(this, item.GlobalPosition + Vector3.Up * 0.35f, popupText, popupCol, 52);
+        CombatHitEffect.Spawn(this, item.GlobalPosition);
+        _playerAudio?.PlayBatDeflect(isMetalTool || isBat, isBat);
+
+        if (Multiplayer.IsServer())
+        {
+            long senderId = Multiplayer.GetRemoteSenderId();
+            if (senderId != 0 && senderId != 1)
+            {
+                foreach (long peerId in Multiplayer.GetPeers())
+                {
+                    if (peerId != senderId)
+                    {
+                        RpcId(peerId, nameof(RpcBatProjectile), itemPath, newVelocity, isBat, isMetalTool, popupText);
+                    }
+                }
+            }
         }
     }
 
@@ -2106,6 +2294,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private void SwitchInventorySlot(int index)
     {
         if (Inventory == null || _isThrowing || _isMeleeSwinging) return;
+        CancelThrowCharge();
         int prevSlot = Inventory.selectedItemIndex;
         Inventory.SetCurrentSelectedItem(index);
         if (prevSlot != Inventory.selectedItemIndex)

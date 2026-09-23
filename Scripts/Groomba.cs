@@ -37,6 +37,13 @@ public partial class Groomba : PatrolEnemy
     private Vector3 _lastSentRot = Vector3.Zero;
     private float _heartbeatTimer = 0f;
 
+    [Export] public float VacuumRadius = 1.4f;
+    private readonly System.Collections.Generic.List<Product> _swallowedProducts = new();
+    private AudioStreamPlayer3D _vacuumAudioPlayer;
+    private CpuParticles3D _intakeVortex;
+    private float _vacuumScanTimer = 0f;
+    private const float VacuumScanInterval = 0.12f;
+
     public override void _Ready()
     {
         base._Ready();
@@ -124,6 +131,47 @@ public partial class Groomba : PatrolEnemy
             Material = dustMat
         };
         AddChild(_vacuumDust);
+
+        // Procedural vacuum suction sound player
+        _vacuumAudioPlayer = new AudioStreamPlayer3D
+        {
+            Name = "VacuumAudioPlayer",
+            Bus = "SFX",
+            UnitSize = 12.0f,
+            MaxDistance = 35.0f,
+            VolumeDb = 2.0f,
+            Stream = CreateSuctionSound()
+        };
+        AddChild(_vacuumAudioPlayer);
+
+        // Nozzle suction vortex particles at front intake
+        _intakeVortex = new CpuParticles3D
+        {
+            Name = "IntakeVortex",
+            Emitting = false,
+            OneShot = true,
+            Amount = 16,
+            Lifetime = 0.35f,
+            Explosiveness = 0.85f,
+            Direction = new Vector3(0, 0.2f, 1.0f),
+            Spread = 50.0f,
+            InitialVelocityMin = 1.2f,
+            InitialVelocityMax = 2.8f,
+            Position = new Vector3(0, 0.05f, -0.36f)
+        };
+        var vortexMat = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.85f, 0.95f, 1.0f, 0.6f),
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded
+        };
+        _intakeVortex.Mesh = new SphereMesh
+        {
+            Radius = 0.035f,
+            Height = 0.07f,
+            Material = vortexMat
+        };
+        AddChild(_intakeVortex);
 
         UpdateRingEmission(PatrolState);
 
@@ -216,8 +264,17 @@ public partial class Groomba : PatrolEnemy
     {
         if (!Multiplayer.IsServer()) return;
         if (GameManager.Instance?.CurrentPhase != GamePhase.BattleRoyale) return;
+        if (_isDestroyed) return;
         if (_attackCooldown > 0f) _attackCooldown -= (float)delta;
         if (_nearMissCooldown > 0f) _nearMissCooldown -= (float)delta;
+
+        // Ground objects vacuum scan
+        _vacuumScanTimer += (float)delta;
+        if (_vacuumScanTimer >= VacuumScanInterval)
+        {
+            _vacuumScanTimer = 0f;
+            CheckGroundObjectsForVacuum();
+        }
 
         Vector3 velocity = Velocity;
         if (!IsOnFloor())
@@ -1016,6 +1073,7 @@ public partial class Groomba : PatrolEnemy
         if (_smoke != null) _smoke.Emitting = false;
         FloatingDamageNumber.SpawnText(this, GlobalPosition + Vector3.Up * 0.8f, "K.O.!", new Color(1.0f, 0.2f, 0.2f), 54);
         SpawnExplosion();
+        EjectSwallowedItems();
         QueueFree();
     }
 
@@ -1033,6 +1091,205 @@ public partial class Groomba : PatrolEnemy
             }
         }
     }
+
+    #region Ground Objects Vacuum & Dustbin System
+
+    private AudioStreamWav CreateSuctionSound()
+    {
+        int sampleRate = 22050;
+        float duration = 0.28f;
+        int sampleCount = (int)(sampleRate * duration);
+        byte[] data = new byte[sampleCount * 2];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float progress = t / duration;
+
+            float freq = Mathf.Lerp(260f, 620f, Mathf.Sin(progress * Mathf.Pi));
+            float phase = t * Mathf.Tau * freq;
+
+            float noise = (float)(GD.Randf() * 2.0 - 1.0) * 0.35f;
+
+            float env = progress < 0.2f
+                ? (progress / 0.2f)
+                : Mathf.Pow(1.0f - progress, 0.75f);
+
+            float tone = (Mathf.Sin(phase) * 0.65f + noise) * env * 0.45f;
+            short pcm = (short)Mathf.Clamp(tone * short.MaxValue, short.MinValue, short.MaxValue);
+            data[i * 2] = (byte)(pcm & 0xFF);
+            data[i * 2 + 1] = (byte)((pcm >> 8) & 0xFF);
+        }
+
+        var wav = new AudioStreamWav();
+        wav.Format = AudioStreamWav.FormatEnum.Format16Bits;
+        wav.MixRate = sampleRate;
+        wav.Data = data;
+        return wav;
+    }
+
+    private void PlaySuctionSound()
+    {
+        if (_vacuumAudioPlayer != null && GodotObject.IsInstanceValid(_vacuumAudioPlayer))
+        {
+            _vacuumAudioPlayer.PitchScale = (float)GD.RandRange(0.92f, 1.08f);
+            _vacuumAudioPlayer.Play();
+        }
+    }
+
+    private void TriggerIntakeFX()
+    {
+        if (_intakeVortex != null && GodotObject.IsInstanceValid(_intakeVortex))
+        {
+            _intakeVortex.Restart();
+            _intakeVortex.Emitting = true;
+        }
+    }
+
+    private void CheckGroundObjectsForVacuum()
+    {
+        if (_isDestroyed) return;
+
+        // Groomba vacuums loose ground objects within VacuumRadius (1.4m)
+        var products = GetTree().GetNodesInGroup("Products");
+        if (products == null || products.Count == 0) return;
+
+        float maxDistSq = VacuumRadius * VacuumRadius;
+        Vector3 myPos = GlobalPosition;
+
+        foreach (Node node in products)
+        {
+            if (node is not Product product || !GodotObject.IsInstanceValid(product) || product.IsQueuedForDeletion())
+                continue;
+
+            // Fast bounding box pre-check
+            Vector3 prodPos = product.GlobalPosition;
+            if (Mathf.Abs(prodPos.X - myPos.X) > VacuumRadius || Mathf.Abs(prodPos.Z - myPos.Z) > VacuumRadius)
+                continue;
+
+            // Must be near floor level (floor is Y ≈ 0m, shelves are Y >= 0.55m)
+            if (prodPos.Y > 0.55f || prodPos.Y < -0.5f)
+                continue;
+
+            // Do not suck up products currently in hand, inventory, or already in dustbin
+            Node parent = product.GetParent();
+            if (parent == null || parent.Name == "ItemHand" || parent is PlayerController || parent is Inventory || parent == this)
+                continue;
+
+            // Do not suck up active in-flight projectiles moving at high speed
+            if (product.Thrower != null && product.LinearVelocity.LengthSquared() > 4.0f)
+                continue;
+
+            // Check 2D distance
+            float distSq = (prodPos.X - myPos.X) * (prodPos.X - myPos.X) + (prodPos.Z - myPos.Z) * (prodPos.Z - myPos.Z);
+            if (distSq <= maxDistSq)
+            {
+                VacuumProduct(product);
+                break; // Vacuum 1 item per scan tick for rapid, rhythmic slurps
+            }
+        }
+    }
+
+    private void VacuumProduct(Product product)
+    {
+        if (product == null || !GodotObject.IsInstanceValid(product) || product.IsQueuedForDeletion())
+            return;
+
+        NodePath path = product.GetPath();
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            Rpc(nameof(RpcVacuumProduct), path);
+        }
+        else
+        {
+            RpcVacuumProduct(path);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void RpcVacuumProduct(NodePath productPath)
+    {
+        Product product = null;
+        if (productPath != null && !productPath.IsEmpty)
+        {
+            product = GetNodeOrNull<Product>(productPath)
+                ?? GetTree()?.Root?.GetNodeOrNull<Product>(productPath)
+                ?? GetTree()?.CurrentScene?.GetNodeOrNull<Product>(productPath);
+        }
+
+        if (product != null && GodotObject.IsInstanceValid(product) && !product.IsQueuedForDeletion())
+        {
+            if (!_swallowedProducts.Contains(product))
+            {
+                _swallowedProducts.Add(product);
+            }
+
+            product.OutlineOff();
+            product.CollisionLayer = 0;
+            product.CollisionMask = 0;
+            product.Freeze = true;
+            product.FreezeMode = RigidBody3D.FreezeModeEnum.Static;
+            product.DeactivatePhysicsAndSync();
+            product.Visible = false;
+            product.Reparent(this, false);
+            product.Position = Vector3.Zero;
+        }
+
+        PlaySuctionSound();
+        TriggerIntakeFX();
+
+        string[] nomFaces = { "( ˶˘ ³˶ )", "( ᵔ ᵕ ᵔ )", "˘ ᵕ ˘", "( ˵ •̀ ᴗ - ˵ )" };
+        string[] nomTexts = { "*SLURP!*", "CLEANED!", "VACUUMED!", "DUSTBIN +1", "*NOM*" };
+        string face = nomFaces[GD.Randi() % nomFaces.Length];
+        string text = nomTexts[GD.Randi() % nomTexts.Length];
+
+        if (_faceDisplay != null)
+        {
+            _faceDisplay.Text = face;
+            _faceDisplay.Modulate = new Color(0.2f, 0.95f, 0.5f);
+            _faceResetTimer = 1.1f;
+        }
+
+        FloatingDamageNumber.SpawnText(this, GlobalPosition + Vector3.Up * 0.75f, text, new Color(0.25f, 0.95f, 0.45f), 38);
+    }
+
+    private void EjectSwallowedItems()
+    {
+        Node parent = GetTree().CurrentScene ?? GetParent();
+        if (parent == null) return;
+
+        var rng = new RandomNumberGenerator();
+        int ejectedCount = 0;
+
+        foreach (Product product in _swallowedProducts)
+        {
+            if (product != null && GodotObject.IsInstanceValid(product) && !product.IsQueuedForDeletion())
+            {
+                product.Reparent(parent, true);
+                product.GlobalPosition = GlobalPosition + Vector3.Up * (0.35f + rng.RandfRange(0.05f, 0.35f));
+                product.Visible = true;
+                product.IsForSale = false;
+                product.WasBought = true;
+                product.CanBePickedUp = true;
+                product.Freeze = false;
+                product.CollisionLayer = 1;
+                product.CollisionMask = 3;
+                product.ActivatePhysicsAndSync();
+
+                float speed = rng.RandfRange(3.5f, 6.5f);
+                float angle = rng.RandfRange(0f, Mathf.Tau);
+                Vector3 launchVel = new Vector3(Mathf.Cos(angle) * speed, rng.RandfRange(4.0f, 7.0f), Mathf.Sin(angle) * speed);
+                product.LinearVelocity = launchVel;
+                product.AngularVelocity = new Vector3(rng.RandfRange(-6f, 6f), rng.RandfRange(-6f, 6f), rng.RandfRange(-6f, 6f));
+                ejectedCount++;
+            }
+        }
+        _swallowedProducts.Clear();
+
+        GD.Print($"[Groomba] Ejected {ejectedCount} items from dustbin upon destruction!");
+    }
+
+    #endregion
 
     #endregion
 }

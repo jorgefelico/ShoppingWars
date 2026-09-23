@@ -3,6 +3,39 @@ using System.Collections.Generic;
 
 public partial class InventoryBar : CanvasLayer
 {
+    private int _lastSelectedSlot = -1;
+    private PanelContainer _trayPanel;
+    private bool _isInitialized = false;
+
+    public override void _Ready()
+    {
+        InitializeTray();
+        Refresh((Inventory)null, 0);
+    }
+
+    private void InitializeTray()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+
+        var hBox = GetNodeOrNull<HBoxContainer>("HBoxContainer");
+        if (hBox != null)
+        {
+            // Position bottom-center, elevated slightly above screen edge
+            hBox.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
+            hBox.AnchorLeft = 0.5f;
+            hBox.AnchorRight = 0.5f;
+            hBox.AnchorTop = 1.0f;
+            hBox.AnchorBottom = 1.0f;
+            hBox.GrowHorizontal = Control.GrowDirection.Both;
+            hBox.GrowVertical = Control.GrowDirection.Begin;
+            hBox.OffsetTop = -66;
+            hBox.OffsetBottom = -18;
+            hBox.Alignment = BoxContainer.AlignmentMode.Center;
+            hBox.AddThemeConstantOverride("separation", 8);
+        }
+    }
+
     public List<PanelContainer> GetSlotPanels()
     {
         var list = new List<PanelContainer>();
@@ -20,42 +53,70 @@ public partial class InventoryBar : CanvasLayer
         return list;
     }
 
-    private int _lastSelectedSlot = -1;
-
     public void Refresh(Inventory inventory, int currentSelectedItem)
     {
+        InitializeTray();
         var panels = GetSlotPanels();
+
         for (int i = 0; i < panels.Count; i++)
         {
             PanelContainer panel = panels[i];
-            panel.PivotOffset = panel.Size / 2f;
-            StyleBoxFlat style = (panel.GetThemeStylebox("panel") as StyleBoxFlat).Duplicate() as StyleBoxFlat;
-            if (currentSelectedItem == i)
+            panel.CustomMinimumSize = new Vector2(48, 48);
+            panel.PivotOffset = new Vector2(24, 24);
+
+            bool isSelected = currentSelectedItem == i;
+
+            // Comic Style for Slot
+            StyleBoxFlat style;
+            if (isSelected)
             {
-                style.BorderColor = Color.Color8(255, 223, 0); // Gold
-                style.BorderWidthBottom = 3;
-                style.BorderWidthTop = 3;
-                style.BorderWidthLeft = 3;
-                style.BorderWidthRight = 3;
+                style = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.24f, 0.22f, 0.32f, 0.98f),
+                    BorderColor = UITheme.FlyerYellow,
+                    BorderWidthLeft = 3,
+                    BorderWidthTop = 3,
+                    BorderWidthRight = 3,
+                    BorderWidthBottom = 4,
+                    CornerRadiusTopLeft = 8,
+                    CornerRadiusTopRight = 8,
+                    CornerRadiusBottomLeft = 8,
+                    CornerRadiusBottomRight = 8,
+                    ShadowColor = new Color(1.0f, 0.84f, 0.0f, 0.45f), // Golden aura
+                    ShadowSize = 6,
+                    ShadowOffset = new Vector2(0, 2)
+                };
 
                 if (_lastSelectedSlot != currentSelectedItem)
                 {
                     Tween tween = CreateTween();
-                    tween.TweenProperty(panel, "scale", new Vector2(1.18f, 1.18f), 0.06f);
-                    tween.TweenProperty(panel, "scale", new Vector2(1.05f, 1.05f), 0.12f);
+                    tween.SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+                    tween.TweenProperty(panel, "scale", new Vector2(1.18f, 1.18f), 0.08f);
+                    tween.TweenProperty(panel, "scale", new Vector2(1.08f, 1.08f), 0.12f);
                 }
                 else
                 {
-                    panel.Scale = new Vector2(1.05f, 1.05f);
+                    panel.Scale = new Vector2(1.08f, 1.08f);
                 }
             }
             else
             {
-                style.BorderColor = Color.Color8(0, 0, 0);
-                style.BorderWidthBottom = 1;
-                style.BorderWidthTop = 1;
-                style.BorderWidthLeft = 1;
-                style.BorderWidthRight = 1;
+                style = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.12f, 0.13f, 0.18f, 0.92f),
+                    BorderColor = UITheme.InkBlack,
+                    BorderWidthLeft = 2,
+                    BorderWidthTop = 2,
+                    BorderWidthRight = 2,
+                    BorderWidthBottom = 4, // 3D bevel
+                    CornerRadiusTopLeft = 7,
+                    CornerRadiusTopRight = 7,
+                    CornerRadiusBottomLeft = 7,
+                    CornerRadiusBottomRight = 7,
+                    ShadowColor = new Color(0f, 0f, 0f, 0.5f),
+                    ShadowSize = 3,
+                    ShadowOffset = new Vector2(2, 2)
+                };
                 panel.Scale = Vector2.One;
             }
             panel.AddThemeStyleboxOverride("panel", style);
@@ -64,6 +125,16 @@ public partial class InventoryBar : CanvasLayer
             TextureRect textureRect = panel.GetNodeOrNull<TextureRect>("TextureRect");
             Label countLabel = panel.GetNodeOrNull<Label>("CountLabel");
 
+            // Format slot hotkey sticker (Top-Left)
+            if (label != null)
+            {
+                label.HorizontalAlignment = HorizontalAlignment.Left;
+                label.VerticalAlignment = VerticalAlignment.Top;
+                label.Text = $"{i + 1}";
+                UITheme.FormatComicLabel(label, UITheme.BodyFont, 11, isSelected ? UITheme.FlyerYellow : new Color(0.8f, 0.8f, 0.85f), UITheme.InkBlack, 2);
+            }
+
+            // Format count badge (Bottom-Right)
             if (countLabel == null)
             {
                 countLabel = new Label
@@ -73,11 +144,16 @@ public partial class InventoryBar : CanvasLayer
                     VerticalAlignment = VerticalAlignment.Bottom,
                     MouseFilter = Control.MouseFilterEnum.Ignore
                 };
-                countLabel.AddThemeFontSizeOverride("font_size", 13);
-                countLabel.AddThemeColorOverride("font_color", Colors.White);
-                countLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-                countLabel.AddThemeConstantOverride("outline_size", 4);
                 panel.AddChild(countLabel);
+            }
+            UITheme.FormatComicLabel(countLabel, UITheme.BodyFont, 13, Colors.White, UITheme.InkBlack, 3);
+
+            // Item Icon setup
+            if (textureRect != null)
+            {
+                textureRect.CustomMinimumSize = new Vector2(36, 36);
+                textureRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                textureRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
             }
 
             Product product = inventory?.GetItem(i);
@@ -87,90 +163,102 @@ public partial class InventoryBar : CanvasLayer
             {
                 if (product.Icon == null)
                 {
-                    if (label != null) label.Text = product.DisplayName;
+                    if (label != null) label.Text = $"{i + 1}\n{product.DisplayName}";
                     if (textureRect != null) textureRect.Texture = null;
                 }
                 else
                 {
-                    if (label != null) label.Text = "";
                     if (textureRect != null) textureRect.Texture = product.Icon;
                 }
 
                 if (product is PotatoGun pg)
                 {
-                    countLabel.Text = pg.IsReloading ? "🔄" : $"🥔{pg.CurrentAmmo}";
+                    countLabel.Text = pg.IsReloading ? "🔄 RELOAD" : $"🥔 {pg.CurrentAmmo}";
+                    countLabel.Modulate = pg.CurrentAmmo > 0 ? UITheme.FlyerYellow : UITheme.ActionRed;
                 }
                 else
                 {
-                    countLabel.Text = count > 1 ? count.ToString() : "";
+                    countLabel.Text = count > 1 ? $"x{count}" : "";
+                    countLabel.Modulate = Colors.White;
                 }
             }
             else
             {
-                if (label != null) label.Text = (i + 1).ToString();
                 if (textureRect != null) textureRect.Texture = null;
                 countLabel.Text = "";
             }
         }
+
         _lastSelectedSlot = currentSelectedItem;
     }
 
     public void Refresh(Product[] products, int currentSelectedItem)
     {
+        InitializeTray();
         var panels = GetSlotPanels();
+
         for (int i = 0; i < panels.Count; i++)
         {
             PanelContainer panel = panels[i];
-            StyleBoxFlat style = (panel.GetThemeStylebox("panel") as StyleBoxFlat).Duplicate() as StyleBoxFlat;
-            if (currentSelectedItem == i)
+            panel.CustomMinimumSize = new Vector2(48, 48);
+            panel.PivotOffset = new Vector2(24, 24);
+
+            bool isSelected = currentSelectedItem == i;
+            var style = new StyleBoxFlat
             {
-                style.BorderColor = Color.Color8(255, 223, 0);
-            }
-            else
-            {
-                style.BorderColor = Color.Color8(0, 0, 0);
-            }
+                BgColor = isSelected ? new Color(0.24f, 0.22f, 0.32f, 0.98f) : new Color(0.12f, 0.13f, 0.18f, 0.92f),
+                BorderColor = isSelected ? UITheme.FlyerYellow : UITheme.InkBlack,
+                BorderWidthLeft = isSelected ? 3 : 2,
+                BorderWidthTop = isSelected ? 3 : 2,
+                BorderWidthRight = isSelected ? 3 : 2,
+                BorderWidthBottom = isSelected ? 4 : 4,
+                CornerRadiusTopLeft = 7,
+                CornerRadiusTopRight = 7,
+                CornerRadiusBottomLeft = 7,
+                CornerRadiusBottomRight = 7,
+                ShadowColor = isSelected ? new Color(1.0f, 0.84f, 0f, 0.45f) : new Color(0f, 0f, 0f, 0.5f),
+                ShadowSize = isSelected ? 6 : 3,
+                ShadowOffset = new Vector2(0, 2)
+            };
             panel.AddThemeStyleboxOverride("panel", style);
 
             Label label = panel.GetNodeOrNull<Label>("Label");
             TextureRect textureRect = panel.GetNodeOrNull<TextureRect>("TextureRect");
             Label countLabel = panel.GetNodeOrNull<Label>("CountLabel");
 
-            if (countLabel == null)
+            if (label != null)
             {
-                countLabel = new Label
-                {
-                    Name = "CountLabel",
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Bottom,
-                    MouseFilter = Control.MouseFilterEnum.Ignore
-                };
-                countLabel.AddThemeFontSizeOverride("font_size", 13);
-                countLabel.AddThemeColorOverride("font_color", Colors.White);
-                countLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-                countLabel.AddThemeConstantOverride("outline_size", 4);
-                panel.AddChild(countLabel);
+                label.Text = $"{i + 1}";
+                UITheme.FormatComicLabel(label, UITheme.BodyFont, 11, isSelected ? UITheme.FlyerYellow : new Color(0.8f, 0.8f, 0.85f), UITheme.InkBlack, 2);
+            }
+
+            if (countLabel != null)
+            {
+                countLabel.Text = "";
+            }
+
+            if (textureRect != null)
+            {
+                textureRect.CustomMinimumSize = new Vector2(36, 36);
+                textureRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                textureRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
             }
 
             if (products != null && i < products.Length && products[i] != null)
             {
                 if (products[i].Icon == null)
                 {
-                    if (label != null) label.Text = products[i].DisplayName;
+                    if (label != null) label.Text = $"{i + 1}\n{products[i].DisplayName}";
                     if (textureRect != null) textureRect.Texture = null;
                 }
                 else
                 {
-                    if (label != null) label.Text = "";
                     if (textureRect != null) textureRect.Texture = products[i].Icon;
                 }
-                countLabel.Text = "";
             }
             else
             {
-                if (label != null) label.Text = (i + 1).ToString();
                 if (textureRect != null) textureRect.Texture = null;
-                countLabel.Text = "";
             }
         }
     }

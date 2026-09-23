@@ -213,21 +213,23 @@ Configured in `project.godot`:
 - **`ManagerAnnouncer.cs`** (`Node`) — Store manager Mr. Henderson PA commentator, audio priority queue, phase announcements, multikills, and contextual roasts.
 - **`ManagerEmotion.cs`** (`enum`) — Manager emotional states (`Neutral`, `Annoyed`, `Greedy`, `Panicked`, `Enraged`, `Megaphone`, `Smug`).
 
-#### Player, Input & UI (14 Files)
+#### Player, Input & UI (16 Files)
+- **`UITheme.cs`** (`static`) — Central comic UI design engine, defining the supermarket comic color palette, typography loaders (`Bangers`, `Lilita One`), 3D extruded arcade buttons with tactile depression juice and audio triggers, comic card stylebox generators, price badges, and label formatting.
+- **`ComicCrosshair.cs`** (`Control`) — Dynamic arcade crosshair with high-contrast ink borders, center pip, velocity/sprint spread adaptation, and interactive item targeting cues.
 - **`PlayerController.cs`** (`CharacterBody3D`) — First-person movement, mouse look, raycasting, purchasing, throwing, melee strikes, consumable eating, perks, character model blend animations, bounty tagging, and HP sync.
 - **`PlayerPerk.cs`** — Perk enum and definitions (`BargainHunter`, `PowerArm`, `Tank`, `Scavenger`, `SpeedDemon`, `StickyFingers`).
 - **`PlayerAudio.cs`** (`Node3D`) — 3D spatial player audio (footsteps, jumps, landings, throw whooshes, pickup chimes, item switches).
 - **`Health.cs`** — Health component (base 200 HP, Tank 260 HP) with heal/damage methods, damage grace damping window, and multiplayer sync.
-- **`HealthBar.cs`** — Top-right health bar UI.
+- **`HealthBar.cs`** — Bottom-left comic health bar with thick ink border, dual-layer damage ghost trail bar, numeric readout, low-health alarm pulse, and perk badge.
 - **`Inventory.cs`** — 5-slot (or 6-slot with Sticky Fingers) inventory manager, cycling, and ground loot dropping on death.
-- **`InventoryBar.cs`** (`CanvasLayer`) — Bottom HUD hotbar showing item icons, count badges, and active selection animations.
+- **`InventoryBar.cs`** (`CanvasLayer`) — Bottom HUD conveyor hotbar with chunky 56x56 slots, price-sticker hotkey badges (`[1]`, `[2]`, `[3]`), golden neon selection pop, and item count tags.
 - **`HitMarker.cs`** (`Control`) — Screen-center hit crosshair with procedural audio feedback.
 - **`DamageOverlay.cs`** (`CanvasLayer`) — Damage vignette flash and directional damage indicators.
-- **`GamePhaseHUD.cs`** (`CanvasLayer`) — Match status, countdown timer, money tracker, perk modal (`[P]`), tutorial modal (`[H]`), settings menu (`[Esc]`), Mr. Henderson intercom panel, bounty notifications, and victory/defeat screen.
+- **`GamePhaseHUD.cs`** (`CanvasLayer`) — Match status marquee cards, countdown timer, money tracker, perk modal (`[P]`), tutorial modal (`[H]`), settings menu (`[Esc]`), Mr. Henderson intercom comic cards, bounty notifications, and victory/defeat screen.
 - **`ItemHoverBox.cs`** (`Control`) — Center 2D comic HUD card displaying item icon, title, price badge, damage, durability, healing, and prompt key.
 - **`OnboardingContent.cs`** (`static`) — Shared rules and controls UI builder used by the Main Menu pre-match card and the in-game `[H]` modal.
-- **`SpectatorHUD.cs`** (`CanvasLayer`) — Spectator overlay with player cycling controls and elimination status.
-- **`MainMenu.cs`** — Main menu UI controller (Host, Join A Friend in-game lobby list popup, Steam invite popups, pre-match onboarding cards).
+- **`SpectatorHUD.cs`** (`CanvasLayer`) — Comic spectator overlay with death broadcast banner, player cycling controls, and elimination status.
+- **`MainMenu.cs`** — Main menu UI controller (floating comic title banner, supermarket subtitle badge, 3D arcade buttons, Join A Friend in-game lobby list popup, Steam invite popups, pre-match onboarding cards).
 
 #### Items, Combat & Visual Effects (9 Files)
 - **`Product.cs`** (`RigidBody3D`, implements `IInteractable`) — Throwable and melee store items with price, damage, durability, healing, cached splatters, and impact physics.

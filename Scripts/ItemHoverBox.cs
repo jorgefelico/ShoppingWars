@@ -51,30 +51,10 @@ public partial class ItemHoverBox : Control
         _cardPanel = new PanelContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(200, 0)
+            CustomMinimumSize = new Vector2(210, 0)
         };
 
-        var panelStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.06f, 0.07f, 0.11f, 0.94f),
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 3,
-            BorderColor = new Color(0f, 0f, 0f, 1f),
-            CornerRadiusTopLeft = 7,
-            CornerRadiusTopRight = 7,
-            CornerRadiusBottomLeft = 7,
-            CornerRadiusBottomRight = 7,
-            ContentMarginLeft = 10,
-            ContentMarginRight = 10,
-            ContentMarginTop = 7,
-            ContentMarginBottom = 7,
-            ShadowColor = new Color(0f, 0f, 0f, 0.5f),
-            ShadowSize = 4,
-            ShadowOffset = new Vector2(0, 2)
-        };
-        _cardPanel.AddThemeStyleboxOverride("panel", panelStyle);
+        _cardPanel.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, UITheme.InkBlack, 8, 3, 4));
         AddChild(_cardPanel);
 
         // 2. Main Vertical Layout
@@ -110,10 +90,7 @@ public partial class ItemHoverBox : Control
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             VerticalAlignment = VerticalAlignment.Center
         };
-        _titleLabel.AddThemeFontSizeOverride("font_size", 14);
-        _titleLabel.AddThemeColorOverride("font_color", Colors.White);
-        _titleLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _titleLabel.AddThemeConstantOverride("outline_size", 3);
+        UITheme.FormatComicLabel(_titleLabel, UITheme.BodyFont, 14, Colors.White, UITheme.InkBlack, 3);
         headerHBox.AddChild(_titleLabel);
 
         // Price / Status Badge (Pill Style)
@@ -121,23 +98,7 @@ public partial class ItemHoverBox : Control
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _badgeStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.12f, 0.50f, 0.22f, 0.95f),
-            CornerRadiusTopLeft = 4,
-            CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4,
-            CornerRadiusBottomRight = 4,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            BorderColor = new Color(0f, 0f, 0f, 0.85f),
-            ContentMarginLeft = 6,
-            ContentMarginRight = 6,
-            ContentMarginTop = 1,
-            ContentMarginBottom = 1
-        };
+        _badgeStyle = UITheme.CreatePriceBadgeStyle(UITheme.FreshGreen, 6);
         _priceBadge.AddThemeStyleboxOverride("panel", _badgeStyle);
         headerHBox.AddChild(_priceBadge);
 
@@ -147,10 +108,7 @@ public partial class ItemHoverBox : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        _priceLabel.AddThemeFontSizeOverride("font_size", 11);
-        _priceLabel.AddThemeColorOverride("font_color", Colors.White);
-        _priceLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _priceLabel.AddThemeConstantOverride("outline_size", 2);
+        UITheme.FormatComicLabel(_priceLabel, UITheme.BodyFont, 11, Colors.White, UITheme.InkBlack, 2);
         _priceBadge.AddChild(_priceLabel);
 
         // 4. Divider Line
@@ -182,20 +140,14 @@ public partial class ItemHoverBox : Control
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _damageLabel.AddThemeFontSizeOverride("font_size", 12);
-        _damageLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.55f, 0.20f)); // Comic damage orange
-        _damageLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _damageLabel.AddThemeConstantOverride("outline_size", 3);
+        UITheme.FormatComicLabel(_damageLabel, UITheme.BodyFont, 12, UITheme.ClearanceOrange, UITheme.InkBlack, 3);
         _damageHBox.AddChild(_damageLabel);
 
         _durabilityLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _durabilityLabel.AddThemeFontSizeOverride("font_size", 11);
-        _durabilityLabel.AddThemeColorOverride("font_color", new Color(0.68f, 0.78f, 0.90f)); // Steel blue
-        _durabilityLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _durabilityLabel.AddThemeConstantOverride("outline_size", 2);
+        UITheme.FormatComicLabel(_durabilityLabel, UITheme.BodyFont, 11, new Color(0.7f, 0.8f, 0.95f), UITheme.InkBlack, 2);
         _damageHBox.AddChild(_durabilityLabel);
 
         // Heal Row
@@ -203,10 +155,7 @@ public partial class ItemHoverBox : Control
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _healLabel.AddThemeFontSizeOverride("font_size", 12);
-        _healLabel.AddThemeColorOverride("font_color", new Color(0.25f, 0.95f, 0.45f)); // Healthy neon green
-        _healLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _healLabel.AddThemeConstantOverride("outline_size", 3);
+        UITheme.FormatComicLabel(_healLabel, UITheme.BodyFont, 12, UITheme.FreshGreen, UITheme.InkBlack, 3);
         _effectsVBox.AddChild(_healLabel);
 
         // Special Explosive Row
@@ -214,10 +163,7 @@ public partial class ItemHoverBox : Control
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _specialLabel.AddThemeFontSizeOverride("font_size", 11);
-        _specialLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.35f, 0.35f)); // Crimson blast
-        _specialLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _specialLabel.AddThemeConstantOverride("outline_size", 2);
+        UITheme.FormatComicLabel(_specialLabel, UITheme.BodyFont, 11, UITheme.ActionRed, UITheme.InkBlack, 2);
         _effectsVBox.AddChild(_specialLabel);
 
         // 6. Action Prompt Row: [E] Keycap + Action Text
@@ -232,24 +178,7 @@ public partial class ItemHoverBox : Control
         {
             MouseFilter = MouseFilterEnum.Ignore
         };
-        var keyStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(1.0f, 0.85f, 0.20f, 1.0f), // Comic yellow keycap
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 2,
-            BorderColor = new Color(0f, 0f, 0f, 1f),
-            ContentMarginLeft = 5,
-            ContentMarginRight = 5,
-            ContentMarginTop = 1,
-            ContentMarginBottom = 1
-        };
-        _keyBadge.AddThemeStyleboxOverride("panel", keyStyle);
+        _keyBadge.AddThemeStyleboxOverride("panel", UITheme.CreatePriceBadgeStyle(UITheme.FlyerYellow, 4));
         _promptHBox.AddChild(_keyBadge);
 
         _keyLabel = new Label
@@ -257,8 +186,7 @@ public partial class ItemHoverBox : Control
             Text = "E",
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _keyLabel.AddThemeFontSizeOverride("font_size", 11);
-        _keyLabel.AddThemeColorOverride("font_color", Colors.Black);
+        UITheme.FormatComicLabel(_keyLabel, UITheme.BodyFont, 12, UITheme.InkBlack, Colors.Transparent, 0);
         _keyBadge.AddChild(_keyLabel);
 
         _actionLabel = new Label
@@ -266,10 +194,7 @@ public partial class ItemHoverBox : Control
             MouseFilter = MouseFilterEnum.Ignore,
             VerticalAlignment = VerticalAlignment.Center
         };
-        _actionLabel.AddThemeFontSizeOverride("font_size", 12);
-        _actionLabel.AddThemeColorOverride("font_color", new Color(0.92f, 0.92f, 0.95f));
-        _actionLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _actionLabel.AddThemeConstantOverride("outline_size", 2);
+        UITheme.FormatComicLabel(_actionLabel, UITheme.BodyFont, 13, UITheme.PaperWhite, UITheme.InkBlack, 3);
         _promptHBox.AddChild(_actionLabel);
     }
 

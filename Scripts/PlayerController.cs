@@ -96,6 +96,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private int _spectatedIndex = 0;
     private bool _isBeingSpectated = false;
     private HitMarker _hitMarker;
+    private ComicCrosshair _comicCrosshair;
     private ItemHoverBox _hoverBox;
     private PlayerAudio _playerAudio;
     private float _stepTimer = 0f;
@@ -202,6 +203,12 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             if (CrossHair == null) CrossHair = GetNodeOrNull<CanvasLayer>("CrossHair");
             if (CrossHair != null)
             {
+                var oldDot = CrossHair.GetNodeOrNull<Control>("Dot");
+                if (oldDot != null) oldDot.Visible = false;
+
+                _comicCrosshair = new ComicCrosshair();
+                CrossHair.AddChild(_comicCrosshair);
+
                 _hitMarker = new HitMarker();
                 CrossHair.AddChild(_hitMarker);
 
@@ -570,6 +577,14 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             ApplyLocalBoneVisibility();
             UpdateCameraShake((float)delta);
+
+            if (_comicCrosshair != null)
+            {
+                var hVel = new Vector2(Velocity.X, Velocity.Z).Length();
+                bool airborne = !IsOnFloor();
+                bool targetingInteractable = _highlightedItem != null;
+                _comicCrosshair.UpdateCrosshair(hVel, IsRunning, airborne, targetingInteractable);
+            }
         }
         else
         {
@@ -1625,27 +1640,35 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     {
         if (_potatoAmmoWidget != null || CrossHair == null || !IsMultiplayerAuthority()) return;
 
-        _potatoAmmoWidget = new Control
+        var panel = new PanelContainer
         {
             Name = "PotatoAmmoWidget",
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Visible = false
         };
-        _potatoAmmoWidget.AnchorLeft = 0.5f;
-        _potatoAmmoWidget.AnchorRight = 0.5f;
-        _potatoAmmoWidget.AnchorTop = 0.5f;
-        _potatoAmmoWidget.AnchorBottom = 0.5f;
-        _potatoAmmoWidget.OffsetLeft = -120f;
-        _potatoAmmoWidget.OffsetRight = 120f;
-        _potatoAmmoWidget.OffsetTop = 36f;
-        _potatoAmmoWidget.OffsetBottom = 96f;
+        panel.AnchorLeft = 0.5f;
+        panel.AnchorRight = 0.5f;
+        panel.AnchorTop = 0.5f;
+        panel.AnchorBottom = 0.5f;
+        panel.OffsetLeft = -130f;
+        panel.OffsetRight = 130f;
+        panel.OffsetTop = 40f;
+        panel.OffsetBottom = 100f;
+        panel.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(
+            new Color(0.08f, 0.09f, 0.14f, 0.92f),
+            UITheme.FlyerYellow,
+            cornerRadius: 8,
+            borderWidth: 2,
+            shadowOffset: 3
+        ));
+
+        _potatoAmmoWidget = panel;
 
         var vBox = new VBoxContainer
         {
             Alignment = BoxContainer.AlignmentMode.Center,
             MouseFilter = Control.MouseFilterEnum.Ignore
         };
-        vBox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _potatoAmmoWidget.AddChild(vBox);
 
         _potatoAmmoCountLabel = new Label
@@ -1653,10 +1676,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             HorizontalAlignment = HorizontalAlignment.Center,
             MouseFilter = Control.MouseFilterEnum.Ignore
         };
-        _potatoAmmoCountLabel.AddThemeFontSizeOverride("font_size", 18);
-        _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.88f, 0.25f));
-        _potatoAmmoCountLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _potatoAmmoCountLabel.AddThemeConstantOverride("outline_size", 4);
+        UITheme.FormatComicLabel(_potatoAmmoCountLabel, UITheme.TitleFont, 20, UITheme.FlyerYellow, UITheme.InkBlack, 4, UITheme.InkBlack, new Vector2I(2, 2));
         vBox.AddChild(_potatoAmmoCountLabel);
 
         _potatoAmmoHintLabel = new Label
@@ -1664,10 +1684,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             HorizontalAlignment = HorizontalAlignment.Center,
             MouseFilter = Control.MouseFilterEnum.Ignore
         };
-        _potatoAmmoHintLabel.AddThemeFontSizeOverride("font_size", 11);
-        _potatoAmmoHintLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.85f, 0.85f));
-        _potatoAmmoHintLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _potatoAmmoHintLabel.AddThemeConstantOverride("outline_size", 3);
+        UITheme.FormatComicLabel(_potatoAmmoHintLabel, UITheme.BodyFont, 11, UITheme.PaperCream, UITheme.InkBlack, 3);
         vBox.AddChild(_potatoAmmoHintLabel);
 
         CrossHair.AddChild(_potatoAmmoWidget);
@@ -1684,29 +1701,29 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             _potatoAmmoWidget.Visible = true;
             if (pg.IsReloading)
             {
-                _potatoAmmoCountLabel.Text = "🔄 RELOADING...";
-                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(0.35f, 0.85f, 1.0f));
+                _potatoAmmoCountLabel.Text = "RELOADING...";
+                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", UITheme.ElectricCyan);
                 _potatoAmmoHintLabel.Text = "Pumping PVC Air Chamber...";
             }
             else if (pg.CurrentAmmo <= 0)
             {
-                _potatoAmmoCountLabel.Text = "⚠️ 0 / " + pg.MaxAmmo + " SPUDS";
-                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.25f, 0.25f));
+                _potatoAmmoCountLabel.Text = $"0 / {pg.MaxAmmo} SPUDS";
+                _potatoAmmoCountLabel.AddThemeColorOverride("font_color", UITheme.ActionRed);
                 _potatoAmmoHintLabel.Text = "PRESS [R] TO RELOAD";
             }
             else
             {
                 if (pg.HasSuperSpuds)
                 {
-                    _potatoAmmoCountLabel.Text = $"🥔✨ {pg.CurrentAmmo} / {pg.MaxAmmo} SUPER SPUDS";
-                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.65f, 0.15f));
-                    _potatoAmmoHintLabel.Text = "[LMB] Fire Super Spud (+15 DMG!)  •  [RMB] Club";
+                    _potatoAmmoCountLabel.Text = $"{pg.CurrentAmmo} / {pg.MaxAmmo} SUPER SPUDS";
+                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", UITheme.ClearanceOrange);
+                    _potatoAmmoHintLabel.Text = "[LMB] Super Spud (+15 DMG!)  •  [RMB] Club";
                 }
                 else
                 {
-                    _potatoAmmoCountLabel.Text = $"🥔 {pg.CurrentAmmo} / {pg.MaxAmmo} SPUDS";
-                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.88f, 0.25f));
-                    _potatoAmmoHintLabel.Text = "[LMB] Fire Spud  •  [RMB] PVC Club  •  [R] Pump / Load Spuds";
+                    _potatoAmmoCountLabel.Text = $"{pg.CurrentAmmo} / {pg.MaxAmmo} SPUDS";
+                    _potatoAmmoCountLabel.AddThemeColorOverride("font_color", UITheme.FlyerYellow);
+                    _potatoAmmoHintLabel.Text = "[LMB] Fire Spud  •  [RMB] Club  •  [R] Pump / Reload";
                 }
             }
         }

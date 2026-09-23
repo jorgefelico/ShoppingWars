@@ -27,6 +27,7 @@ public partial class GamePhaseHUD : CanvasLayer
     private Label _killFeedLabel;
     private float _killFeedTimer = 0f;
     private int _lastDisplayedMoney = -1;
+    private PanelContainer _topHeaderPanel;
 
     // Mr. Henderson Intercom HUD
     private PanelContainer _intercomCard;
@@ -140,6 +141,116 @@ public partial class GamePhaseHUD : CanvasLayer
 
         PlayerPerk currentPerk = PlayerController.Instance?.CurrentPerk ?? PlayerPerk.None;
         UpdatePerkDisplay(currentPerk);
+
+        StyleComicHUD();
+    }
+
+    private void StyleComicHUD()
+    {
+        // 1. Format Marquee Header
+        if (PhaseLabel != null)
+        {
+            UITheme.FormatComicLabel(PhaseLabel, UITheme.TitleFont, 18, UITheme.FlyerYellow, UITheme.InkBlack, 3, UITheme.InkBlack, new Vector2I(2, 2));
+        }
+
+        if (TimerLabel != null)
+        {
+            UITheme.FormatComicLabel(TimerLabel, UITheme.TitleFont, 16, UITheme.ElectricCyan, UITheme.InkBlack, 3);
+        }
+
+        if (MoneyLabel != null)
+        {
+            UITheme.FormatComicLabel(MoneyLabel, UITheme.BodyFont, 15, UITheme.GoldCash, UITheme.InkBlack, 3, UITheme.InkBlack, new Vector2I(1, 1));
+        }
+
+        // Add comic panel background to top header container
+        var topVBox = GetNodeOrNull<VBoxContainer>("VBoxContainer");
+        if (topVBox != null && GetNodeOrNull("TopHeaderPanel") == null)
+        {
+            topVBox.OffsetTop = 8;
+            topVBox.OffsetBottom = 54;
+            topVBox.OffsetLeft = -190;
+            topVBox.OffsetRight = 190;
+            topVBox.AddThemeConstantOverride("separation", 2);
+
+            _topHeaderPanel = new PanelContainer
+            {
+                Name = "TopHeaderPanel",
+                MouseFilter = Control.MouseFilterEnum.Ignore
+            };
+            _topHeaderPanel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+            _topHeaderPanel.AnchorLeft = 0.5f;
+            _topHeaderPanel.AnchorRight = 0.5f;
+            _topHeaderPanel.AnchorTop = 0f;
+            _topHeaderPanel.AnchorBottom = 0f;
+            _topHeaderPanel.OffsetLeft = -200;
+            _topHeaderPanel.OffsetRight = 200;
+            _topHeaderPanel.OffsetTop = 6;
+            _topHeaderPanel.OffsetBottom = 58;
+            _topHeaderPanel.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(new Color(0.08f, 0.09f, 0.14f, 0.90f), UITheme.InkBlack, 8, 2, 3));
+            AddChild(_topHeaderPanel);
+            MoveChild(_topHeaderPanel, 0);
+        }
+
+        if (EventLabel != null)
+        {
+            UITheme.FormatComicLabel(EventLabel, UITheme.TitleFont, 15, UITheme.ActionRed, UITheme.InkBlack, 3);
+        }
+
+        if (EventDescLabel != null)
+        {
+            UITheme.FormatComicLabel(EventDescLabel, UITheme.BodyFont, 11, UITheme.PaperWhite, UITheme.InkBlack, 2);
+        }
+
+        if (_killFeedLabel != null)
+        {
+            UITheme.FormatComicLabel(_killFeedLabel, UITheme.BodyFont, 13, UITheme.FlyerYellow, UITheme.InkBlack, 2);
+        }
+
+        if (_bountyHUDLabel != null)
+        {
+            UITheme.FormatComicLabel(_bountyHUDLabel, UITheme.BodyFont, 13, UITheme.ClearanceOrange, UITheme.InkBlack, 2);
+        }
+
+        // Style Game Over panel elements
+        if (GameOverPanel != null)
+        {
+            var card = GameOverPanel.GetNodeOrNull<PanelContainer>("CenterContainer/CardPanel");
+            if (card != null)
+            {
+                card.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, UITheme.FlyerYellow, 14, 4, 10));
+            }
+        }
+
+        if (GameOverHeaderLabel != null)
+        {
+            UITheme.FormatComicLabel(GameOverHeaderLabel, UITheme.TitleFont, 42, UITheme.FlyerYellow, UITheme.InkBlack, 6, UITheme.InkBlack, new Vector2I(4, 4));
+        }
+
+        if (WinnerNameLabel != null)
+        {
+            UITheme.FormatComicLabel(WinnerNameLabel, UITheme.TitleFont, 46, UITheme.FreshGreen, UITheme.InkBlack, 6);
+        }
+
+        if (SubtitleLabel != null)
+        {
+            UITheme.FormatComicLabel(SubtitleLabel, UITheme.BodyFont, 16, UITheme.PaperWhite, UITheme.InkBlack, 3);
+        }
+
+        if (StatsDetailLabel != null)
+        {
+            UITheme.FormatComicLabel(StatsDetailLabel, UITheme.BodyFont, 13, UITheme.SubtitleGray, UITheme.InkBlack, 2);
+        }
+
+        if (PlayAgainButton != null)
+        {
+            UITheme.ApplyArcadeButton(PlayAgainButton, UITheme.FreshGreen, UITheme.EmeraldDark, 16, 8);
+        }
+
+        if (MainMenuButton != null)
+        {
+            UITheme.ApplyArcadeButton(MainMenuButton, UITheme.ElectricCyan, UITheme.CyanDark, 16, 8);
+        }
     }
 
     public override void _ExitTree()
@@ -170,8 +281,39 @@ public partial class GamePhaseHUD : CanvasLayer
         }
     }
 
+    private void UpdateHeaderBackingLayout()
+    {
+        if (_topHeaderPanel == null) return;
+
+        bool hasEvent = EventContainer != null && EventContainer.Visible;
+        bool hasMoney = MoneyLabel != null && MoneyLabel.Visible;
+
+        float targetHeight;
+        if (hasEvent)
+        {
+            targetHeight = 88f;
+        }
+        else if (hasMoney)
+        {
+            targetHeight = 66f;
+        }
+        else
+        {
+            targetHeight = 48f;
+        }
+
+        var topVBox = GetNodeOrNull<VBoxContainer>("VBoxContainer");
+        if (topVBox != null)
+        {
+            topVBox.OffsetBottom = 8 + targetHeight;
+        }
+        _topHeaderPanel.OffsetBottom = 6 + targetHeight;
+    }
+
     public override void _Process(double delta)
     {
+        UpdateHeaderBackingLayout();
+
         if (IsAnyModalOpen && Input.MouseMode != Input.MouseModeEnum.Visible)
         {
             Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -652,19 +794,21 @@ public partial class GamePhaseHUD : CanvasLayer
 
     private void BuildTutorialModal()
     {
-        // Persistent hint label in bottom-left corner
+        // Persistent hint label in bottom-right corner (never overlaps bottom-left combat HUD)
         _helpHintLabel = new Label();
         _helpHintLabel.Name = "HelpHintLabel";
-        _helpHintLabel.Text = "[H] How to Play & Controls";
-        _helpHintLabel.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
-        _helpHintLabel.OffsetLeft = 20;
-        _helpHintLabel.OffsetTop = -35;
-        _helpHintLabel.OffsetRight = 260;
-        _helpHintLabel.OffsetBottom = -10;
-        _helpHintLabel.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.75f));
-        _helpHintLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _helpHintLabel.AddThemeConstantOverride("outline_size", 3);
-        _helpHintLabel.AddThemeFontSizeOverride("font_size", 13);
+        _helpHintLabel.Text = "[H] Controls & Guide";
+        _helpHintLabel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+        _helpHintLabel.AnchorLeft = 1f;
+        _helpHintLabel.AnchorTop = 1f;
+        _helpHintLabel.AnchorRight = 1f;
+        _helpHintLabel.AnchorBottom = 1f;
+        _helpHintLabel.OffsetLeft = -220;
+        _helpHintLabel.OffsetTop = -36;
+        _helpHintLabel.OffsetRight = -20;
+        _helpHintLabel.OffsetBottom = -16;
+        _helpHintLabel.HorizontalAlignment = HorizontalAlignment.Right;
+        UITheme.FormatComicLabel(_helpHintLabel, UITheme.BodyFont, 12, new Color(1f, 1f, 1f, 0.75f), UITheme.InkBlack, 2);
         AddChild(_helpHintLabel);
 
         // Dark modal overlay backdrop
@@ -710,36 +854,9 @@ public partial class GamePhaseHUD : CanvasLayer
         var closeBtn = new Button();
         closeBtn.Text = "✅ GOT IT! LET'S SHOP  [Space / Enter]";
         closeBtn.CustomMinimumSize = new Vector2(300, 44);
-        closeBtn.AddThemeFontSizeOverride("font_size", 16);
         closeBtn.FocusMode = Control.FocusModeEnum.All;
         closeBtn.MouseFilter = Control.MouseFilterEnum.Stop;
-
-        var btnStyle = new StyleBoxFlat();
-        btnStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        btnStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        btnStyle.BorderWidthLeft = 2;
-        btnStyle.BorderWidthTop = 2;
-        btnStyle.BorderWidthRight = 2;
-        btnStyle.BorderWidthBottom = 2;
-        btnStyle.CornerRadiusTopLeft = 8;
-        btnStyle.CornerRadiusTopRight = 8;
-        btnStyle.CornerRadiusBottomLeft = 8;
-        btnStyle.CornerRadiusBottomRight = 8;
-        closeBtn.AddThemeStyleboxOverride("normal", btnStyle);
-
-        var hoverStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        hoverStyle.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        hoverStyle.BorderColor = new Color(0.5f, 1.0f, 0.6f, 1.0f);
-        closeBtn.AddThemeStyleboxOverride("hover", hoverStyle);
-
-        var focusStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        focusStyle.BorderColor = Colors.White;
-        focusStyle.BorderWidthLeft = 3;
-        focusStyle.BorderWidthTop = 3;
-        focusStyle.BorderWidthRight = 3;
-        focusStyle.BorderWidthBottom = 3;
-        closeBtn.AddThemeStyleboxOverride("focus", focusStyle);
-
+        UITheme.ApplyArcadeButton(closeBtn, UITheme.FreshGreen, UITheme.EmeraldDark, 16, 8);
         closeBtn.Pressed += CloseTutorial;
         btnContainer.AddChild(closeBtn);
         _tutorialCloseButton = closeBtn;
@@ -829,7 +946,7 @@ public partial class GamePhaseHUD : CanvasLayer
         {
             if (PerkDatabase.Perks.TryGetValue(perk, out var activeDef))
             {
-                _perkBadgeLabel.Text = $"[P] Perk: {activeDef.Icon} {activeDef.Name} ({activeDef.Tagline})";
+                _perkBadgeLabel.Text = $"[P] Perk: {activeDef.Icon} {activeDef.Name}";
                 _perkBadgeLabel.AddThemeColorOverride("font_color", activeDef.ThemeColor);
             }
             else
@@ -909,19 +1026,20 @@ public partial class GamePhaseHUD : CanvasLayer
 
     private void BuildPerkModal()
     {
-        // Persistent hint label in bottom-left corner right above the help hint
+        // Persistent hint label in bottom-left corner safely positioned ABOVE the health bar (Y: -88 to -68)
         _perkBadgeLabel = new Label();
         _perkBadgeLabel.Name = "PerkBadgeLabel";
         _perkBadgeLabel.Text = "[P] Perk: None (Press [P] to Choose)";
         _perkBadgeLabel.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
+        _perkBadgeLabel.AnchorLeft = 0f;
+        _perkBadgeLabel.AnchorTop = 1f;
+        _perkBadgeLabel.AnchorRight = 0f;
+        _perkBadgeLabel.AnchorBottom = 1f;
         _perkBadgeLabel.OffsetLeft = 20;
-        _perkBadgeLabel.OffsetTop = -65;
-        _perkBadgeLabel.OffsetRight = 450;
-        _perkBadgeLabel.OffsetBottom = -40;
-        _perkBadgeLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.3f));
-        _perkBadgeLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _perkBadgeLabel.AddThemeConstantOverride("outline_size", 3);
-        _perkBadgeLabel.AddThemeFontSizeOverride("font_size", 13);
+        _perkBadgeLabel.OffsetTop = -88;
+        _perkBadgeLabel.OffsetRight = 360;
+        _perkBadgeLabel.OffsetBottom = -68;
+        UITheme.FormatComicLabel(_perkBadgeLabel, UITheme.BodyFont, 11, new Color(1.0f, 0.85f, 0.3f), UITheme.InkBlack, 2);
         AddChild(_perkBadgeLabel);
 
         // Dark modal overlay backdrop
@@ -941,45 +1059,31 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var card = new PanelContainer();
         card.CustomMinimumSize = new Vector2(880, 560);
-        var cardStyle = new StyleBoxFlat();
-        cardStyle.BgColor = new Color(0.07f, 0.09f, 0.14f, 0.98f);
-        cardStyle.BorderWidthLeft = 3;
-        cardStyle.BorderWidthTop = 3;
-        cardStyle.BorderWidthRight = 3;
-        cardStyle.BorderWidthBottom = 3;
-        cardStyle.BorderColor = new Color(1.0f, 0.82f, 0.2f, 0.95f);
-        cardStyle.CornerRadiusTopLeft = 14;
-        cardStyle.CornerRadiusTopRight = 14;
-        cardStyle.CornerRadiusBottomLeft = 14;
-        cardStyle.CornerRadiusBottomRight = 14;
-        cardStyle.ExpandMarginLeft = 24;
-        cardStyle.ExpandMarginTop = 18;
-        cardStyle.ExpandMarginRight = 24;
-        cardStyle.ExpandMarginBottom = 18;
-        cardStyle.ShadowSize = 24;
-        cardStyle.ShadowColor = new Color(0, 0, 0, 0.75f);
-        card.AddThemeStyleboxOverride("panel", cardStyle);
+        card.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, UITheme.FlyerYellow, 14, 4, 8));
         center.AddChild(card);
+
+        var cardMargin = new MarginContainer();
+        cardMargin.AddThemeConstantOverride("margin_left", 28);
+        cardMargin.AddThemeConstantOverride("margin_right", 28);
+        cardMargin.AddThemeConstantOverride("margin_top", 20);
+        cardMargin.AddThemeConstantOverride("margin_bottom", 20);
+        card.AddChild(cardMargin);
 
         var vbox = new VBoxContainer();
         vbox.AddThemeConstantOverride("separation", 12);
-        card.AddChild(vbox);
+        cardMargin.AddChild(vbox);
 
         // Header
         var title = new Label();
         title.Text = "⭐ CHOOSE YOUR SHOPPER PERK ⭐";
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.15f));
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.AddThemeConstantOverride("outline_size", 4);
-        title.AddThemeFontSizeOverride("font_size", 24);
+        UITheme.FormatComicLabel(title, UITheme.TitleFont, 32, UITheme.FlyerYellow, UITheme.InkBlack, 4);
         vbox.AddChild(title);
 
         var subtitle = new Label();
         subtitle.Text = "Equip 1 passive perk to customize your playstyle! Choose before Battle Royale begins.";
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
-        subtitle.AddThemeColorOverride("font_color", new Color(0.8f, 0.85f, 0.9f));
-        subtitle.AddThemeFontSizeOverride("font_size", 13);
+        UITheme.FormatComicLabel(subtitle, UITheme.BodyFont, 13, UITheme.SubtitleGray, UITheme.InkBlack, 2);
         vbox.AddChild(subtitle);
 
         vbox.AddChild(new HSeparator());
@@ -1002,23 +1106,7 @@ public partial class GamePhaseHUD : CanvasLayer
             perkCard.CustomMinimumSize = new Vector2(265, 145);
             perkCard.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
             perkCard.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-
-            var pStyle = new StyleBoxFlat();
-            pStyle.BgColor = new Color(0.10f, 0.13f, 0.20f, 0.95f);
-            pStyle.BorderWidthLeft = 2;
-            pStyle.BorderWidthTop = 2;
-            pStyle.BorderWidthRight = 2;
-            pStyle.BorderWidthBottom = 2;
-            pStyle.BorderColor = def.ThemeColor;
-            pStyle.CornerRadiusTopLeft = 8;
-            pStyle.CornerRadiusTopRight = 8;
-            pStyle.CornerRadiusBottomLeft = 8;
-            pStyle.CornerRadiusBottomRight = 8;
-            pStyle.ContentMarginLeft = 12;
-            pStyle.ContentMarginTop = 10;
-            pStyle.ContentMarginRight = 12;
-            pStyle.ContentMarginBottom = 10;
-            perkCard.AddThemeStyleboxOverride("panel", pStyle);
+            perkCard.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, def.ThemeColor, 8, 3, 4));
 
             var cVbox = new VBoxContainer();
             cVbox.AddThemeConstantOverride("separation", 4);
@@ -1026,44 +1114,25 @@ public partial class GamePhaseHUD : CanvasLayer
 
             var nameLabel = new Label();
             nameLabel.Text = $"{def.Icon} {def.Name}";
-            nameLabel.AddThemeColorOverride("font_color", def.ThemeColor);
-            nameLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-            nameLabel.AddThemeConstantOverride("outline_size", 2);
-            nameLabel.AddThemeFontSizeOverride("font_size", 16);
+            UITheme.FormatComicLabel(nameLabel, UITheme.BodyFont, 16, def.ThemeColor, UITheme.InkBlack, 3);
             cVbox.AddChild(nameLabel);
 
             var tagLabel = new Label();
             tagLabel.Text = def.Tagline;
-            tagLabel.AddThemeColorOverride("font_color", new Color(0.4f, 0.85f, 1.0f));
-            tagLabel.AddThemeFontSizeOverride("font_size", 11);
+            UITheme.FormatComicLabel(tagLabel, UITheme.BodyFont, 11, UITheme.ElectricCyan, UITheme.InkBlack, 2);
             cVbox.AddChild(tagLabel);
 
             var descLabel = new Label();
             descLabel.Text = def.Description;
-            descLabel.AddThemeColorOverride("font_color", new Color(0.88f, 0.88f, 0.92f));
-            descLabel.AddThemeFontSizeOverride("font_size", 11);
+            UITheme.FormatComicLabel(descLabel, UITheme.BodyFont, 11, UITheme.PaperWhite, UITheme.InkBlack, 2);
             descLabel.AutowrapMode = TextServer.AutowrapMode.Word;
             descLabel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
             cVbox.AddChild(descLabel);
 
             var selectBtn = new Button();
             selectBtn.Text = "SELECT PERK";
-            selectBtn.CustomMinimumSize = new Vector2(0, 30);
-            selectBtn.AddThemeFontSizeOverride("font_size", 12);
-
-            var btnNorm = new StyleBoxFlat();
-            btnNorm.BgColor = new Color(0.18f, 0.24f, 0.38f, 0.95f);
-            btnNorm.BorderColor = def.ThemeColor;
-            btnNorm.BorderWidthLeft = 1;
-            btnNorm.BorderWidthTop = 1;
-            btnNorm.BorderWidthRight = 1;
-            btnNorm.BorderWidthBottom = 1;
-            btnNorm.CornerRadiusTopLeft = 6;
-            btnNorm.CornerRadiusTopRight = 6;
-            btnNorm.CornerRadiusBottomLeft = 6;
-            btnNorm.CornerRadiusBottomRight = 6;
-            selectBtn.AddThemeStyleboxOverride("normal", btnNorm);
-
+            selectBtn.CustomMinimumSize = new Vector2(0, 32);
+            UITheme.ApplyArcadeButton(selectBtn, def.ThemeColor.Darkened(0.2f), def.ThemeColor.Darkened(0.5f), 12, 6);
             selectBtn.Pressed += () => SelectPerk(perkKey);
             cVbox.AddChild(selectBtn);
 
@@ -1085,26 +1154,8 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var closeBtn = new Button();
         closeBtn.Text = "✅ CONFIRM & CLOSE [P]";
-        closeBtn.CustomMinimumSize = new Vector2(240, 38);
-        closeBtn.AddThemeFontSizeOverride("font_size", 15);
-
-        var closeStyle = new StyleBoxFlat();
-        closeStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        closeStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        closeStyle.BorderWidthLeft = 2;
-        closeStyle.BorderWidthTop = 2;
-        closeStyle.BorderWidthRight = 2;
-        closeStyle.BorderWidthBottom = 2;
-        closeStyle.CornerRadiusTopLeft = 8;
-        closeStyle.CornerRadiusTopRight = 8;
-        closeStyle.CornerRadiusBottomLeft = 8;
-        closeStyle.CornerRadiusBottomRight = 8;
-        closeBtn.AddThemeStyleboxOverride("normal", closeStyle);
-
-        var closeHover = (StyleBoxFlat)closeStyle.Duplicate();
-        closeHover.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        closeBtn.AddThemeStyleboxOverride("hover", closeHover);
-
+        closeBtn.CustomMinimumSize = new Vector2(240, 42);
+        UITheme.ApplyArcadeButton(closeBtn, UITheme.FreshGreen, UITheme.EmeraldDark, 15, 8);
         closeBtn.Pressed += ClosePerkModal;
         btnCenter.AddChild(closeBtn);
 
@@ -1232,46 +1283,32 @@ public partial class GamePhaseHUD : CanvasLayer
         _pauseMenuModal.AddChild(center);
 
         var card = new PanelContainer();
-        card.CustomMinimumSize = new Vector2(660, 620);
-        var cardStyle = new StyleBoxFlat();
-        cardStyle.BgColor = new Color(0.07f, 0.09f, 0.14f, 0.98f);
-        cardStyle.BorderWidthLeft = 3;
-        cardStyle.BorderWidthTop = 3;
-        cardStyle.BorderWidthRight = 3;
-        cardStyle.BorderWidthBottom = 3;
-        cardStyle.BorderColor = new Color(0.25f, 0.75f, 1.0f, 0.95f);
-        cardStyle.CornerRadiusTopLeft = 14;
-        cardStyle.CornerRadiusTopRight = 14;
-        cardStyle.CornerRadiusBottomLeft = 14;
-        cardStyle.CornerRadiusBottomRight = 14;
-        cardStyle.ExpandMarginLeft = 24;
-        cardStyle.ExpandMarginTop = 18;
-        cardStyle.ExpandMarginRight = 24;
-        cardStyle.ExpandMarginBottom = 18;
-        cardStyle.ShadowSize = 28;
-        cardStyle.ShadowColor = new Color(0, 0, 0, 0.8f);
-        card.AddThemeStyleboxOverride("panel", cardStyle);
+        card.CustomMinimumSize = new Vector2(640, 560);
+        card.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, UITheme.ElectricCyan, 12, 4, 8));
         center.AddChild(card);
 
+        var cardMargin = new MarginContainer();
+        cardMargin.AddThemeConstantOverride("margin_left", 32);
+        cardMargin.AddThemeConstantOverride("margin_right", 32);
+        cardMargin.AddThemeConstantOverride("margin_top", 24);
+        cardMargin.AddThemeConstantOverride("margin_bottom", 24);
+        card.AddChild(cardMargin);
+
         var rootVBox = new VBoxContainer();
-        rootVBox.AddThemeConstantOverride("separation", 8);
-        card.AddChild(rootVBox);
+        rootVBox.AddThemeConstantOverride("separation", 10);
+        cardMargin.AddChild(rootVBox);
 
         // Header
         var title = new Label();
         title.Text = "⏸️ MATCH SETTINGS";
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeColorOverride("font_color", new Color(0.3f, 0.9f, 1.0f));
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.AddThemeConstantOverride("outline_size", 4);
-        title.AddThemeFontSizeOverride("font_size", 24);
+        UITheme.FormatComicLabel(title, UITheme.TitleFont, 26, UITheme.ElectricCyan, UITheme.InkBlack, 4);
         rootVBox.AddChild(title);
 
         var subtitle = new Label();
         subtitle.Text = "⚠️ Live multiplayer match in progress — gameplay does NOT pause!";
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
-        subtitle.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.25f));
-        subtitle.AddThemeFontSizeOverride("font_size", 12);
+        UITheme.FormatComicLabel(subtitle, UITheme.BodyFont, 11, UITheme.FlyerYellow, UITheme.InkBlack, 2);
         rootVBox.AddChild(subtitle);
 
         rootVBox.AddChild(new HSeparator());
@@ -1283,10 +1320,19 @@ public partial class GamePhaseHUD : CanvasLayer
         scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
         rootVBox.AddChild(scroll);
 
+        var scrollMargin = new MarginContainer();
+        scrollMargin.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        scrollMargin.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        scrollMargin.AddThemeConstantOverride("margin_left", 4);
+        scrollMargin.AddThemeConstantOverride("margin_right", 16);
+        scrollMargin.AddThemeConstantOverride("margin_top", 6);
+        scrollMargin.AddThemeConstantOverride("margin_bottom", 6);
+        scroll.AddChild(scrollMargin);
+
         var vbox = new VBoxContainer();
-        vbox.AddThemeConstantOverride("separation", 10);
+        vbox.AddThemeConstantOverride("separation", 12);
         vbox.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        scroll.AddChild(vbox);
+        scrollMargin.AddChild(vbox);
 
         // Audio Section
         var audioHeader = new Label();
@@ -1537,32 +1583,15 @@ public partial class GamePhaseHUD : CanvasLayer
         var resumeBtn = new Button();
         resumeBtn.Text = "▶️ RESUME [Esc]";
         resumeBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        resumeBtn.CustomMinimumSize = new Vector2(0, 40);
-        resumeBtn.AddThemeFontSizeOverride("font_size", 14);
-
-        var resumeStyle = new StyleBoxFlat();
-        resumeStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        resumeStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        resumeStyle.BorderWidthLeft = 2;
-        resumeStyle.BorderWidthTop = 2;
-        resumeStyle.BorderWidthRight = 2;
-        resumeStyle.BorderWidthBottom = 2;
-        resumeStyle.CornerRadiusTopLeft = 8;
-        resumeStyle.CornerRadiusTopRight = 8;
-        resumeStyle.CornerRadiusBottomLeft = 8;
-        resumeStyle.CornerRadiusBottomRight = 8;
-        resumeBtn.AddThemeStyleboxOverride("normal", resumeStyle);
-
-        var resumeHover = (StyleBoxFlat)resumeStyle.Duplicate();
-        resumeHover.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        resumeBtn.AddThemeStyleboxOverride("hover", resumeHover);
+        resumeBtn.CustomMinimumSize = new Vector2(0, 42);
+        UITheme.ApplyArcadeButton(resumeBtn, UITheme.FreshGreen, UITheme.EmeraldDark, 14, 8);
         resumeBtn.Pressed += ClosePauseMenu;
         actionsRow.AddChild(resumeBtn);
 
         var guideBtn = new Button();
         guideBtn.Text = "📖 GUIDE [H]";
-        guideBtn.CustomMinimumSize = new Vector2(110, 40);
-        guideBtn.AddThemeFontSizeOverride("font_size", 12);
+        guideBtn.CustomMinimumSize = new Vector2(110, 42);
+        UITheme.ApplyArcadeButton(guideBtn, UITheme.ElectricCyan, UITheme.CyanDark, 12, 8);
         guideBtn.Pressed += () =>
         {
             ClosePauseMenu();
@@ -1572,8 +1601,8 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var perksBtn = new Button();
         perksBtn.Text = "⭐ PERKS [P]";
-        perksBtn.CustomMinimumSize = new Vector2(110, 40);
-        perksBtn.AddThemeFontSizeOverride("font_size", 12);
+        perksBtn.CustomMinimumSize = new Vector2(110, 42);
+        UITheme.ApplyArcadeButton(perksBtn, UITheme.FlyerYellow, null, 12, 8);
         perksBtn.Pressed += () =>
         {
             ClosePauseMenu();
@@ -1583,25 +1612,8 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var leaveBtn = new Button();
         leaveBtn.Text = "🚪 LEAVE";
-        leaveBtn.CustomMinimumSize = new Vector2(100, 40);
-        leaveBtn.AddThemeFontSizeOverride("font_size", 12);
-
-        var leaveStyle = new StyleBoxFlat();
-        leaveStyle.BgColor = new Color(0.45f, 0.12f, 0.12f, 0.95f);
-        leaveStyle.BorderColor = new Color(0.95f, 0.3f, 0.3f, 0.9f);
-        leaveStyle.BorderWidthLeft = 2;
-        leaveStyle.BorderWidthTop = 2;
-        leaveStyle.BorderWidthRight = 2;
-        leaveStyle.BorderWidthBottom = 2;
-        leaveStyle.CornerRadiusTopLeft = 8;
-        leaveStyle.CornerRadiusTopRight = 8;
-        leaveStyle.CornerRadiusBottomLeft = 8;
-        leaveStyle.CornerRadiusBottomRight = 8;
-        leaveBtn.AddThemeStyleboxOverride("normal", leaveStyle);
-
-        var leaveHover = (StyleBoxFlat)leaveStyle.Duplicate();
-        leaveHover.BgColor = new Color(0.60f, 0.15f, 0.15f, 1.0f);
-        leaveBtn.AddThemeStyleboxOverride("hover", leaveHover);
+        leaveBtn.CustomMinimumSize = new Vector2(100, 42);
+        UITheme.ApplyArcadeButton(leaveBtn, UITheme.ActionRed, UITheme.CrimsonDark, 12, 8);
         leaveBtn.Pressed += () =>
         {
             NetworkManager.Instance?.ReturnToMainMenu();
@@ -1695,20 +1707,7 @@ public partial class GamePhaseHUD : CanvasLayer
         _intercomCard.OffsetBottom = -50;
         _intercomCard.CustomMinimumSize = new Vector2(640, 95);
 
-        var cardStyle = new StyleBoxFlat();
-        cardStyle.BgColor = new Color(0.08f, 0.10f, 0.14f, 0.96f);
-        cardStyle.BorderWidthLeft = 3;
-        cardStyle.BorderWidthTop = 3;
-        cardStyle.BorderWidthRight = 3;
-        cardStyle.BorderWidthBottom = 3;
-        cardStyle.BorderColor = new Color(1.0f, 0.82f, 0.20f, 0.95f); // Golden store hazard outline
-        cardStyle.CornerRadiusTopLeft = 10;
-        cardStyle.CornerRadiusTopRight = 10;
-        cardStyle.CornerRadiusBottomRight = 10;
-        cardStyle.CornerRadiusBottomLeft = 10;
-        cardStyle.ShadowColor = new Color(0, 0, 0, 0.7f);
-        cardStyle.ShadowSize = 10;
-        _intercomCard.AddThemeStyleboxOverride("panel", cardStyle);
+        _intercomCard.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardDark, UITheme.ClearanceOrange, 10, 3, 6));
 
         var margin = new MarginContainer();
         margin.AddThemeConstantOverride("margin_left", 12);
@@ -1736,39 +1735,25 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var liveLabel = new Label();
         liveLabel.Text = "PA LIVE";
-        liveLabel.AddThemeFontSizeOverride("font_size", 11);
-        liveLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.35f, 0.35f));
+        UITheme.FormatComicLabel(liveLabel, UITheme.BodyFont, 11, UITheme.ActionRed, UITheme.InkBlack, 2);
         liveHBox.AddChild(liveLabel);
         leftCol.AddChild(liveHBox);
 
         var avatarPanel = new PanelContainer();
-        var avatarStyle = new StyleBoxFlat();
-        avatarStyle.BgColor = new Color(0.13f, 0.16f, 0.22f, 1f);
-        avatarStyle.BorderWidthLeft = 1;
-        avatarStyle.BorderWidthTop = 1;
-        avatarStyle.BorderWidthRight = 1;
-        avatarStyle.BorderWidthBottom = 1;
-        avatarStyle.BorderColor = new Color(0.4f, 0.5f, 0.6f);
-        avatarStyle.CornerRadiusTopLeft = 6;
-        avatarStyle.CornerRadiusTopRight = 6;
-        avatarStyle.CornerRadiusBottomRight = 6;
-        avatarStyle.CornerRadiusBottomLeft = 6;
-        avatarPanel.AddThemeStyleboxOverride("panel", avatarStyle);
+        avatarPanel.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(UITheme.CardHeader, UITheme.ClearanceOrange, 6, 2, 2));
 
         _intercomAvatarLabel = new Label();
-        _intercomAvatarLabel.Text = "( ಠ_ಠ )";
+        _intercomAvatarLabel.Text = "🎙️ NORMAL";
         _intercomAvatarLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _intercomAvatarLabel.VerticalAlignment = VerticalAlignment.Center;
-        _intercomAvatarLabel.AddThemeFontSizeOverride("font_size", 18);
-        _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.3f));
+        UITheme.FormatComicLabel(_intercomAvatarLabel, UITheme.BodyFont, 12, UITheme.FlyerYellow, UITheme.InkBlack, 2);
         avatarPanel.AddChild(_intercomAvatarLabel);
         leftCol.AddChild(avatarPanel);
 
         var nameLabel = new Label();
         nameLabel.Text = "MR. HENDERSON";
         nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        nameLabel.AddThemeFontSizeOverride("font_size", 10);
-        nameLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.25f));
+        UITheme.FormatComicLabel(nameLabel, UITheme.BodyFont, 11, UITheme.FlyerYellow, UITheme.InkBlack, 2);
         leftCol.AddChild(nameLabel);
 
         // Right column: Channel header + Dialogue text
@@ -1779,19 +1764,13 @@ public partial class GamePhaseHUD : CanvasLayer
 
         var channelLabel = new Label();
         channelLabel.Text = "📻 STORE INTERCOM — GENERAL MANAGER";
-        channelLabel.AddThemeFontSizeOverride("font_size", 11);
-        channelLabel.AddThemeColorOverride("font_color", new Color(0.35f, 0.85f, 1.0f));
-        channelLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        channelLabel.AddThemeConstantOverride("outline_size", 2);
+        UITheme.FormatComicLabel(channelLabel, UITheme.BodyFont, 11, UITheme.ElectricCyan, UITheme.InkBlack, 2);
         rightCol.AddChild(channelLabel);
 
         _intercomMessageLabel = new Label();
         _intercomMessageLabel.Text = "";
         _intercomMessageLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _intercomMessageLabel.AddThemeFontSizeOverride("font_size", 14);
-        _intercomMessageLabel.AddThemeColorOverride("font_color", Colors.White);
-        _intercomMessageLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        _intercomMessageLabel.AddThemeConstantOverride("outline_size", 3);
+        UITheme.FormatComicLabel(_intercomMessageLabel, UITheme.BodyFont, 14, Colors.White, UITheme.InkBlack, 3);
         rightCol.AddChild(_intercomMessageLabel);
 
         _intercomCard.Visible = false;
@@ -1814,32 +1793,32 @@ public partial class GamePhaseHUD : CanvasLayer
         switch (emotion)
         {
             case ManagerEmotion.Neutral:
-                _intercomAvatarLabel.Text = "( ಠ_ಠ )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.85f, 0.9f));
+                _intercomAvatarLabel.Text = "🎙️ NORMAL";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.PaperWhite);
                 break;
             case ManagerEmotion.Annoyed:
-                _intercomAvatarLabel.Text = "( ¬_¬ )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.6f, 0.3f));
+                _intercomAvatarLabel.Text = "💢 ANNOYED";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.ClearanceOrange);
                 break;
             case ManagerEmotion.Greedy:
-                _intercomAvatarLabel.Text = "( $ ‿ $ )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.3f, 1.0f, 0.4f));
+                _intercomAvatarLabel.Text = "💰 BOGO / $$";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.FreshGreen);
                 break;
             case ManagerEmotion.Panicked:
-                _intercomAvatarLabel.Text = "( ⊙_⊙; )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.4f, 0.4f));
+                _intercomAvatarLabel.Text = "⚡ PANIC!";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.FlyerYellow);
                 break;
             case ManagerEmotion.Enraged:
-                _intercomAvatarLabel.Text = "( >皿< )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.2f, 0.2f));
+                _intercomAvatarLabel.Text = "🔥 ENRAGED";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.ActionRed);
                 break;
             case ManagerEmotion.Megaphone:
-                _intercomAvatarLabel.Text = "📢( ᐛ )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(1.0f, 0.9f, 0.2f));
+                _intercomAvatarLabel.Text = "📢 SPECIAL";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.ElectricCyan);
                 break;
             case ManagerEmotion.Smug:
-                _intercomAvatarLabel.Text = "( ˘‿˘ )";
-                _intercomAvatarLabel.AddThemeColorOverride("font_color", new Color(0.4f, 0.8f, 1.0f));
+                _intercomAvatarLabel.Text = "✨ SMUG";
+                _intercomAvatarLabel.AddThemeColorOverride("font_color", UITheme.FlyerYellow);
                 break;
         }
 

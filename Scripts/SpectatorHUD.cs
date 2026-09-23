@@ -15,6 +15,8 @@ public partial class SpectatorHUD : CanvasLayer
 
     public override void _Ready()
     {
+        StyleSpectatorUI();
+
         if (PrevButton != null)
         {
             PrevButton.Pressed += () => PreviousRequested?.Invoke();
@@ -23,6 +25,67 @@ public partial class SpectatorHUD : CanvasLayer
         if (NextButton != null)
         {
             NextButton.Pressed += () => NextRequested?.Invoke();
+        }
+    }
+
+    private void StyleSpectatorUI()
+    {
+        // Style Top Banner Container
+        var topContainer = GetNodeOrNull<Control>("TopContainer");
+        if (topContainer != null)
+        {
+            // Create a stylish comic backing panel if not present
+            var existingBg = topContainer.GetNodeOrNull<Panel>("ComicBannerBg");
+            if (existingBg == null)
+            {
+                var bgPanel = new Panel
+                {
+                    Name = "ComicBannerBg",
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    ShowBehindParent = true
+                };
+                bgPanel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+                bgPanel.OffsetLeft = -24;
+                bgPanel.OffsetRight = 24;
+                bgPanel.OffsetTop = -10;
+                bgPanel.OffsetBottom = 12;
+                bgPanel.AddThemeStyleboxOverride("panel", UITheme.CreateComicCard(
+                    new Color(0.08f, 0.09f, 0.14f, 0.94f),
+                    UITheme.ActionRed,
+                    cornerRadius: 10,
+                    borderWidth: 3,
+                    shadowOffset: 4
+                ));
+                topContainer.AddChild(bgPanel);
+                topContainer.MoveChild(bgPanel, 0);
+            }
+        }
+
+        if (TitleLabel != null)
+        {
+            TitleLabel.Modulate = Colors.White;
+            UITheme.FormatComicLabel(TitleLabel, UITheme.TitleFont, 36, UITheme.ActionRed, UITheme.InkBlack, 6, UITheme.InkBlack, new Vector2I(3, 3));
+        }
+
+        if (SpectatingLabel != null)
+        {
+            SpectatingLabel.Modulate = Colors.White;
+            UITheme.FormatComicLabel(SpectatingLabel, UITheme.BodyFont, 20, UITheme.ElectricCyan, UITheme.InkBlack, 4, UITheme.InkBlack, new Vector2I(2, 2));
+        }
+
+        if (HintLabel != null)
+        {
+            UITheme.FormatComicLabel(HintLabel, UITheme.BodyFont, 14, UITheme.PaperCream, UITheme.InkBlack, 3);
+        }
+
+        if (PrevButton != null)
+        {
+            UITheme.ApplyArcadeButton(PrevButton, UITheme.ElectricCyan, fontSize: 15);
+        }
+
+        if (NextButton != null)
+        {
+            UITheme.ApplyArcadeButton(NextButton, UITheme.ElectricCyan, fontSize: 15);
         }
     }
 
@@ -42,13 +105,13 @@ public partial class SpectatorHUD : CanvasLayer
         if (TitleLabel != null)
         {
             TitleLabel.Text = "ELIMINATED";
-            TitleLabel.Modulate = new Color(0.95f, 0.2f, 0.2f);
+            TitleLabel.AddThemeColorOverride("font_color", UITheme.ActionRed);
         }
 
         if (SpectatingLabel != null)
         {
             SpectatingLabel.Text = $"SPECTATING: {playerName.ToUpper()}";
-            SpectatingLabel.Modulate = new Color(0.3f, 0.85f, 1.0f);
+            SpectatingLabel.AddThemeColorOverride("font_color", UITheme.ElectricCyan);
         }
 
         if (HintLabel != null)
@@ -68,13 +131,13 @@ public partial class SpectatorHUD : CanvasLayer
         if (TitleLabel != null)
         {
             TitleLabel.Text = "ELIMINATED";
-            TitleLabel.Modulate = new Color(0.95f, 0.2f, 0.2f);
+            TitleLabel.AddThemeColorOverride("font_color", UITheme.ActionRed);
         }
 
         if (SpectatingLabel != null)
         {
             SpectatingLabel.Text = "NO LIVING PLAYERS TO SPECTATE";
-            SpectatingLabel.Modulate = new Color(0.8f, 0.8f, 0.8f);
+            SpectatingLabel.AddThemeColorOverride("font_color", UITheme.SubtitleGray);
         }
 
         if (HintLabel != null)

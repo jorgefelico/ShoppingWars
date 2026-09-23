@@ -69,6 +69,109 @@ public partial class MainMenu : Control
         {
             SteamManager.Instance.OnInviteReceived += OnInviteReceived;
         }
+
+        StyleMainMenuUI();
+    }
+
+    private void StyleMainMenuUI()
+    {
+        // 1. Create comic game title marquee if not present
+        var titleNode = GetNodeOrNull<Control>("ComicTitleMarquee");
+        if (titleNode == null)
+        {
+            var titleBox = new VBoxContainer
+            {
+                Name = "ComicTitleMarquee",
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            titleBox.SetAnchorsPreset(LayoutPreset.TopWide);
+            titleBox.AnchorLeft = 0.5f;
+            titleBox.AnchorRight = 0.5f;
+            titleBox.AnchorTop = 0f;
+            titleBox.AnchorBottom = 0f;
+            titleBox.OffsetLeft = -320;
+            titleBox.OffsetRight = 320;
+            titleBox.OffsetTop = 40;
+            titleBox.OffsetBottom = 160;
+            titleBox.Alignment = BoxContainer.AlignmentMode.Center;
+            titleBox.AddThemeConstantOverride("separation", 2);
+
+            var titleLbl = new Label
+            {
+                Text = "SHOPPING WARS",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            UITheme.FormatComicLabel(titleLbl, UITheme.TitleFont, 68, UITheme.FlyerYellow, UITheme.InkBlack, 6, UITheme.InkBlack, new Vector2I(4, 5));
+            titleBox.AddChild(titleLbl);
+
+            var subtitlePill = new PanelContainer
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                SizeFlagsHorizontal = SizeFlags.ShrinkCenter
+            };
+            subtitlePill.AddThemeStyleboxOverride("panel", UITheme.CreatePriceBadgeStyle(UITheme.ActionRed, 6));
+            titleBox.AddChild(subtitlePill);
+
+            var subtitleLbl = new Label
+            {
+                Text = "★ EVERY AISLE IS A BATTLEGROUND • STORE #404 ★",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            UITheme.FormatComicLabel(subtitleLbl, UITheme.BodyFont, 13, Colors.White, UITheme.InkBlack, 2);
+            subtitlePill.AddChild(subtitleLbl);
+
+            AddChild(titleBox);
+
+            // Subtle comic idle float
+            var tw = CreateTween();
+            tw.SetLoops();
+            tw.TweenProperty(titleBox, "position:y", 36f, 1.4f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+            tw.TweenProperty(titleBox, "position:y", 44f, 1.4f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        }
+
+        // 2. Style arcade buttons
+        if (HostButton != null)
+        {
+            HostButton.Text = "🛒  HOST STEAM LOBBY";
+            HostButton.CustomMinimumSize = new Vector2(280, 48);
+            UITheme.ApplyArcadeButton(HostButton, UITheme.FreshGreen, UITheme.EmeraldDark, 16, 9);
+        }
+
+        if (JoinButton != null)
+        {
+            JoinButton.Text = "🏷️  JOIN A FRIEND";
+            JoinButton.CustomMinimumSize = new Vector2(280, 48);
+            UITheme.ApplyArcadeButton(JoinButton, UITheme.ElectricCyan, UITheme.CyanDark, 16, 9);
+        }
+
+        if (SettingsButton != null)
+        {
+            SettingsButton.Text = "⚙️  SETTINGS & GRAPHICS";
+            SettingsButton.CustomMinimumSize = new Vector2(280, 44);
+            UITheme.ApplyArcadeButton(SettingsButton, UITheme.ClearanceOrange, null, 15, 9);
+        }
+
+        if (QuitButton != null)
+        {
+            QuitButton.Text = "🚪  QUIT TO DESKTOP";
+            QuitButton.CustomMinimumSize = new Vector2(280, 44);
+            UITheme.ApplyArcadeButton(QuitButton, UITheme.ActionRed, UITheme.CrimsonDark, 15, 9);
+        }
+
+        var btnVBox = GetNodeOrNull<VBoxContainer>("VBoxContainer");
+        if (btnVBox != null)
+        {
+            btnVBox.OffsetTop = -30;
+            btnVBox.OffsetBottom = 160;
+            btnVBox.AddThemeConstantOverride("separation", 12);
+        }
+
+        if (StatusLabel != null)
+        {
+            UITheme.FormatComicLabel(StatusLabel, UITheme.BodyFont, 14, UITheme.FlyerYellow, UITheme.InkBlack, 3);
+        }
     }
 
     public override void _ExitTree()
@@ -166,36 +269,9 @@ public partial class MainMenu : Control
 
         _onboardConfirmButton = new Button();
         _onboardConfirmButton.CustomMinimumSize = new Vector2(340, 44);
-        _onboardConfirmButton.AddThemeFontSizeOverride("font_size", 16);
         _onboardConfirmButton.FocusMode = Control.FocusModeEnum.All;
         _onboardConfirmButton.MouseFilter = Control.MouseFilterEnum.Stop;
-
-        var btnStyle = new StyleBoxFlat();
-        btnStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        btnStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        btnStyle.BorderWidthLeft = 2;
-        btnStyle.BorderWidthTop = 2;
-        btnStyle.BorderWidthRight = 2;
-        btnStyle.BorderWidthBottom = 2;
-        btnStyle.CornerRadiusTopLeft = 8;
-        btnStyle.CornerRadiusTopRight = 8;
-        btnStyle.CornerRadiusBottomLeft = 8;
-        btnStyle.CornerRadiusBottomRight = 8;
-        _onboardConfirmButton.AddThemeStyleboxOverride("normal", btnStyle);
-
-        var hoverStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        hoverStyle.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        hoverStyle.BorderColor = new Color(0.5f, 1.0f, 0.6f, 1.0f);
-        _onboardConfirmButton.AddThemeStyleboxOverride("hover", hoverStyle);
-
-        var focusStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        focusStyle.BorderColor = Colors.White;
-        focusStyle.BorderWidthLeft = 3;
-        focusStyle.BorderWidthTop = 3;
-        focusStyle.BorderWidthRight = 3;
-        focusStyle.BorderWidthBottom = 3;
-        _onboardConfirmButton.AddThemeStyleboxOverride("focus", focusStyle);
-
+        UITheme.ApplyArcadeButton(_onboardConfirmButton, UITheme.FreshGreen, UITheme.EmeraldDark, 16, 8);
         _onboardConfirmButton.Pressed += OnOnboardConfirmed;
         btnContainer.AddChild(_onboardConfirmButton);
 
@@ -344,13 +420,13 @@ public partial class MainMenu : Control
         var title = new Label();
         title.Text = "🛒 JOIN A FRIEND";
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeFontSizeOverride("font_size", 26);
+        UITheme.FormatComicLabel(title, UITheme.TitleFont, 32, UITheme.FlyerYellow, UITheme.InkBlack, 4);
         vbox.AddChild(title);
 
         _friendsStatus = new Label();
         _friendsStatus.HorizontalAlignment = HorizontalAlignment.Center;
         _friendsStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _friendsStatus.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.85f, 0.9f));
+        UITheme.FormatComicLabel(_friendsStatus, UITheme.BodyFont, 13, UITheme.PaperWhite, UITheme.InkBlack, 2);
         vbox.AddChild(_friendsStatus);
 
         var scroll = new ScrollContainer();
@@ -372,12 +448,14 @@ public partial class MainMenu : Control
         _friendsRefreshButton.Text = "🔄 REFRESH";
         _friendsRefreshButton.CustomMinimumSize = new Vector2(160, 40);
         _friendsRefreshButton.Pressed += () => ScanFriendLobbies();
+        UITheme.ApplyArcadeButton(_friendsRefreshButton, UITheme.ElectricCyan, UITheme.CyanDark, 14, 8);
         footer.AddChild(_friendsRefreshButton);
 
         var closeButton = new Button();
         closeButton.Text = "CLOSE [ESC]";
         closeButton.CustomMinimumSize = new Vector2(160, 40);
         closeButton.Pressed += CloseFriendsPopup;
+        UITheme.ApplyArcadeButton(closeButton, UITheme.ActionRed, UITheme.CrimsonDark, 14, 8);
         footer.AddChild(closeButton);
 
         AddChild(_friendsPopup);
@@ -425,35 +503,8 @@ public partial class MainMenu : Control
         var btn = new Button();
         btn.Text = text;
         btn.CustomMinimumSize = new Vector2(560, 44);
-        btn.AddThemeFontSizeOverride("font_size", 16);
         btn.FocusMode = Control.FocusModeEnum.All;
-
-        var btnStyle = new StyleBoxFlat();
-        btnStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        btnStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        btnStyle.BorderWidthLeft = 2;
-        btnStyle.BorderWidthTop = 2;
-        btnStyle.BorderWidthRight = 2;
-        btnStyle.BorderWidthBottom = 2;
-        btnStyle.CornerRadiusTopLeft = 8;
-        btnStyle.CornerRadiusTopRight = 8;
-        btnStyle.CornerRadiusBottomLeft = 8;
-        btnStyle.CornerRadiusBottomRight = 8;
-        btn.AddThemeStyleboxOverride("normal", btnStyle);
-
-        var hoverStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        hoverStyle.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        hoverStyle.BorderColor = new Color(0.5f, 1.0f, 0.6f, 1.0f);
-        btn.AddThemeStyleboxOverride("hover", hoverStyle);
-
-        var focusStyle = (StyleBoxFlat)btnStyle.Duplicate();
-        focusStyle.BorderColor = Colors.White;
-        focusStyle.BorderWidthLeft = 3;
-        focusStyle.BorderWidthTop = 3;
-        focusStyle.BorderWidthRight = 3;
-        focusStyle.BorderWidthBottom = 3;
-        btn.AddThemeStyleboxOverride("focus", focusStyle);
-
+        UITheme.ApplyArcadeButton(btn, UITheme.FreshGreen, UITheme.EmeraldDark, 15, 8);
         return btn;
     }
 
@@ -640,14 +691,13 @@ public partial class MainMenu : Control
         var title = new Label();
         title.Text = "⚙️ GAME & GRAPHICS SETTINGS";
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeFontSizeOverride("font_size", 24);
+        UITheme.FormatComicLabel(title, UITheme.TitleFont, 32, UITheme.FlyerYellow, UITheme.InkBlack, 4);
         rootVBox.AddChild(title);
 
         var subtitle = new Label();
         subtitle.Text = "Configure display, graphics presets, audio, and controls.";
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
-        subtitle.AddThemeColorOverride("font_color", new Color(0.75f, 0.8f, 0.9f, 0.9f));
-        subtitle.AddThemeFontSizeOverride("font_size", 12);
+        UITheme.FormatComicLabel(subtitle, UITheme.BodyFont, 13, UITheme.SubtitleGray, UITheme.InkBlack, 2);
         rootVBox.AddChild(subtitle);
 
         rootVBox.AddChild(new HSeparator());
@@ -909,25 +959,8 @@ public partial class MainMenu : Control
 
         var closeBtn = new Button();
         closeBtn.Text = "💾 SAVE & CLOSE [ESC]";
-        closeBtn.CustomMinimumSize = new Vector2(280, 42);
-        closeBtn.AddThemeFontSizeOverride("font_size", 14);
-
-        var closeStyle = new StyleBoxFlat();
-        closeStyle.BgColor = new Color(0.14f, 0.42f, 0.22f, 0.95f);
-        closeStyle.BorderColor = new Color(0.35f, 0.95f, 0.45f, 0.9f);
-        closeStyle.BorderWidthLeft = 2;
-        closeStyle.BorderWidthTop = 2;
-        closeStyle.BorderWidthRight = 2;
-        closeStyle.BorderWidthBottom = 2;
-        closeStyle.CornerRadiusTopLeft = 8;
-        closeStyle.CornerRadiusTopRight = 8;
-        closeStyle.CornerRadiusBottomLeft = 8;
-        closeStyle.CornerRadiusBottomRight = 8;
-        closeBtn.AddThemeStyleboxOverride("normal", closeStyle);
-
-        var closeHover = (StyleBoxFlat)closeStyle.Duplicate();
-        closeHover.BgColor = new Color(0.20f, 0.55f, 0.30f, 1.0f);
-        closeBtn.AddThemeStyleboxOverride("hover", closeHover);
+        closeBtn.CustomMinimumSize = new Vector2(280, 44);
+        UITheme.ApplyArcadeButton(closeBtn, UITheme.FreshGreen, UITheme.EmeraldDark, 15, 8);
         closeBtn.Pressed += CloseSettingsPopup;
         footer.AddChild(closeBtn);
 

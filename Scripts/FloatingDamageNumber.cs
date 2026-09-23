@@ -33,12 +33,17 @@ public partial class FloatingDamageNumber : Node3D
             {
                 Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
                 NoDepthTest = true,
-                OutlineSize = 12,
-                OutlineModulate = Colors.Black,
+                OutlineSize = 16,
+                OutlineModulate = UITheme.InkBlack,
                 PixelSize = 0.0055f,
                 RenderPriority = 10
             };
             AddChild(_label);
+        }
+
+        if (UITheme.TitleFont != null)
+        {
+            _label.Font = UITheme.TitleFont;
         }
     }
 
@@ -48,20 +53,20 @@ public partial class FloatingDamageNumber : Node3D
 
         if (amount < 20)
         {
-            _baseColor = new Color(1.0f, 0.95f, 0.35f); // Bright Lemon Yellow
-            _label.FontSize = 34;
+            _baseColor = UITheme.FlyerYellow; // Bright Lemon Yellow
+            _label.FontSize = 38;
             _label.Text = string.IsNullOrEmpty(comicSuffix) ? $"-{amount}" : $"-{amount} {comicSuffix}";
         }
         else if (amount < 40)
         {
-            _baseColor = new Color(1.0f, 0.55f, 0.12f); // Fiery Neon Orange
-            _label.FontSize = 44;
+            _baseColor = UITheme.ClearanceOrange; // Fiery Neon Orange
+            _label.FontSize = 48;
             _label.Text = string.IsNullOrEmpty(comicSuffix) ? $"-{amount} POW!" : $"-{amount} {comicSuffix}";
         }
         else
         {
-            _baseColor = new Color(1.0f, 0.15f, 0.25f); // Super Crimson CRIT
-            _label.FontSize = 54;
+            _baseColor = UITheme.ActionRed; // Super Crimson CRIT
+            _label.FontSize = 58;
             _label.Text = string.IsNullOrEmpty(comicSuffix) ? $"-{amount} CRIT!" : $"-{amount} {comicSuffix}";
         }
 

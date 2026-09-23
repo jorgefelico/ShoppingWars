@@ -8,23 +8,11 @@ public static class OnboardingContent
 {
     public static StyleBoxFlat CreateCardStyle()
     {
-        var cardStyle = new StyleBoxFlat();
-        cardStyle.BgColor = new Color(0.08f, 0.10f, 0.15f, 0.98f);
-        cardStyle.BorderWidthLeft = 3;
-        cardStyle.BorderWidthTop = 3;
-        cardStyle.BorderWidthRight = 3;
-        cardStyle.BorderWidthBottom = 3;
-        cardStyle.BorderColor = new Color(1.0f, 0.8f, 0.2f, 0.95f);
-        cardStyle.CornerRadiusTopLeft = 14;
-        cardStyle.CornerRadiusTopRight = 14;
-        cardStyle.CornerRadiusBottomLeft = 14;
-        cardStyle.CornerRadiusBottomRight = 14;
-        cardStyle.ExpandMarginLeft = 24;
-        cardStyle.ExpandMarginTop = 18;
-        cardStyle.ExpandMarginRight = 24;
-        cardStyle.ExpandMarginBottom = 18;
-        cardStyle.ShadowSize = 24;
-        cardStyle.ShadowColor = new Color(0, 0, 0, 0.75f);
+        var cardStyle = UITheme.CreateComicCard(UITheme.CardDark, UITheme.FlyerYellow, 12, 4, 8);
+        cardStyle.ContentMarginLeft = 28;
+        cardStyle.ContentMarginRight = 28;
+        cardStyle.ContentMarginTop = 22;
+        cardStyle.ContentMarginBottom = 22;
         return cardStyle;
     }
 
@@ -37,17 +25,13 @@ public static class OnboardingContent
         var title = new Label();
         title.Text = "🛒 WELCOME TO SHOPPING WARS! 🛒";
         title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.15f));
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.AddThemeConstantOverride("outline_size", 4);
-        title.AddThemeFontSizeOverride("font_size", 26);
+        UITheme.FormatComicLabel(title, UITheme.TitleFont, 32, UITheme.FlyerYellow, UITheme.InkBlack, 4, UITheme.InkBlack, new Vector2I(3, 3));
         vbox.AddChild(title);
 
         var subtitle = new Label();
-        subtitle.Text = "Supermarket Battle Royale — Player Guide & Controls";
+        subtitle.Text = "SUPERMARKET BATTLE ROYALE — PLAYER GUIDE & CONTROLS";
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
-        subtitle.AddThemeColorOverride("font_color", new Color(0.8f, 0.85f, 0.9f));
-        subtitle.AddThemeFontSizeOverride("font_size", 13);
+        UITheme.FormatComicLabel(subtitle, UITheme.BodyFont, 13, UITheme.SubtitleGray, UITheme.InkBlack, 2);
         vbox.AddChild(subtitle);
 
         vbox.AddChild(new HSeparator());
@@ -64,8 +48,7 @@ public static class OnboardingContent
 
         var leftTitle = new Label();
         leftTitle.Text = "🎯 MATCH PHASES & RULES";
-        leftTitle.AddThemeColorOverride("font_color", new Color(0.3f, 0.9f, 1.0f));
-        leftTitle.AddThemeFontSizeOverride("font_size", 15);
+        UITheme.FormatComicLabel(leftTitle, UITheme.BodyFont, 16, UITheme.ElectricCyan, UITheme.InkBlack, 3);
         leftCol.AddChild(leftTitle);
 
         string[] rules = new string[]
@@ -86,8 +69,7 @@ public static class OnboardingContent
         {
             var lbl = new Label();
             lbl.Text = rule;
-            lbl.AddThemeFontSizeOverride("font_size", 12);
-            lbl.AddThemeColorOverride("font_color", new Color(0.92f, 0.92f, 0.94f));
+            UITheme.FormatComicLabel(lbl, UITheme.BodyFont, 12, UITheme.PaperWhite, UITheme.InkBlack, 2);
             lbl.AutowrapMode = TextServer.AutowrapMode.Word;
             leftCol.AddChild(lbl);
         }
@@ -102,8 +84,7 @@ public static class OnboardingContent
 
         var rightTitle = new Label();
         rightTitle.Text = "⌨️ CONTROLS GUIDE";
-        rightTitle.AddThemeColorOverride("font_color", new Color(1.0f, 0.85f, 0.2f));
-        rightTitle.AddThemeFontSizeOverride("font_size", 15);
+        UITheme.FormatComicLabel(rightTitle, UITheme.BodyFont, 16, UITheme.FlyerYellow, UITheme.InkBlack, 3);
         rightCol.AddChild(rightTitle);
 
         (string key, string desc)[] controls = new (string, string)[]
@@ -131,14 +112,12 @@ public static class OnboardingContent
             var keyLbl = new Label();
             keyLbl.Text = ctrl.key;
             keyLbl.CustomMinimumSize = new Vector2(145, 0);
-            keyLbl.AddThemeColorOverride("font_color", new Color(1.0f, 0.9f, 0.5f));
-            keyLbl.AddThemeFontSizeOverride("font_size", 12);
+            UITheme.FormatComicLabel(keyLbl, UITheme.BodyFont, 12, UITheme.FlyerYellow, UITheme.InkBlack, 2);
             row.AddChild(keyLbl);
 
             var descLbl = new Label();
             descLbl.Text = ctrl.desc;
-            descLbl.AddThemeColorOverride("font_color", new Color(0.88f, 0.88f, 0.9f));
-            descLbl.AddThemeFontSizeOverride("font_size", 12);
+            UITheme.FormatComicLabel(descLbl, UITheme.BodyFont, 12, UITheme.PaperWhite, UITheme.InkBlack, 2);
             row.AddChild(descLbl);
 
             rightCol.AddChild(row);

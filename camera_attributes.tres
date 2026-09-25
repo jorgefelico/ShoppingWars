@@ -1,0 +1,5 @@
+[gd_resource type="CameraAttributesPhysical" format=3 uid="uid://dwo75ivrpagka"]
+
+[resource]
+auto_exposure_min_exposure_value = 0.5
+auto_exposure_max_exposure_value = 8.0

@@ -1,39 +1,100 @@
 [gd_scene format=3 uid="uid://jb0i3ii5gkwf"]
 
 [ext_resource type="Script" uid="uid://d42rdkb7q33t" path="res://Scripts/MainMenu.cs" id="1_853f1"]
+[ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="2_loo7a"]
 [ext_resource type="AudioStream" uid="uid://dy03qr0inis6c" path="res://Sounds/Music/Prime_Time_Jackpot.mp3" id="3_8saeu"]
 [ext_resource type="LightmapGIData" uid="uid://c8mcisw4eeagi" path="res://Bakes/MainMenu.lmbake" id="3_ghw46"]
-[ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="3_xim88"]
+[ext_resource type="Texture2D" uid="uid://dbvmdx2fsijdu" path="res://Textures/smooth_concrete_floor_ao.png" id="4_7467j"]
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="4_df05h"]
 [ext_resource type="PackedScene" uid="uid://binytewqbcqoh" path="res://Prefabs/LaserCamera.tscn" id="4_ghw46"]
 [ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="4_koqhg"]
+[ext_resource type="Texture2D" uid="uid://c86it83larrkp" path="res://Textures/smooth_concrete_floor_metallic.png" id="5_2x1g0"]
 [ext_resource type="PackedScene" uid="uid://dve0mo8k4j8sm" path="res://Models/fire_extinguisher.glb" id="6_8um5k"]
+[ext_resource type="Texture2D" uid="uid://cf44e30envvou" path="res://Textures/smooth_concrete_floor_nor_gl_2k.png" id="6_riqfo"]
+[ext_resource type="Environment" uid="uid://c4p1yfebvxa0q" path="res://world_environment.tres" id="6_rrcx7"]
+[ext_resource type="CameraAttributesPhysical" uid="uid://dwo75ivrpagka" path="res://camera_attributes.tres" id="7_fh7cp"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_cmrfp"]
+[ext_resource type="PackedScene" uid="uid://dtpkw3fn2u452" path="res://Prefabs/Store_FluorescentLight.tscn" id="11_if7li"]
+[ext_resource type="PackedScene" path="res://Prefabs/Products/PropaneTank.tscn" id="16_riqfo"]
+[ext_resource type="PackedScene" path="res://Prefabs/Products/WetFloorSign.tscn" id="17_yxkem"]
+[ext_resource type="PackedScene" uid="uid://c0bqtadjtrcmi" path="res://Models/gondola_shelf_section.glb" id="18_yxkem"]
+[ext_resource type="PackedScene" uid="uid://cit6hg11ag7fv" path="res://Models/sparkleos_cereal.glb" id="19_m7n2d"]
+[ext_resource type="PackedScene" uid="uid://co260ofxravm4" path="res://Models/groomba_cereal.glb" id="19_pjscj"]
+[ext_resource type="PackedScene" uid="uid://byp055w3k7je4" path="res://Models/ironrations_cereal.glb" id="20_m7n2d"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_cmrfp"]
 font_size = 10
 
-[sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
-lightmap_size_hint = Vector2i(104, 57)
-material = ExtResource("3_xim88")
-add_uv2 = true
-size = Vector3(10, 0.1, 10)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yxkem"]
+albedo_color = Color(0.84, 0.86, 0.88, 1)
+metallic = 0.95
+metallic_specular = 1.0
+metallic_texture = ExtResource("5_2x1g0")
+roughness = 0.0
+normal_scale = 0.02
+normal_texture = ExtResource("6_riqfo")
+clearcoat_enabled = true
+clearcoat_roughness = 0.0
+ao_enabled = true
+ao_light_affect = 0.35
+ao_texture = ExtResource("4_7467j")
+uv1_scale = Vector3(60, 60, 1)
+texture_filter = 5
+stencil_flags = 2
 
-[sub_resource type="BoxMesh" id="BoxMesh_l8b7g"]
-lightmap_size_hint = Vector2i(55, 96)
+[sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
+lightmap_size_hint = Vector2i(109, 61)
+material = SubResource("StandardMaterial3D_yxkem")
+add_uv2 = true
+size = Vector3(10.648315, 0.2, 10.405151)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7v4os"]
+lightmap_size_hint = Vector2i(80, 231)
 material = ExtResource("4_koqhg")
 add_uv2 = true
-size = Vector3(10, 4, 0.2)
+size = Vector3(15, 15, 0.2)
 
-[sub_resource type="Environment" id="Environment_y1t4u"]
-background_mode = 1
-tonemap_exposure = 1.18
-ssr_enabled = true
-ssao_enabled = true
-ssil_enabled = true
-glow_enabled = true
+[sub_resource type="BoxMesh" id="BoxMesh_l8b7g"]
+lightmap_size_hint = Vector2i(80, 231)
+material = ExtResource("4_koqhg")
+add_uv2 = true
+size = Vector3(15, 15, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7467j"]
+lightmap_size_hint = Vector2i(80, 231)
+material = ExtResource("4_koqhg")
+add_uv2 = true
+size = Vector3(15, 15, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pjscj"]
+lightmap_size_hint = Vector2i(80, 231)
+material = ExtResource("4_koqhg")
+add_uv2 = true
+size = Vector3(15, 15, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dysc7"]
+albedo_color = Color(0.16206557, 0.1620656, 0.16206557, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pn41e"]
+lightmap_size_hint = Vector2i(104, 57)
+material = SubResource("StandardMaterial3D_dysc7")
+add_uv2 = true
+size = Vector3(10, 0.2, 10)
 
 [node name="Main_Menu" type="Node3D" unique_id=1303532231]
+
+[node name="LightmapGI" type="LightmapGI" parent="." unique_id=257845507]
+quality = 2
+bounces = 8
+directional = true
+interior = true
+denoiser_strength = 0.5
+max_texture_size = 4096
+light_data = ExtResource("3_ghw46")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1866107315]
+environment = ExtResource("6_rrcx7")
+camera_attributes = ExtResource("7_fh7cp")
 
 [node name="MainMenu" type="Control" parent="." unique_id=50548375 node_paths=PackedStringArray("HostButton", "JoinButton", "SettingsButton", "QuitButton", "InviteContainer", "StatusLabel")]
 layout_mode = 3
@@ -122,53 +183,282 @@ autoplay = true
 
 [node name="Node3D" type="Node3D" parent="." unique_id=4909387]
 
+[node name="potatogun" parent="Node3D" unique_id=2037204668 instance=ExtResource("2_loo7a")]
+transform = Transform3D(0.040123377, 0.9002082, 0.4336076, -0.36832917, 0.4167222, -0.8310696, -0.9288295, -0.12636499, 0.3482932, -3.2187247, 0.939258, -4.396243)
+
 [node name="Camera3D" type="Camera3D" parent="Node3D" unique_id=547601244]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3376617, 3.80966)
 current = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D" unique_id=213960413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.05657959, 0, 0.20257568)
 mesh = SubResource("BoxMesh_y1t4u")
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="Node3D" unique_id=176135444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9788334, -4.7624035)
-mesh = SubResource("BoxMesh_l8b7g")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.659226, 7.2312145, -4.762)
+mesh = SubResource("BoxMesh_7v4os")
 
 [node name="MeshInstance3D3" type="MeshInstance3D" parent="Node3D" unique_id=1441900940]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.850689, 1.9788334, -0.02290821)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.851, 7.2312145, -0.023)
 mesh = SubResource("BoxMesh_l8b7g")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D" unique_id=1866107315]
-environment = SubResource("Environment_y1t4u")
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="Node3D" unique_id=1752146380]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.352046, 7.2312145, 4.889134)
+mesh = SubResource("BoxMesh_7467j")
 
-[node name="LightmapGI" type="LightmapGI" parent="Node3D" unique_id=257845507]
-quality = 2
-bounces = 5
-directional = true
-interior = true
-light_data = ExtResource("3_ghw46")
-
-[node name="OmniLight3D" type="OmniLight3D" parent="Node3D" unique_id=366575140]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4595885, 0)
-light_color = Color(0.972549, 0.9607843, 0.94509804, 1)
-shadow_enabled = true
-
-[node name="OmniLight3D2" type="OmniLight3D" parent="Node3D" unique_id=539871036]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2751727, 3.4595885, -1.1753247)
-light_color = Color(0.972549, 0.9607843, 0.94509804, 1)
-shadow_enabled = true
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="Node3D" unique_id=586097790]
+transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, 5.1318827, 7.2312145, -0.023)
+mesh = SubResource("BoxMesh_pjscj")
 
 [node name="ProduceTable" parent="Node3D" unique_id=744087409 instance=ExtResource("4_df05h")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.029683, 0, -0.7457632)
+visible = false
 
 [node name="ProduceTable2" parent="Node3D" unique_id=861073617 instance=ExtResource("4_df05h")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.029683, 0, -3.1366389)
+visible = false
+
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="Node3D" unique_id=403271776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.849, 0)
+mesh = SubResource("BoxMesh_pn41e")
 
 [node name="LaserCamera" parent="." unique_id=1524528257 instance=ExtResource("4_ghw46")]
-transform = Transform3D(-0.22855338, -0.6356454, 0.7373723, -0.48737237, 0.73037964, 0.47855324, -0.84275216, -0.24999997, -0.47672683, 3.5305345, 3.7275686, -4.103782)
+transform = Transform3D(-0.22855338, -0.6356454, 0.7373723, -0.48737237, 0.73037964, 0.47855324, -0.84275216, -0.24999997, -0.47672683, 3.5305345, 3.7275686, -4.1145577)
 
 [node name="fire_extinguisher" parent="." unique_id=2048627230 instance=ExtResource("6_8um5k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6723785, 2.4550478, -1.854717)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.658042, 1.1961374, -3.8862877)
 
 [node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("9_cmrfp")]
 transform = Transform3D(0.30390772, 0, 0.95270145, 0, 1, 0, -0.95270145, 0, 0.30390772, 3.8853912, 0.14403972, -1.8461299)
 SoundOn = false
+
+[node name="Store_FluorescentLight" parent="." unique_id=1432540336 instance=ExtResource("11_if7li")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0819316, 5.439963, -1.5781198)
+
+[node name="Store_FluorescentLight2" parent="." unique_id=104128411 instance=ExtResource("11_if7li")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8024707, 5.439963, -1.5781198)
+
+[node name="PropaneTank" parent="." unique_id=1536860850 instance=ExtResource("16_riqfo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.859968, 0.09356272, -4.30698)
+
+[node name="WetFloorSign" parent="." unique_id=1283758716 instance=ExtResource("17_yxkem")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6864922, 0.09601115, -0.6243763)
+
+[node name="gondola_shelf_section" parent="." unique_id=909194750 instance=ExtResource("18_yxkem")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.5242767, -0.01873517, -0.90567064)
+
+[node name="sparkleos_cereal" parent="gondola_shelf_section" unique_id=733978149 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.2771902, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal2" parent="gondola_shelf_section" unique_id=1391053481 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.2771902, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal3" parent="gondola_shelf_section" unique_id=672200628 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.2771902, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal4" parent="gondola_shelf_section" unique_id=444512128 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.2771902, 1.6355567, 0.12416363)
+
+[node name="sparkleos_cereal5" parent="gondola_shelf_section" unique_id=1486241963 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.017055154, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal6" parent="gondola_shelf_section" unique_id=1839474341 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.017055154, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal7" parent="gondola_shelf_section" unique_id=782359539 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.017055154, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal8" parent="gondola_shelf_section" unique_id=4095488 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.017055154, 1.6355567, 0.12416363)
+
+[node name="sparkleos_cereal9" parent="gondola_shelf_section" unique_id=1303195574 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.2411809, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal10" parent="gondola_shelf_section" unique_id=115269570 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.2411809, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal11" parent="gondola_shelf_section" unique_id=840009300 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.2411809, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal12" parent="gondola_shelf_section" unique_id=696522793 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.2411809, 1.6355567, 0.12416363)
+
+[node name="sparkleos_cereal13" parent="gondola_shelf_section" unique_id=1543148973 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.50407237, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal14" parent="gondola_shelf_section" unique_id=1815115019 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.50407237, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal15" parent="gondola_shelf_section" unique_id=169679902 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.50407237, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal16" parent="gondola_shelf_section" unique_id=224808812 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.50407237, 1.6355567, 0.12416363)
+
+[node name="sparkleos_cereal17" parent="gondola_shelf_section" unique_id=1145702788 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.76549476, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal18" parent="gondola_shelf_section" unique_id=210729728 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.76549476, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal19" parent="gondola_shelf_section" unique_id=2112083071 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.76549476, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal20" parent="gondola_shelf_section" unique_id=2103097896 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.76549476, 1.6355567, 0.12416363)
+
+[node name="sparkleos_cereal21" parent="gondola_shelf_section" unique_id=1486187092 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.0359697, 0.32682765, 0.12416363)
+
+[node name="sparkleos_cereal22" parent="gondola_shelf_section" unique_id=612396926 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.0359697, 0.75686383, 0.12416363)
+
+[node name="sparkleos_cereal23" parent="gondola_shelf_section" unique_id=1303103952 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.0359697, 1.1959856, 0.12416363)
+
+[node name="sparkleos_cereal24" parent="gondola_shelf_section" unique_id=218369831 instance=ExtResource("19_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.0359697, 1.6355567, 0.12416363)
+
+[node name="groomba_cereal" parent="gondola_shelf_section" unique_id=758612121 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.3295009, 0.32682765, 0.12416363)
+
+[node name="groomba_cereal2" parent="gondola_shelf_section" unique_id=1618386905 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.3295009, 0.75691944, 0.12416363)
+
+[node name="groomba_cereal3" parent="gondola_shelf_section" unique_id=845263804 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.3295009, 1.1992481, 0.12416363)
+
+[node name="groomba_cereal4" parent="gondola_shelf_section" unique_id=1344351322 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.3295009, 1.6350344, 0.12416363)
+
+[node name="groomba_cereal5" parent="gondola_shelf_section" unique_id=1201492711 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.0661192, 0.32682765, 0.12416363)
+
+[node name="groomba_cereal6" parent="gondola_shelf_section" unique_id=2069544842 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.0661192, 0.75691944, 0.12416363)
+
+[node name="groomba_cereal7" parent="gondola_shelf_section" unique_id=288855493 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.0661192, 1.1992481, 0.12416363)
+
+[node name="groomba_cereal8" parent="gondola_shelf_section" unique_id=2143833070 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.0661192, 1.6350344, 0.12416363)
+
+[node name="groomba_cereal9" parent="gondola_shelf_section" unique_id=85669505 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.80720186, 0.32682765, 0.12416363)
+
+[node name="groomba_cereal10" parent="gondola_shelf_section" unique_id=691819920 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.80720186, 0.75691944, 0.12416363)
+
+[node name="groomba_cereal11" parent="gondola_shelf_section" unique_id=271586854 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.80720186, 1.1992481, 0.12416363)
+
+[node name="groomba_cereal12" parent="gondola_shelf_section" unique_id=519868839 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.80720186, 1.6350344, 0.12416363)
+
+[node name="groomba_cereal13" parent="gondola_shelf_section" unique_id=936269559 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.53691745, 0.32682765, 0.12416363)
+
+[node name="groomba_cereal14" parent="gondola_shelf_section" unique_id=1151350117 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.53691745, 0.75691944, 0.12416363)
+
+[node name="groomba_cereal15" parent="gondola_shelf_section" unique_id=1980836931 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.53691745, 1.1992481, 0.12416363)
+
+[node name="groomba_cereal16" parent="gondola_shelf_section" unique_id=588135739 instance=ExtResource("19_pjscj")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.53691745, 1.6350344, 0.12416363)
+
+[node name="ironrations_cereal" parent="gondola_shelf_section" unique_id=1385560867 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.3272028, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal2" parent="gondola_shelf_section" unique_id=2101469302 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.3272028, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal3" parent="gondola_shelf_section" unique_id=493589863 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.3272028, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal4" parent="gondola_shelf_section" unique_id=424644901 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.3272028, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal5" parent="gondola_shelf_section" unique_id=370731797 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.081881, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal6" parent="gondola_shelf_section" unique_id=1624576524 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.081881, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal7" parent="gondola_shelf_section" unique_id=945327153 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.081881, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal8" parent="gondola_shelf_section" unique_id=1781632377 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.081881, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal9" parent="gondola_shelf_section" unique_id=1070912376 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8418872, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal10" parent="gondola_shelf_section" unique_id=611700874 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8418872, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal11" parent="gondola_shelf_section" unique_id=491443037 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8418872, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal12" parent="gondola_shelf_section" unique_id=215531401 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8418872, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal13" parent="gondola_shelf_section" unique_id=588044070 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.5869938, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal14" parent="gondola_shelf_section" unique_id=21943801 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.5869938, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal15" parent="gondola_shelf_section" unique_id=697334447 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.5869938, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal16" parent="gondola_shelf_section" unique_id=1427014819 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.5869938, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal17" parent="gondola_shelf_section" unique_id=942116274 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.317435, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal18" parent="gondola_shelf_section" unique_id=250728800 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.317435, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal19" parent="gondola_shelf_section" unique_id=938425166 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.317435, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal20" parent="gondola_shelf_section" unique_id=1009538056 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.317435, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal21" parent="gondola_shelf_section" unique_id=1334305477 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.5627565, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal22" parent="gondola_shelf_section" unique_id=287356069 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.5627565, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal23" parent="gondola_shelf_section" unique_id=1911892660 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.5627565, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal24" parent="gondola_shelf_section" unique_id=1247650168 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.5627565, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal25" parent="gondola_shelf_section" unique_id=177419387 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.8027506, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal26" parent="gondola_shelf_section" unique_id=608022693 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.8027506, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal27" parent="gondola_shelf_section" unique_id=1398599474 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.8027506, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal28" parent="gondola_shelf_section" unique_id=1229365053 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.8027506, 0.32682765, 0.12416363)
+
+[node name="ironrations_cereal29" parent="gondola_shelf_section" unique_id=26861868 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.057644, 1.6273597, 0.12416363)
+
+[node name="ironrations_cereal30" parent="gondola_shelf_section" unique_id=1077202697 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.057644, 1.1920642, 0.12416363)
+
+[node name="ironrations_cereal31" parent="gondola_shelf_section" unique_id=1659950036 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.057644, 0.75535023, 0.12416363)
+
+[node name="ironrations_cereal32" parent="gondola_shelf_section" unique_id=1375146214 instance=ExtResource("20_m7n2d")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.057644, 0.32682765, 0.12416363)

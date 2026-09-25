@@ -1,12 +1,14 @@
 [gd_scene format=3 uid="uid://k4brvuwthhf0"]
 
 [ext_resource type="LightmapGIData" uid="uid://cpnf838vxyqkp" path="res://Bakes/StoreInterior.lmbake" id="1_7u461"]
+[ext_resource type="Environment" uid="uid://c4p1yfebvxa0q" path="res://world_environment.tres" id="1_12vy2"]
 [ext_resource type="Script" uid="uid://d3msxp8utb3gf" path="res://Scripts/GameManager.cs" id="1_510ba"]
 [ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="1_floor"]
 [ext_resource type="AudioStream" uid="uid://ct1y46i3smmuo" path="res://Sounds/store_chime.wav" id="2_11fay"]
 [ext_resource type="Material" uid="uid://crjn34m3d6v40" path="res://Materials/ceiling.tres" id="2_ceiling"]
 [ext_resource type="AudioStream" uid="uid://ddm2cj1sp6dyi" path="res://Sounds/lights_out.wav" id="2_ency6"]
 [ext_resource type="PackedScene" uid="uid://deu4pt2qthjh6" path="res://Prefabs/GamePhaseHUD.tscn" id="2_p8oww"]
+[ext_resource type="CameraAttributesPhysical" uid="uid://dwo75ivrpagka" path="res://camera_attributes.tres" id="2_s7ews"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="3_uw6uw"]
 [ext_resource type="PackedScene" uid="uid://cx4m183laptw1" path="res://Prefabs/PossessedCart.tscn" id="4_cart"]
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
@@ -61,58 +63,6 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PickupTower.tscn" id="P_Pickup"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ProduceIslandTable.tscn" id="P_Produce"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_SelfCheckoutKiosk.tscn" id="P_SCO"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0fj1v"]
-sky_top_color = Color(0.152941, 0.501961, 0.658824, 1)
-
-[sub_resource type="Sky" id="Sky_7oesd"]
-sky_material = SubResource("ProceduralSkyMaterial_0fj1v")
-
-[sub_resource type="Environment" id="Environment_510ba"]
-sky = SubResource("Sky_7oesd")
-ambient_light_source = 1
-tonemap_mode = 3
-tonemap_exposure = 1.35
-tonemap_white = 3.6
-ssr_enabled = true
-ssr_max_steps = 112
-ssr_fade_in = 0.04
-ssr_fade_out = 2.5
-ssr_depth_tolerance = 0.2
-ssao_enabled = true
-ssao_radius = 1.4
-ssao_intensity = 2.2
-ssao_detail = 0.85
-ssil_enabled = true
-ssil_intensity = 1.4
-glow_enabled = true
-glow_levels/1 = 0.8
-glow_levels/2 = 0.6
-glow_levels/3 = 0.75
-glow_levels/4 = 0.5
-glow_levels/5 = 0.25
-glow_intensity = 0.45
-glow_bloom = 0.15
-glow_blend_mode = 0
-glow_hdr_scale = 1.8
-glow_hdr_luminance_cap = 16.0
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.003
-volumetric_fog_albedo = Color(0.82, 0.86, 0.92, 1)
-volumetric_fog_emission = Color(0.03, 0.035, 0.045, 1)
-volumetric_fog_emission_energy = 0.35
-volumetric_fog_anisotropy = 0.65
-volumetric_fog_length = 85.0
-volumetric_fog_ambient_inject = 0.18
-volumetric_fog_temporal_reprojection_amount = 0.96
-adjustment_enabled = true
-adjustment_brightness = 1.02
-adjustment_contrast = 1.15
-adjustment_saturation = 1.25
-
-[sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_p8oww"]
-auto_exposure_min_exposure_value = 0.5
-auto_exposure_max_exposure_value = 8.0
 
 [sub_resource type="Compositor" id="Compositor_06bnu"]
 
@@ -198,8 +148,8 @@ size = Vector3(7.5, 1.6, 0.15)
 [node name="WorldStuff" type="Node3D" parent="." unique_id=1783903088]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="WorldStuff" unique_id=714158150]
-environment = SubResource("Environment_510ba")
-camera_attributes = SubResource("CameraAttributesPhysical_p8oww")
+environment = ExtResource("1_12vy2")
+camera_attributes = ExtResource("2_s7ews")
 compositor = SubResource("Compositor_06bnu")
 
 [node name="GameManager" type="Node" parent="WorldStuff" unique_id=268635566 node_paths=PackedStringArray("_lightmap", "_worldEnvironment")]

@@ -62,9 +62,9 @@ public partial class HitMarker : Control
         Color c = new Color(_drawColor.R, _drawColor.G, _drawColor.B, _alpha);
         Vector2 center = Size * 0.5f;
 
-        float innerDist = 6.0f;
-        float lineLength = 7.0f;
-        float lineWidth = 2.0f;
+        float innerDist = 4.5f;
+        float lineLength = 5.0f;
+        float lineWidth = 1.8f;
 
         // 4 diagonal tick lines radiating outward from crosshair center
         DrawLine(center + new Vector2(-innerDist, -innerDist), center + new Vector2(-innerDist - lineLength, -innerDist - lineLength), c, lineWidth, true);

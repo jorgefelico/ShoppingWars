@@ -3,8 +3,8 @@ using System;
 
 public partial class ComicCrosshair : Control
 {
-    private float _currentSpread = 9.0f;
-    private float _targetSpread = 9.0f;
+    private float _currentSpread = BaseSpread;
+    private float _targetSpread = BaseSpread;
     private Color _currentColor = UITheme.PaperWhite;
     private Color _targetColor = UITheme.PaperWhite;
     private bool _isTargetingInteractable = false;
@@ -17,10 +17,10 @@ public partial class ComicCrosshair : Control
         QueueRedraw();
     }
 
-    public const float BaseSpread = 9.0f;
-    public const float WalkSpread = 14.0f;
-    public const float SprintSpread = 20.0f;
-    public const float AirSpread = 24.0f;
+    public const float BaseSpread = 5.5f;
+    public const float WalkSpread = 8.5f;
+    public const float SprintSpread = 12.5f;
+    public const float AirSpread = 15.0f;
 
     public override void _Ready()
     {
@@ -91,31 +91,31 @@ public partial class ComicCrosshair : Control
         Vector2 center = Size * 0.5f;
 
         // 1. Center Pip
-        float pipRadius = 2.4f;
+        float pipRadius = 1.4f;
         // High-contrast ink border
-        DrawCircle(center, pipRadius + 1.2f, UITheme.InkBlack);
+        DrawCircle(center, pipRadius + 0.8f, UITheme.InkBlack);
         // Colored core
         DrawCircle(center, pipRadius, _currentColor);
 
         // 2. Reticle Brackets (Top, Bottom, Left, Right)
         float spread = _currentSpread;
-        float tickLen = 6.0f;
-        float tickWidth = 2.2f;
+        float tickLen = 4.0f;
+        float tickWidth = 1.6f;
 
         // When interacting, apply a tiny subtle pulse
         if (_isTargetingInteractable)
         {
-            spread += Mathf.Sin(_pulseTimer) * 1.5f;
+            spread += Mathf.Sin(_pulseTimer) * 1.0f;
         }
 
         // Fastball primed energetic tremor
         if (_chargeProgress >= 0.85f)
         {
-            spread += (float)GD.RandRange(-0.8, 0.8);
+            spread += (float)GD.RandRange(-0.5, 0.5);
         }
 
         // Shadow / Outline Pass (Thick black underlay for 100% readability against any supermarket lighting)
-        DrawReticleTicks(center, spread, tickLen, tickWidth + 2.0f, UITheme.InkBlack);
+        DrawReticleTicks(center, spread, tickLen, tickWidth + 1.4f, UITheme.InkBlack);
 
         // Foreground Crisp Color Pass
         DrawReticleTicks(center, spread, tickLen, tickWidth, _currentColor);
@@ -123,11 +123,11 @@ public partial class ComicCrosshair : Control
         // 3. Throw Charge Arc Meter
         if (_chargeProgress > 0.02f)
         {
-            float gaugeRadius = 13.0f;
+            float gaugeRadius = 8.5f;
             // Dark ink outline ring
-            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, UITheme.InkBlack, 3.6f, true);
+            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, UITheme.InkBlack, 2.6f, true);
             // Gauge track underlay
-            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, new Color(0.15f, 0.15f, 0.20f, 0.65f), 2.2f, true);
+            DrawArc(center, gaugeRadius, 0f, Mathf.Tau, 32, new Color(0.15f, 0.15f, 0.20f, 0.65f), 1.6f, true);
 
             // Progress fill arc
             float startAngle = -Mathf.Pi / 2.0f;
@@ -136,41 +136,41 @@ public partial class ComicCrosshair : Control
                 ? UITheme.FlyerYellow.Lerp(UITheme.ClearanceOrange, _chargeProgress / 0.85f)
                 : ((Mathf.Sin(_pulseTimer * 3.5f) > 0f) ? UITheme.ActionRed : UITheme.FlyerYellow);
 
-            DrawArc(center, gaugeRadius, startAngle, startAngle + sweep, 28, chargeCol, 2.4f, true);
+            DrawArc(center, gaugeRadius, startAngle, startAngle + sweep, 28, chargeCol, 1.8f, true);
 
             // Primed fastball corner flares
             if (_chargeProgress >= 0.85f)
             {
-                float flareDist = 16.5f + Mathf.Sin(_pulseTimer * 4.0f) * 1.2f;
+                float flareDist = 11.0f + Mathf.Sin(_pulseTimer * 4.0f) * 0.8f;
                 float[] angles = { Mathf.Pi * 0.25f, Mathf.Pi * 0.75f, Mathf.Pi * 1.25f, Mathf.Pi * 1.75f };
                 foreach (float angle in angles)
                 {
                     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-                    DrawLine(center + dir * flareDist, center + dir * (flareDist + 3.8f), chargeCol, 2.0f, true);
+                    DrawLine(center + dir * flareDist, center + dir * (flareDist + 2.8f), chargeCol, 1.6f, true);
                 }
             }
         }
 
-        // 3. Special Interaction Reticle Corners when hovering items
+        // 4. Special Interaction Reticle Corners when hovering items
         if (_isTargetingInteractable)
         {
-            float cornerDist = spread + tickLen + 3.0f;
+            float cornerDist = spread + tickLen + 2.0f;
             Color cueColor = new Color(_currentColor.R, _currentColor.G, _currentColor.B, 0.85f);
             
             // Subtle 4-corner targeting brackets
-            float cornerLen = 4.0f;
+            float cornerLen = 3.0f;
             // Top-Left corner
-            DrawLine(new Vector2(center.X - cornerDist, center.Y - cornerDist), new Vector2(center.X - cornerDist + cornerLen, center.Y - cornerDist), cueColor, 1.8f);
-            DrawLine(new Vector2(center.X - cornerDist, center.Y - cornerDist), new Vector2(center.X - cornerDist, center.Y - cornerDist + cornerLen), cueColor, 1.8f);
+            DrawLine(new Vector2(center.X - cornerDist, center.Y - cornerDist), new Vector2(center.X - cornerDist + cornerLen, center.Y - cornerDist), cueColor, 1.4f);
+            DrawLine(new Vector2(center.X - cornerDist, center.Y - cornerDist), new Vector2(center.X - cornerDist, center.Y - cornerDist + cornerLen), cueColor, 1.4f);
             // Top-Right corner
-            DrawLine(new Vector2(center.X + cornerDist, center.Y - cornerDist), new Vector2(center.X + cornerDist - cornerLen, center.Y - cornerDist), cueColor, 1.8f);
-            DrawLine(new Vector2(center.X + cornerDist, center.Y - cornerDist), new Vector2(center.X + cornerDist, center.Y - cornerDist + cornerLen), cueColor, 1.8f);
+            DrawLine(new Vector2(center.X + cornerDist, center.Y - cornerDist), new Vector2(center.X + cornerDist - cornerLen, center.Y - cornerDist), cueColor, 1.4f);
+            DrawLine(new Vector2(center.X + cornerDist, center.Y - cornerDist), new Vector2(center.X + cornerDist, center.Y - cornerDist + cornerLen), cueColor, 1.4f);
             // Bottom-Left corner
-            DrawLine(new Vector2(center.X - cornerDist, center.Y + cornerDist), new Vector2(center.X - cornerDist + cornerLen, center.Y + cornerDist), cueColor, 1.8f);
-            DrawLine(new Vector2(center.X - cornerDist, center.Y + cornerDist), new Vector2(center.X - cornerDist, center.Y + cornerDist - cornerLen), cueColor, 1.8f);
+            DrawLine(new Vector2(center.X - cornerDist, center.Y + cornerDist), new Vector2(center.X - cornerDist + cornerLen, center.Y + cornerDist), cueColor, 1.4f);
+            DrawLine(new Vector2(center.X - cornerDist, center.Y + cornerDist), new Vector2(center.X - cornerDist, center.Y + cornerDist - cornerLen), cueColor, 1.4f);
             // Bottom-Right corner
-            DrawLine(new Vector2(center.X + cornerDist, center.Y + cornerDist), new Vector2(center.X + cornerDist - cornerLen, center.Y + cornerDist), cueColor, 1.8f);
-            DrawLine(new Vector2(center.X + cornerDist, center.Y + cornerDist), new Vector2(center.X + cornerDist, center.Y + cornerDist - cornerLen), cueColor, 1.8f);
+            DrawLine(new Vector2(center.X + cornerDist, center.Y + cornerDist), new Vector2(center.X + cornerDist - cornerLen, center.Y + cornerDist), cueColor, 1.4f);
+            DrawLine(new Vector2(center.X + cornerDist, center.Y + cornerDist), new Vector2(center.X + cornerDist, center.Y + cornerDist - cornerLen), cueColor, 1.4f);
         }
     }
 

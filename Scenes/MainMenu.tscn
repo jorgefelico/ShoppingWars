@@ -1,35 +1,58 @@
 [gd_scene format=3 uid="uid://jb0i3ii5gkwf"]
 
 [ext_resource type="Script" uid="uid://d42rdkb7q33t" path="res://Scripts/MainMenu.cs" id="1_853f1"]
-[ext_resource type="Texture2D" uid="uid://b2t037etmbow8" path="res://Textures/mainmenubg.png" id="1_tt5f1"]
 [ext_resource type="AudioStream" uid="uid://dy03qr0inis6c" path="res://Sounds/Music/Prime_Time_Jackpot.mp3" id="3_8saeu"]
+[ext_resource type="LightmapGIData" uid="uid://c8mcisw4eeagi" path="res://Bakes/MainMenu.lmbake" id="3_ghw46"]
+[ext_resource type="Material" uid="uid://c4rhiv0v0ec8k" path="res://Materials/concrete_floor.tres" id="3_xim88"]
+[ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="4_df05h"]
+[ext_resource type="PackedScene" uid="uid://binytewqbcqoh" path="res://Prefabs/LaserCamera.tscn" id="4_ghw46"]
+[ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="4_koqhg"]
+[ext_resource type="PackedScene" uid="uid://dve0mo8k4j8sm" path="res://Models/fire_extinguisher.glb" id="6_8um5k"]
+[ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_cmrfp"]
 
-[node name="MainMenu" type="Control" unique_id=683148463 node_paths=PackedStringArray("HostButton", "JoinButton", "SettingsButton", "QuitButton", "InviteContainer", "StatusLabel")]
+[sub_resource type="LabelSettings" id="LabelSettings_cmrfp"]
+font_size = 10
+
+[sub_resource type="BoxMesh" id="BoxMesh_y1t4u"]
+lightmap_size_hint = Vector2i(104, 57)
+material = ExtResource("3_xim88")
+add_uv2 = true
+size = Vector3(10, 0.1, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l8b7g"]
+lightmap_size_hint = Vector2i(55, 96)
+material = ExtResource("4_koqhg")
+add_uv2 = true
+size = Vector3(10, 4, 0.2)
+
+[sub_resource type="Environment" id="Environment_y1t4u"]
+background_mode = 1
+tonemap_exposure = 1.18
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+glow_enabled = true
+
+[node name="Main_Menu" type="Node3D" unique_id=1303532231]
+
+[node name="MainMenu" type="Control" parent="." unique_id=50548375 node_paths=PackedStringArray("HostButton", "JoinButton", "SettingsButton", "QuitButton", "InviteContainer", "StatusLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_853f1")
 HostButton = NodePath("VBoxContainer/Host")
 JoinButton = NodePath("VBoxContainer/Join")
 SettingsButton = NodePath("VBoxContainer/Settings")
 QuitButton = NodePath("VBoxContainer/Quit")
 InviteContainer = NodePath("VBoxContainer/InviteContainer")
-StatusLabel = NodePath("StatusLabel")
+StatusLabel = NodePath("VBoxContainer2/StatusLabel")
 
-[node name="Background" type="TextureRect" parent="." unique_id=670803233]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("1_tt5f1")
-expand_mode = 1
-
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=650274826]
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu" unique_id=650274826]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -43,47 +66,109 @@ offset_bottom = 92.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
+alignment = 1
 
-[node name="Host" type="Button" parent="VBoxContainer" unique_id=1198731858]
+[node name="Host" type="Button" parent="MainMenu/VBoxContainer" unique_id=1198731858]
 custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Host Steam Lobby"
 
-[node name="Join" type="Button" parent="VBoxContainer" unique_id=2121950271]
+[node name="Join" type="Button" parent="MainMenu/VBoxContainer" unique_id=2121950271]
 custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Join A Friend"
 
-[node name="Settings" type="Button" parent="VBoxContainer" unique_id=1621950272]
+[node name="Settings" type="Button" parent="MainMenu/VBoxContainer" unique_id=1621950272]
 custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "⚙️ Settings & Graphics"
 
-[node name="Quit" type="Button" parent="VBoxContainer" unique_id=1498731859]
+[node name="Quit" type="Button" parent="MainMenu/VBoxContainer" unique_id=1498731859]
 custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 text = "Quit to Desktop"
 
-[node name="InviteContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=123456789]
+[node name="InviteContainer" type="VBoxContainer" parent="MainMenu/VBoxContainer" unique_id=123456789]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="StatusLabel" type="Label" parent="." unique_id=2135534249]
+[node name="VBoxContainer2" type="VBoxContainer" parent="MainMenu" unique_id=1212556057]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -60.0
-offset_right = 300.0
-offset_bottom = -20.0
+offset_left = -20.0
+offset_top = -40.0
+offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="StatusLabel" type="Label" parent="MainMenu/VBoxContainer2" unique_id=2135534249]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Copyright" type="Label" parent="MainMenu/VBoxContainer2" unique_id=1350228263]
+layout_mode = 2
+text = "© 2026 Felico Media. All rights reserved."
+label_settings = SubResource("LabelSettings_cmrfp")
 horizontal_alignment = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=322160361]
 stream = ExtResource("3_8saeu")
 volume_db = -32.0
 autoplay = true
+
+[node name="Node3D" type="Node3D" parent="." unique_id=4909387]
+
+[node name="Camera3D" type="Camera3D" parent="Node3D" unique_id=547601244]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3376617, 3.80966)
+current = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D" unique_id=213960413]
+mesh = SubResource("BoxMesh_y1t4u")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Node3D" unique_id=176135444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9788334, -4.7624035)
+mesh = SubResource("BoxMesh_l8b7g")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="Node3D" unique_id=1441900940]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.850689, 1.9788334, -0.02290821)
+mesh = SubResource("BoxMesh_l8b7g")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D" unique_id=1866107315]
+environment = SubResource("Environment_y1t4u")
+
+[node name="LightmapGI" type="LightmapGI" parent="Node3D" unique_id=257845507]
+quality = 2
+bounces = 5
+directional = true
+interior = true
+light_data = ExtResource("3_ghw46")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Node3D" unique_id=366575140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4595885, 0)
+light_color = Color(0.972549, 0.9607843, 0.94509804, 1)
+shadow_enabled = true
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="Node3D" unique_id=539871036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2751727, 3.4595885, -1.1753247)
+light_color = Color(0.972549, 0.9607843, 0.94509804, 1)
+shadow_enabled = true
+
+[node name="ProduceTable" parent="Node3D" unique_id=744087409 instance=ExtResource("4_df05h")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.029683, 0, -0.7457632)
+
+[node name="ProduceTable2" parent="Node3D" unique_id=861073617 instance=ExtResource("4_df05h")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.029683, 0, -3.1366389)
+
+[node name="LaserCamera" parent="." unique_id=1524528257 instance=ExtResource("4_ghw46")]
+transform = Transform3D(-0.22855338, -0.6356454, 0.7373723, -0.48737237, 0.73037964, 0.47855324, -0.84275216, -0.24999997, -0.47672683, 3.5305345, 3.7275686, -4.103782)
+
+[node name="fire_extinguisher" parent="." unique_id=2048627230 instance=ExtResource("6_8um5k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6723785, 2.4550478, -1.854717)
+
+[node name="Groomba" parent="." unique_id=1744360655 instance=ExtResource("9_cmrfp")]
+transform = Transform3D(0.30390772, 0, 0.95270145, 0, 1, 0, -0.95270145, 0, 0.30390772, 3.8853912, 0.14403972, -1.8461299)
+SoundOn = false

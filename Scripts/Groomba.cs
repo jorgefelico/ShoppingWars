@@ -2,6 +2,7 @@ using Godot;
 
 public partial class Groomba : PatrolEnemy
 {
+    [Export] public bool SoundOn = true;
     [Export] public float SearchDuration = 15.0f;
     [Export] public float HearingRadius = 22.0f;
     [Export] public float InvestigateSpeed = 4.2f;
@@ -67,6 +68,8 @@ public partial class Groomba : PatrolEnemy
         _audioPlayer.VolumeDb = -2.0f;
         _audioPlayer.Bus = "Master";
         AddChild(_audioPlayer);
+
+        if(!SoundOn) (GetNode("AudioStreamPlayer3D") as AudioStreamPlayer3D).Playing = false;
 
         var bodyMesh = GetNodeOrNull<MeshInstance3D>("MeshInstance3D");
         if (bodyMesh != null)

@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://ckjmt42snx4yu"]
+
+[ext_resource type="PackedScene" uid="uid://dnhqh1v8kwbtw" path="res://Models/freezer.glb" id="1_03uga"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y1t4u"]
+albedo_color = Color(1, 1, 1, 0)
+emission_enabled = true
+emission = Color(2.454227, 2.454227, 2.454227, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y1t4u"]
+material = SubResource("StandardMaterial3D_y1t4u")
+top_radius = 0.001
+bottom_radius = 0.001
+height = 1.7
+radial_segments = 6
+
+[node name="Refrigrator" type="Node3D" unique_id=719054623]
+
+[node name="freezer" parent="." unique_id=1950993445 instance=ExtResource("1_03uga")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
+
+[node name="LightStrip" type="MeshInstance3D" parent="." unique_id=576271497]
+transform = Transform3D(-0.8443465, 0, 0.5357975, 0, 1, 0, -0.5357975, 0, -0.8443465, 1.1630892, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip" unique_id=1502728416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0013847947, 0, -0.0021822453)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[node name="LightStrip2" type="MeshInstance3D" parent="." unique_id=2029013402]
+transform = Transform3D(-0.9500896, 0, -0.3119773, 0, 1, 0, 0.3119773, 0, -0.9500896, 0.43730414, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip2" unique_id=1448951236]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0009845495, 0, -0.0029982924)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[node name="LightStrip3" type="MeshInstance3D" parent="." unique_id=1527824536]
+transform = Transform3D(-0.8443465, 0, 0.5357975, 0, 1, 0, -0.5357975, 0, -0.8443465, 0.38974404, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip3" unique_id=1843290919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004519373, 0, -0.0071219206)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[node name="LightStrip4" type="MeshInstance3D" parent="." unique_id=1876503983]
+transform = Transform3D(-0.9500896, 0, -0.3119773, 0, 1, 0, 0.3119773, 0, -0.9500896, -0.38415465, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip4" unique_id=2050180610]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00049221516, 0, -0.0014989972)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[node name="LightStrip5" type="MeshInstance3D" parent="." unique_id=1104330044]
+transform = Transform3D(-0.8443465, 0, 0.5357975, 0, 1, 0, -0.5357975, 0, -0.8443465, -0.43420893, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip5" unique_id=881057093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0005993843, 0, -0.0009445548)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[node name="LightStrip6" type="MeshInstance3D" parent="." unique_id=1476615252]
+transform = Transform3D(-0.9500896, 0, -0.3119773, 0, 1, 0, 0.3119773, 0, -0.9500896, -1.1653302, -0.0062013865, -0.6006632)
+mesh = SubResource("CylinderMesh_y1t4u")
+
+[node name="AreaLight3D" type="AreaLight3D" parent="LightStrip6" unique_id=1144035465]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.014668822, 0, -0.0021719337)
+light_color = Color(1.353256, 1.353256, 1.353256, 1)
+light_energy = 3.0
+area_range = 0.5
+area_size = Vector2(0.009, 1.7)
+
+[editable path="freezer"]

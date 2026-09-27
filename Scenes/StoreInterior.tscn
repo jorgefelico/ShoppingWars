@@ -14,6 +14,7 @@
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
+[ext_resource type="PackedScene" uid="uid://djo12gpef67m0" path="res://Prefabs/PlayerModel.tscn" id="10_qgw0e"]
 [ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="12_2462t"]
 [ext_resource type="Material" uid="uid://b5nv7kprp5dd6" path="res://Materials/truss.tres" id="14_0v6be"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
@@ -36,6 +37,7 @@
 [ext_resource type="PackedScene" uid="uid://cit6hg11ag7fv" path="res://Models/sparkleos_cereal.glb" id="59_12vy2"]
 [ext_resource type="PackedScene" uid="uid://4eych2ghh8cn" path="res://Models/supermarketwars_cereal.glb" id="60_s7ews"]
 [ext_resource type="PackedScene" uid="uid://nhbs5250t2d8" path="res://Models/dadsmilkquest_cereal.glb" id="61_j85qx"]
+[ext_resource type="PackedScene" uid="uid://ckjmt42snx4yu" path="res://Prefabs/Refrigrator.tscn" id="65_qgw0e"]
 [ext_resource type="Script" uid="uid://cg61saco6y38x" path="res://Scripts/AmbientEventManager.cs" id="ext_ambient_mgr"]
 [ext_resource type="PackedScene" uid="uid://bis3kugqmjxm6" path="res://Prefabs/Products/PotatoGun.tscn" id="ext_potatogun"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_GondolaAisle14m.tscn" id="P_Aisle14"]
@@ -47,7 +49,6 @@
 [ext_resource type="PackedScene" uid="uid://c2ga4lsjsdn3d" path="res://Prefabs/Store_CheckoutLane.tscn" id="P_Checkout"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CircularClothingRack.tscn" id="P_ClothRack"]
 [ext_resource type="PackedScene" uid="uid://d4au1hdtvy103" path="res://Prefabs/Store_StructuralColumn.tscn" id="P_Column"]
-[ext_resource type="PackedScene" path="res://Prefabs/Store_PerimeterWallCooler.tscn" id="P_Cooler"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_CustomerServiceDesk.tscn" id="P_CustServ"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_DeliServiceCounter.tscn" id="P_Deli"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ElectronicsLockupCase.tscn" id="P_ElecLockup"]
@@ -170,6 +171,9 @@ _worldEnvironment = NodePath("../WorldEnvironment")
 BlackoutSound = ExtResource("2_ency6")
 
 [node name="GamePhaseHud" parent="WorldStuff" unique_id=920991269 instance=ExtResource("2_p8oww")]
+
+[node name="Sketchfab_Scene" parent="WorldStuff" unique_id=612140684 instance=ExtResource("10_qgw0e")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 42.48875, 0.00016359414, 20.87031)
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=340474803]
 _spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
@@ -781,50 +785,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -20)
 
 [node name="Wall_Coolers" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=592899312]
 
-[node name="WallCooler_1" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=353505135 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -46)
+[node name="Refrigrator" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=719054623 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -46)
 
-[node name="WallCooler_2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=239374671 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -38.5)
+[node name="Refrigrator2" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1479398655 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -43.527096)
 
-[node name="WallCooler_3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1067419650 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -31)
+[node name="Refrigrator3" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1854567759 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -41.053993)
 
-[node name="WallCooler_4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=232923887 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -23.5)
+[node name="Refrigrator4" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=84621424 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -38.57182)
 
-[node name="WallCooler_5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1781617287 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -16)
+[node name="Refrigrator5" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=2060698424 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -36.089634)
 
-[node name="WallCooler_6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1580733770 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -8.5)
+[node name="Refrigrator6" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1511318227 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -33.61652)
 
-[node name="WallCooler_7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1932520031 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, -1)
-
-[node name="WallCooler_8" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1232287261 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 6.5)
-
-[node name="WallCooler_9" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1426687571 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 14)
-
-[node name="WallCooler_10" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=587690028 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 21.5)
-
-[node name="WallCooler_11" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1512844618 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 29)
-
-[node name="WallCooler_12" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1190511433 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 36.5)
-
-[node name="WallCooler_13" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1726359696 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 44)
-
-[node name="WallCooler_14" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=404864870 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 51.5)
-
-[node name="WallCooler_15" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=2084572497 instance=ExtResource("P_Cooler")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -88.5, 0, 59)
+[node name="Refrigrator7" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery/Wall_Coolers" unique_id=1013530591 instance=ExtResource("65_qgw0e")]
+transform = Transform3D(8.742278e-08, 0, -1, 0, 1, 0, 1, 0, 8.742278e-08, -88.96258, 1.057001, -31.134335)
 
 [node name="Freezer_Bunkers" type="Node3D" parent="NavigationRegion3D/Interior/Grocery_Produce_Bakery" unique_id=529746779]
 
@@ -1437,6 +1417,42 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 8.6, 55.76867)
 
 [node name="LightFixture_112" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=765973175 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 8.6, 55.76867)
+
+[node name="LightFixture_124" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1075505477 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, -54)
+
+[node name="LightFixture_125" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1828234673 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, -43)
+
+[node name="LightFixture_126" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2064603436 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, -32)
+
+[node name="LightFixture_127" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1665111353 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, -21)
+
+[node name="LightFixture_128" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=2107553272 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, -10)
+
+[node name="LightFixture_129" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1048971193 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 1)
+
+[node name="LightFixture_130" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1767591155 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 12)
+
+[node name="LightFixture_131" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=276285992 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 23)
+
+[node name="LightFixture_132" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=624392737 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 34)
+
+[node name="LightFixture_133" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=715705874 instance=ExtResource("P_FluorescentLight_Flickering")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 45)
+
+[node name="LightFixture_134" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=578305017 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -81.445076, 8.993732, -63.97244)
+
+[node name="LightFixture_135" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=729530757 instance=ExtResource("P_FluorescentLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19355, 8.6, 55.76867)
 
 [node name="LightFixture_104" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=623237622 instance=ExtResource("P_FluorescentLight")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76, 8.6, 55.76867)

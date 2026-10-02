@@ -14,7 +14,6 @@
 [ext_resource type="Material" uid="uid://bhvs1dym76hnn" path="res://Materials/hvac_metal.tres" id="4_hvac"]
 [ext_resource type="Material" uid="uid://byhjm1cogy2mt" path="res://Materials/signage_navy.tres" id="6_navy"]
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="9_u58hr"]
-[ext_resource type="PackedScene" uid="uid://djo12gpef67m0" path="res://Prefabs/PlayerModel.tscn" id="10_qgw0e"]
 [ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="12_2462t"]
 [ext_resource type="Material" uid="uid://b5nv7kprp5dd6" path="res://Materials/truss.tres" id="14_0v6be"]
 [ext_resource type="PackedScene" uid="uid://coc5xu30lpr0k" path="res://Prefabs/ReadyUp.tscn" id="29_t3mvi"]
@@ -64,6 +63,15 @@
 [ext_resource type="PackedScene" path="res://Prefabs/Store_PickupTower.tscn" id="P_Pickup"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_ProduceIslandTable.tscn" id="P_Produce"]
 [ext_resource type="PackedScene" path="res://Prefabs/Store_SelfCheckoutKiosk.tscn" id="P_SCO"]
+[ext_resource type="PackedScene" uid="uid://c6xk4e7m1p8s2" path="res://Prefabs/Store_StorefrontEntrance.tscn" id="P_Storefront"]
+[ext_resource type="Material" path="res://Materials/banner_produce.tres" id="mat_banner_produce"]
+[ext_resource type="Material" path="res://Materials/banner_delibakery.tres" id="mat_banner_delibakery"]
+[ext_resource type="Material" path="res://Materials/banner_electronics.tres" id="mat_banner_electronics"]
+[ext_resource type="Material" path="res://Materials/banner_pharmacy.tres" id="mat_banner_pharmacy"]
+[ext_resource type="Material" path="res://Materials/banner_grocery.tres" id="mat_banner_grocery"]
+[ext_resource type="Material" path="res://Materials/banner_apparel.tres" id="mat_banner_apparel"]
+[ext_resource type="Material" path="res://Materials/banner_homeliving.tres" id="mat_banner_homeliving"]
+[ext_resource type="Material" path="res://Materials/banner_checkout.tres" id="mat_banner_checkout"]
 
 [sub_resource type="Compositor" id="Compositor_06bnu"]
 
@@ -78,6 +86,8 @@ lightmap_size_hint = Vector2i(1614, 912)
 material = ExtResource("1_floor")
 add_uv2 = true
 size = Vector3(181, 0.2, 141)
+subdivide_width = 18
+subdivide_depth = 14
 
 [sub_resource type="BoxShape3D" id="BoxShape_Floor"]
 size = Vector3(180, 0.2, 140)
@@ -87,6 +97,8 @@ lightmap_size_hint = Vector2i(1614, 931)
 material = ExtResource("2_ceiling")
 add_uv2 = true
 size = Vector3(181, 2, 141)
+subdivide_width = 18
+subdivide_depth = 14
 
 [sub_resource type="BoxShape3D" id="BoxShape_Ceiling"]
 size = Vector3(180, 0.2, 140)
@@ -96,6 +108,7 @@ lightmap_size_hint = Vector2i(908, 1056)
 material = ExtResource("12_2462t")
 add_uv2 = true
 size = Vector3(0.8, 15, 180)
+subdivide_depth = 18
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_180"]
 size = Vector3(180, 14, 0.8)
@@ -108,6 +121,7 @@ lightmap_size_hint = Vector2i(708, 856)
 material = ExtResource("12_2462t")
 add_uv2 = true
 size = Vector3(0.8, 15, 140)
+subdivide_depth = 14
 
 [sub_resource type="BoxShape3D" id="BoxShape_Wall_Front_Center"]
 size = Vector3(180, 14, 0.8)
@@ -171,9 +185,6 @@ _worldEnvironment = NodePath("../WorldEnvironment")
 BlackoutSound = ExtResource("2_ency6")
 
 [node name="GamePhaseHud" parent="WorldStuff" unique_id=920991269 instance=ExtResource("2_p8oww")]
-
-[node name="Sketchfab_Scene" parent="WorldStuff" unique_id=612140684 instance=ExtResource("10_qgw0e")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 42.48875, 0.00016359414, 20.87031)
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=340474803]
 _spawnable_scenes = PackedStringArray("uid://dfdug5q5p77vk")
@@ -730,6 +741,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, -58)
 
 [node name="CartCorral_GM" parent="NavigationRegion3D/Interior/FrontStore_Checkout" unique_id=622130044 instance=ExtResource("P_CartCorral")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.5, 0, -66)
+
+[node name="StorefrontEntrance" parent="NavigationRegion3D/Interior/FrontStore_Checkout" instance=ExtResource("P_Storefront")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -69.4)
 
 [node name="Grocery_Produce_Bakery" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=1944871492]
 
@@ -1522,35 +1536,300 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 84.9745, 8.6, 45)
 
 [node name="Banner_Grocery" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=553450411]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, -60)
+gi_mode = 1
+material_override = ExtResource("mat_banner_grocery")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Grocery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🛒 PANTRY & SNACKS"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Grocery"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🛒 PANTRY & SNACKS"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Grocery_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Grocery" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(1, 0.92, 0.82, 1)
+light_energy = 2.0
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_Produce" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=336729680]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, -46)
+gi_mode = 1
+material_override = ExtResource("mat_banner_produce")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Produce"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🥬 FRESH PRODUCE"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Produce"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🥬 FRESH PRODUCE"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Produce_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Produce" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(1, 0.88, 0.65, 1)
+light_energy = 2.2
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_DeliBakery" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1354851906]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 6.8, 50)
+gi_mode = 1
+material_override = ExtResource("mat_banner_delibakery")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_DeliBakery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🥖 BAKERY & DELI"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_DeliBakery"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🥖 BAKERY & DELI"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="DeliBakery_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_DeliBakery" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(1, 0.82, 0.55, 1)
+light_energy = 2.2
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_Electronics" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=669026432]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 6.8, -25)
+gi_mode = 1
+material_override = ExtResource("mat_banner_electronics")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Electronics"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "⚡ TECH & GADGETS"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Electronics"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "⚡ TECH & GADGETS"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Electronics_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Electronics" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(0.25, 0.72, 1.0, 1)
+light_energy = 2.5
+light_bake_mode = 1
+spot_range = 20.0
+spot_attenuation = 1.0
+spot_angle = 55.0
 
 [node name="Banner_Apparel" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=527212117]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 6.8, 15)
+gi_mode = 1
+material_override = ExtResource("mat_banner_apparel")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Apparel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "👕 APPAREL & GEAR"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Apparel"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "👕 APPAREL & GEAR"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Apparel_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Apparel" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(0.85, 0.68, 1.0, 1)
+light_energy = 2.0
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_Pharmacy" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1047856533]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 6.8, 52)
+gi_mode = 1
+material_override = ExtResource("mat_banner_pharmacy")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Pharmacy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "💊 HEALTH & PHARMACY"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Pharmacy"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "💊 HEALTH & PHARMACY"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Pharmacy_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Pharmacy" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(0.35, 0.95, 0.85, 1)
+light_energy = 2.0
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_HomeLiving" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=286486122]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, 0)
+gi_mode = 1
+material_override = ExtResource("mat_banner_homeliving")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_HomeLiving"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🏠 HOME & HARDWARE"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_HomeLiving"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "🏠 HOME & HARDWARE"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="HomeLiving_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_HomeLiving" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(1, 0.74, 0.52, 1)
+light_energy = 2.0
+light_bake_mode = 1
+spot_range = 18.0
+spot_attenuation = 1.1
+spot_angle = 55.0
 
 [node name="Banner_Checkout" type="MeshInstance3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners" unique_id=1888298680]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, -60)
+gi_mode = 1
+material_override = ExtResource("mat_banner_checkout")
 mesh = SubResource("BoxMesh_Dept_Banner_Giant")
+
+[node name="Label_Front" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Checkout"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "💳 EXPRESS CHECKOUT"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Label_Back" type="Label3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Checkout"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -0.09)
+pixel_size = 0.0055
+double_sided = true
+text = "💳 EXPRESS CHECKOUT"
+font_size = 54
+outline_size = 12
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 1, 1, 1)
+render_priority = 3
+
+[node name="Checkout_AccentLight" type="SpotLight3D" parent="NavigationRegion3D/Interior/Lighting_And_Banners/Banner_Checkout" groups=["StoreLights"]]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -1.2, 0)
+light_color = Color(0.96, 0.98, 1.0, 1)
+light_energy = 2.4
+light_bake_mode = 1
+spot_range = 16.0
+spot_attenuation = 1.0
+spot_angle = 55.0
+
 
 [node name="Emergency_Lighting" type="Node3D" parent="NavigationRegion3D/Interior" unique_id=881290341]
 
@@ -1806,6 +2085,12 @@ transform = Transform3D(1, 0, 0, 0, -0.0055815186, -0.99998444, 0, 0.99998444, -
 
 [node name="PotatoGun" parent="RootEntities" unique_id=981273645 instance=ExtResource("ext_potatogun")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.858701, 1.0608943, 27.2)
+DisplayName = null
+Price = 0
+Damage = 0
+Icon = null
+ThrowMultiplier = 1.0
+MeleeDurability = 4
 
 [node name="PipeWrench" parent="RootEntities" unique_id=561746369 instance=ExtResource("51_tlmvn")]
 transform = Transform3D(1, 0, 0, 0, 0.01252991, -0.99992156, 0, 0.99992156, 0.01252991, -20.189827, 0.44049, -18.097588)

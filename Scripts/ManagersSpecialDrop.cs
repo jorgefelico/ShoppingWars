@@ -97,9 +97,12 @@ public partial class ManagersSpecialDrop : StaticBody3D, IInteractable, IDamagea
             LightSpecular = 1.5f,
             LightVolumetricFogEnergy = 2.5f,
             ShadowEnabled = true,
+            ShadowBias = 0.06f,
+            ShadowNormalBias = 1.0f,
             ShadowBlur = 1.5f,
             SpotRange = 12.0f,
-            SpotAngle = 26.0f
+            SpotAngle = 26.0f,
+            SpotAttenuation = 1.0f
         };
         AddChild(_spotlight);
 

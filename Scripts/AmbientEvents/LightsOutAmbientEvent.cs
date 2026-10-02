@@ -18,7 +18,7 @@ public class LightsOutAmbientEvent : AmbientEventBase
         manager.SetLightmapVisible(false);
 
         // Lower camera tonemap exposure
-        manager.SetTonemapExposure(0.9f);
+        manager.SetTonemapExposure(0.75f);
 
         // Activate red emergency beacon rotators/pulses
         manager.GetTree().CallGroup("EmergencyBeacons", "SetBeaconState", true);
@@ -41,7 +41,7 @@ public class LightsOutAmbientEvent : AmbientEventBase
         manager.SetLightmapVisible(true);
 
         // Restore tonemap exposure
-        manager.SetTonemapExposure(1.5f);
+        manager.SetTonemapExposure(1.15f);
 
         // Deactivate emergency beacons
         manager.GetTree().CallGroup("EmergencyBeacons", "SetBeaconState", false);

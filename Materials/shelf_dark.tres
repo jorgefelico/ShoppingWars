@@ -7,7 +7,7 @@
 [resource]
 albedo_color = Color(0.24, 0.28, 0.35, 1)
 metallic = 0.35
-roughness = 0.4
+roughness = 0.38
 roughness_texture = ExtResource("2_rough")
 normal_enabled = true
 normal_scale = 0.4
@@ -15,6 +15,9 @@ normal_texture = ExtResource("1_nor")
 ao_enabled = true
 ao_light_affect = 0.4
 ao_texture = ExtResource("3_ao")
+clearcoat_enabled = true
+clearcoat = 0.3
+clearcoat_roughness = 0.15
 rim_enabled = true
 rim = 0.3
 rim_tint = 0.4

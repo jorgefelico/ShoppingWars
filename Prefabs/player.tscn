@@ -99,8 +99,11 @@ light_color = Color(0.96, 0.98, 1, 1)
 light_energy = 3.5
 light_volumetric_fog_energy = 1.5
 shadow_enabled = true
+shadow_bias = 0.06
+shadow_normal_bias = 1.0
+shadow_blur = 1.4
 spot_range = 28.0
-spot_attenuation = 1.1
+spot_attenuation = 1.05
 spot_angle = 36.0
 
 [node name="CrossHair" type="CanvasLayer" parent="." unique_id=239139730]

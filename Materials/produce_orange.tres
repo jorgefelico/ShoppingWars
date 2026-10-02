@@ -2,7 +2,11 @@
 
 [resource]
 albedo_color = Color(0.96, 0.55, 0.05, 1)
-roughness = 0.4
+roughness = 0.28
+clearcoat_enabled = true
+clearcoat = 0.4
+clearcoat_roughness = 0.15
 rim_enabled = true
-rim = 0.25
-rim_tint = 0.3
+rim = 0.35
+rim_tint = 0.35
+texture_filter = 5

@@ -127,6 +127,19 @@ public partial class PlayerController : CharacterBody3D, IDamageable
     private float _throwChargeTimer = 0f;
     private const float MaxThrowChargeTime = 0.55f;
 
+    // Procedural First-Person Viewmodel Sway & Locomotion Bobbing
+    private Vector3 _currentSwayPos = Vector3.Zero;
+    private Vector3 _targetSwayPos = Vector3.Zero;
+    private Vector3 _currentSwayRot = Vector3.Zero;
+    private Vector3 _targetSwayRot = Vector3.Zero;
+    private Vector3 _bobPos = Vector3.Zero;
+    private Vector3 _bobRot = Vector3.Zero;
+    private float _bobTimer = 0f;
+    private float _idleTimer = 0f;
+    private float _landingDip = 0f;
+    private bool _wasOnFloorSway = true;
+    private float _prevVertVelocitySway = 0f;
+
     public override void _Ready()
     {
         
@@ -581,6 +594,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
 
             ApplyLocalBoneVisibility();
             UpdateCameraShake((float)delta);
+            UpdateWeaponSwayAndBob((float)delta);
 
             if (_comicCrosshair != null)
             {
@@ -760,6 +774,7 @@ public partial class PlayerController : CharacterBody3D, IDamageable
             _cameraPitch = Mathf.Clamp(_cameraPitch, -MaxPitch, MaxPitch);
             ApplyCameraTransform();
             UpdateCharacterModelRotation();
+            AddWeaponSway(motion.Relative);
         }
 
         if (@event is InputEventMouseButton mouseBtn && mouseBtn.Pressed)
@@ -1952,6 +1967,76 @@ public partial class PlayerController : CharacterBody3D, IDamageable
         }
 
         _playerAudio?.PlayThrowWhoosh();
+    }
+
+    private void AddWeaponSway(Vector2 mouseDelta)
+    {
+        if (ItemHand == null || !IsMultiplayerAuthority()) return;
+
+        float swaySens = 0.0006f;
+        _targetSwayPos.X = Mathf.Clamp(_targetSwayPos.X - mouseDelta.X * swaySens, -0.025f, 0.025f);
+        _targetSwayPos.Y = Mathf.Clamp(_targetSwayPos.Y + mouseDelta.Y * swaySens, -0.020f, 0.020f);
+        _targetSwayRot.Z = Mathf.Clamp(_targetSwayRot.Z + mouseDelta.X * swaySens * 0.55f, -0.045f, 0.045f);
+        _targetSwayRot.X = Mathf.Clamp(_targetSwayRot.X + mouseDelta.Y * swaySens * 0.45f, -0.040f, 0.040f);
+    }
+
+    private void UpdateWeaponSwayAndBob(float delta)
+    {
+        if (ItemHand == null || !IsMultiplayerAuthority()) return;
+
+        // Smoothly decay mouse sway
+        _currentSwayPos = _currentSwayPos.Lerp(_targetSwayPos, delta * 12.0f);
+        _currentSwayRot = _currentSwayRot.Lerp(_targetSwayRot, delta * 12.0f);
+        _targetSwayPos = _targetSwayPos.Lerp(Vector3.Zero, delta * 8.5f);
+        _targetSwayRot = _targetSwayRot.Lerp(Vector3.Zero, delta * 8.5f);
+
+        // Jump & Landing compression dip
+        bool onFloor = IsOnFloor();
+        if (!_wasOnFloorSway && onFloor)
+        {
+            _landingDip = -Mathf.Clamp(Mathf.Abs(_prevVertVelocitySway) * 0.0035f, 0.008f, 0.038f);
+        }
+        _landingDip = Mathf.Lerp(_landingDip, 0f, delta * 9.0f);
+        _wasOnFloorSway = onFloor;
+        _prevVertVelocitySway = Velocity.Y;
+
+        // Locomotion bobbing
+        Vector3 horizVel = new Vector3(Velocity.X, 0, Velocity.Z);
+        float speed = horizVel.Length();
+
+        if (onFloor && speed > 0.35f)
+        {
+            float bobFreq = IsRunning ? 12.5f : 8.5f;
+            _bobTimer += delta * bobFreq;
+            float bobH = IsRunning ? 0.014f : 0.007f;
+            float bobW = IsRunning ? 0.009f : 0.0045f;
+
+            _bobPos = new Vector3(
+                Mathf.Cos(_bobTimer * 0.5f) * bobW,
+                Mathf.Sin(_bobTimer) * bobH + _landingDip,
+                0f
+            );
+            _bobRot = new Vector3(
+                Mathf.Sin(_bobTimer) * 0.018f,
+                Mathf.Cos(_bobTimer * 0.5f) * 0.014f,
+                -Mathf.Cos(_bobTimer * 0.5f) * 0.022f
+            );
+        }
+        else
+        {
+            // Subtle resting breathing motion
+            _idleTimer += delta * 2.2f;
+            Vector3 targetIdle = new Vector3(0, Mathf.Sin(_idleTimer) * 0.002f + _landingDip, 0);
+            _bobPos = _bobPos.Lerp(targetIdle, delta * 6.0f);
+            _bobRot = _bobRot.Lerp(Vector3.Zero, delta * 6.0f);
+        }
+
+        // Apply procedural transforms to ItemHand when not swinging or charging throw
+        if (!_isMeleeSwinging && !_isChargingThrow && !_isThrowing)
+        {
+            ItemHand.Position = _defaultItemHandPosition + _currentSwayPos + _bobPos;
+            ItemHand.Rotation = _defaultItemHandRotation + _currentSwayRot + _bobRot;
+        }
     }
 
     private void ExecuteMeleeHitCheck(bool hasItem)

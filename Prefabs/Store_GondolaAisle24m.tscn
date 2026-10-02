@@ -161,11 +161,57 @@ mesh = SubResource("BoxMesh_Endcap_Shelf")
 
 [node name="AisleSign_S" type="MeshInstance3D" parent="." unique_id=1247067857]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3549352, -12.037573)
+gi_mode = 1
 mesh = SubResource("BoxMesh_Aisle_Sign")
+
+[node name="Label_Front" type="Label3D" parent="AisleSign_S"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0.06)
+pixel_size = 0.005
+double_sided = true
+text = "AISLE"
+font_size = 38
+outline_size = 8
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 0.92, 0.35, 1)
+render_priority = 4
+
+[node name="Label_Back" type="Label3D" parent="AisleSign_S"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.08, -0.06)
+pixel_size = 0.005
+double_sided = true
+text = "AISLE"
+font_size = 38
+outline_size = 8
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 0.92, 0.35, 1)
+render_priority = 4
 
 [node name="AisleSign_N" type="MeshInstance3D" parent="." unique_id=51197140]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.353821, 12.042)
+gi_mode = 1
 mesh = SubResource("BoxMesh_Aisle_Sign")
+
+[node name="Label_Front" type="Label3D" parent="AisleSign_N"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0.06)
+pixel_size = 0.005
+double_sided = true
+text = "AISLE"
+font_size = 38
+outline_size = 8
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 0.92, 0.35, 1)
+render_priority = 4
+
+[node name="Label_Back" type="Label3D" parent="AisleSign_N"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.08, -0.06)
+pixel_size = 0.005
+double_sided = true
+text = "AISLE"
+font_size = 38
+outline_size = 8
+outline_modulate = Color(0.05, 0.05, 0.08, 0.95)
+modulate = Color(1, 0.92, 0.35, 1)
+render_priority = 4
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1543825505]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)

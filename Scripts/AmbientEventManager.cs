@@ -314,8 +314,8 @@ public partial class AmbientEventManager : Node
 
     public void RestoreBaselineAtmosphere()
     {
-        SetTonemapExposure(1.35f);
-        SetVolumetricFog(true, 0.003f, new Color(0.82f, 0.86f, 0.92f, 1.0f));
+        SetTonemapExposure(1.15f);
+        SetVolumetricFog(true, 0.0016f, new Color(0.88f, 0.92f, 0.98f, 1.0f));
     }
 
     public void SetLightmapVisible(bool visible)

@@ -4,13 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://dc58ojy8hlc8d" path="res://Models/potatogun.glb" id="2_loo7a"]
 [ext_resource type="AudioStream" uid="uid://dy03qr0inis6c" path="res://Sounds/Music/Prime_Time_Jackpot.mp3" id="3_8saeu"]
 [ext_resource type="LightmapGIData" uid="uid://c8mcisw4eeagi" path="res://Bakes/MainMenu.lmbake" id="3_ghw46"]
-[ext_resource type="Texture2D" uid="uid://dbvmdx2fsijdu" path="res://Textures/smooth_concrete_floor_ao.png" id="4_7467j"]
+[ext_resource type="Texture2D" uid="uid://b43616h2hshgy" path="res://Textures/supermarket_terrazzo_tiles_diff_2k.jpg" id="4_7467j"]
 [ext_resource type="PackedScene" uid="uid://b3b4j7t1310rt" path="res://Prefabs/produce_table.tscn" id="4_df05h"]
 [ext_resource type="PackedScene" uid="uid://binytewqbcqoh" path="res://Prefabs/LaserCamera.tscn" id="4_ghw46"]
 [ext_resource type="Material" uid="uid://dr1rpifuuvdxm" path="res://Materials/banded_wall.tres" id="4_koqhg"]
-[ext_resource type="Texture2D" uid="uid://c86it83larrkp" path="res://Textures/smooth_concrete_floor_metallic.png" id="5_2x1g0"]
 [ext_resource type="PackedScene" uid="uid://dve0mo8k4j8sm" path="res://Models/fire_extinguisher.glb" id="6_8um5k"]
-[ext_resource type="Texture2D" uid="uid://cf44e30envvou" path="res://Textures/smooth_concrete_floor_nor_gl_2k.png" id="6_riqfo"]
 [ext_resource type="Environment" uid="uid://c4p1yfebvxa0q" path="res://world_environment.tres" id="6_rrcx7"]
 [ext_resource type="CameraAttributesPhysical" uid="uid://dwo75ivrpagka" path="res://camera_attributes.tres" id="7_fh7cp"]
 [ext_resource type="PackedScene" uid="uid://bcnew7ehcdneo" path="res://Prefabs/Groomba.tscn" id="9_cmrfp"]
@@ -26,19 +24,11 @@
 font_size = 10
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yxkem"]
-albedo_color = Color(0.84, 0.86, 0.88, 1)
-metallic = 0.95
-metallic_specular = 1.0
-metallic_texture = ExtResource("5_2x1g0")
-roughness = 0.0
-normal_scale = 0.02
-normal_texture = ExtResource("6_riqfo")
-clearcoat_enabled = true
-clearcoat_roughness = 0.0
-ao_enabled = true
-ao_light_affect = 0.35
-ao_texture = ExtResource("4_7467j")
-uv1_scale = Vector3(60, 60, 1)
+albedo_color = Color(0.2, 0.21, 0.23, 1)
+albedo_texture = ExtResource("4_7467j")
+metallic_specular = 0.85
+roughness = 0.02
+uv1_scale = Vector3(3.55, 3.47, 1)
 texture_filter = 5
 stencil_flags = 2
 
@@ -47,6 +37,8 @@ lightmap_size_hint = Vector2i(109, 61)
 material = SubResource("StandardMaterial3D_yxkem")
 add_uv2 = true
 size = Vector3(10.648315, 0.2, 10.405151)
+subdivide_width = 4
+subdivide_depth = 4
 
 [sub_resource type="BoxMesh" id="BoxMesh_7v4os"]
 lightmap_size_hint = Vector2i(80, 231)

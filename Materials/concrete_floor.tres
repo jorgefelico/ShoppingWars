@@ -1,22 +1,22 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://c4rhiv0v0ec8k"]
 
-[ext_resource type="Texture2D" uid="uid://dbvmdx2fsijdu" path="res://Textures/smooth_concrete_floor_ao.png" id="2_ao"]
-[ext_resource type="Texture2D" uid="uid://cf44e30envvou" path="res://Textures/smooth_concrete_floor_nor_gl_2k.png" id="3_nor"]
-[ext_resource type="Texture2D" uid="uid://c86it83larrkp" path="res://Textures/smooth_concrete_floor_metallic.png" id="4_met"]
+[ext_resource type="Texture2D" uid="uid://b43616h2hshgy" path="res://Textures/supermarket_terrazzo_tiles_diff_2k.jpg" id="1_diff"]
+[ext_resource type="Texture2D" uid="uid://bvin2e7guf3pf" path="res://Textures/supermarket_terrazzo_tiles_nor_gl_2k.jpg" id="2_nor"]
+[ext_resource type="Texture2D" uid="uid://dbhlfgnks88l4" path="res://Textures/supermarket_terrazzo_tiles_rough_2k.jpg" id="3_rough"]
 
 [resource]
-albedo_color = Color(0.84, 0.86, 0.88, 1)
-metallic = 0.95
-metallic_specular = 1.0
-metallic_texture = ExtResource("4_met")
-roughness = 0.0
-normal_scale = 0.02
-normal_texture = ExtResource("3_nor")
+albedo_color = Color(0.92, 0.93, 0.95, 1)
+albedo_texture = ExtResource("1_diff")
+metallic = 0.0
+metallic_specular = 0.7
+roughness = 0.35
+roughness_texture = ExtResource("3_rough")
+normal_enabled = true
+normal_scale = 0.6
+normal_texture = ExtResource("2_nor")
 clearcoat_enabled = true
-clearcoat_roughness = 0.0
-ao_enabled = true
-ao_light_affect = 0.35
-ao_texture = ExtResource("2_ao")
-uv1_scale = Vector3(60, 60, 1)
+clearcoat = 0.65
+clearcoat_roughness = 0.12
+uv1_scale = Vector3(60.33, 47, 1)
 texture_filter = 5
 stencil_flags = 2

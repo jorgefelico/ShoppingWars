@@ -23,10 +23,10 @@ public static class SettingsManager
 
     public enum ShadowQualityLevel
     {
-        Low,     // 1024 atlas, soft shadow filter low
-        Medium,  // 2048 atlas, soft shadow filter medium
-        High,    // 2048 atlas, soft shadow filter high
-        Ultra    // 4096 atlas, soft shadow filter ultra
+        Low,     // 2048 atlas, soft shadow filter low
+        Medium,  // 4096 atlas, soft shadow filter medium
+        High,    // 4096 atlas, soft shadow filter high
+        Ultra    // 8192 atlas, soft shadow filter ultra
     }
 
     public enum QualityLevel
@@ -226,10 +226,10 @@ public static class SettingsManager
             case GraphicsPreset.Medium:
                 CurrentAntiAliasing = AntiAliasingMode.Taa;
                 CurrentShadowQuality = ShadowQualityLevel.Medium;
-                CurrentSsao = QualityLevel.Low;
-                CurrentSsil = QualityLevel.Off;
+                CurrentSsao = QualityLevel.Medium;
+                CurrentSsil = QualityLevel.Low;
                 CurrentSsr = QualityLevel.Medium;
-                CurrentVolumetricFog = QualityLevel.Low;
+                CurrentVolumetricFog = QualityLevel.Medium;
                 break;
             case GraphicsPreset.High:
                 CurrentAntiAliasing = AntiAliasingMode.TaaAndSmaa;
@@ -297,11 +297,11 @@ public static class SettingsManager
     {
         return CurrentPreset switch
         {
-            GraphicsPreset.Low => "💾 Est. VRAM: ~1.5 GB • Budget GPUs / Laptops (4GB-6GB VRAM)",
-            GraphicsPreset.Medium => "💾 Est. VRAM: ~2.8 GB • Recommended for Standard GPUs (6GB-8GB VRAM)",
-            GraphicsPreset.High => "💾 Est. VRAM: ~4.2 GB • Recommended for Enthusiast GPUs (8GB-12GB VRAM)",
-            GraphicsPreset.Ultra => "💾 Est. VRAM: ~6.5 GB • Recommended for High-End GPUs (16GB+ VRAM)",
-            _ => "💾 Est. VRAM: ~3.0 GB • Custom Configuration"
+            GraphicsPreset.Low => "💾 Est. VRAM: ~1.8 GB • Budget GPUs / Laptops (4GB-6GB VRAM)",
+            GraphicsPreset.Medium => "💾 Est. VRAM: ~3.0 GB • Recommended for Standard GPUs (6GB-8GB VRAM)",
+            GraphicsPreset.High => "💾 Est. VRAM: ~4.5 GB • Recommended for Enthusiast GPUs (8GB-12GB VRAM)",
+            GraphicsPreset.Ultra => "💾 Est. VRAM: ~6.8 GB • Recommended for High-End GPUs (16GB+ VRAM)",
+            _ => "💾 Est. VRAM: ~3.2 GB • Custom Configuration"
         };
     }
 
@@ -316,10 +316,10 @@ public static class SettingsManager
 
     public static string GetShadowQualityLabel(ShadowQualityLevel level) => level switch
     {
-        ShadowQualityLevel.Low => "🌑 Shadows: LOW (1K)",
-        ShadowQualityLevel.Medium => "🌑 Shadows: MED (2K)",
-        ShadowQualityLevel.High => "🌑 Shadows: HIGH (2K Soft)",
-        ShadowQualityLevel.Ultra => "🌑 Shadows: ULTRA (4K Soft)",
+        ShadowQualityLevel.Low => "🌑 Shadows: LOW (2K)",
+        ShadowQualityLevel.Medium => "🌑 Shadows: MED (4K)",
+        ShadowQualityLevel.High => "🌑 Shadows: HIGH (4K Soft)",
+        ShadowQualityLevel.Ultra => "🌑 Shadows: ULTRA (8K Ultra Soft)",
         _ => "🌑 Shadows: Custom"
     };
 
@@ -328,7 +328,7 @@ public static class SettingsManager
         QualityLevel.Off => "🪞 Floor Wax SSR: OFF",
         QualityLevel.Low => "🪞 Floor Wax SSR: LOW (32)",
         QualityLevel.Medium => "🪞 Floor Wax SSR: MED (64)",
-        QualityLevel.High => "🪞 Floor Wax SSR: HIGH (112)",
+        QualityLevel.High => "🪞 Floor Wax SSR: HIGH (96)",
         _ => "🪞 Floor Wax SSR: Custom"
     };
 
@@ -412,13 +412,42 @@ public static class SettingsManager
         // 2. Shadows
         int shadowAtlasSize = CurrentShadowQuality switch
         {
-            ShadowQualityLevel.Low => 1024,
-            ShadowQualityLevel.Medium => 2048,
-            ShadowQualityLevel.High => 2048,
-            ShadowQualityLevel.Ultra => 4096,
-            _ => 2048
+            ShadowQualityLevel.Low => 2048,
+            ShadowQualityLevel.Medium => 4096,
+            ShadowQualityLevel.High => 4096,
+            ShadowQualityLevel.Ultra => 8192,
+            _ => 4096
         };
-        RenderingServer.ViewportSetPositionalShadowAtlasSize(rid, shadowAtlasSize, true);
+        // CRITICAL: use16Bits is set to false for 32-bit float depth, completely eliminating depth quantization banding!
+        RenderingServer.ViewportSetPositionalShadowAtlasSize(rid, shadowAtlasSize, false);
+
+        // Optimal quadrant allocation for multi-light supermarket environment
+        RenderingServer.ViewportSetPositionalShadowAtlasQuadrantSubdivision(rid, 0, (int)Viewport.PositionalShadowAtlasQuadrantSubdiv.Subdiv4);
+        RenderingServer.ViewportSetPositionalShadowAtlasQuadrantSubdivision(rid, 1, (int)Viewport.PositionalShadowAtlasQuadrantSubdiv.Subdiv4);
+        RenderingServer.ViewportSetPositionalShadowAtlasQuadrantSubdivision(rid, 2, (int)Viewport.PositionalShadowAtlasQuadrantSubdiv.Subdiv16);
+        RenderingServer.ViewportSetPositionalShadowAtlasQuadrantSubdivision(rid, 3, (int)Viewport.PositionalShadowAtlasQuadrantSubdiv.Subdiv64);
+
+        int directionalSize = CurrentShadowQuality switch
+        {
+            ShadowQualityLevel.Low => 2048,
+            ShadowQualityLevel.Medium => 4096,
+            ShadowQualityLevel.High => 4096,
+            ShadowQualityLevel.Ultra => 4096,
+            _ => 4096
+        };
+        RenderingServer.DirectionalShadowAtlasSetSize(directionalSize, false);
+
+        // Synchronize soft shadow filter quality
+        var shadowFilter = CurrentShadowQuality switch
+        {
+            ShadowQualityLevel.Low => RenderingServer.ShadowQuality.SoftLow,
+            ShadowQualityLevel.Medium => RenderingServer.ShadowQuality.SoftMedium,
+            ShadowQualityLevel.High => RenderingServer.ShadowQuality.SoftHigh,
+            ShadowQualityLevel.Ultra => RenderingServer.ShadowQuality.SoftUltra,
+            _ => RenderingServer.ShadowQuality.SoftHigh
+        };
+        RenderingServer.PositionalSoftShadowFilterSetQuality(shadowFilter);
+        RenderingServer.DirectionalSoftShadowFilterSetQuality(shadowFilter);
 
         // 3. WorldEnvironment settings in current scene
         ApplyEnvironmentSettings(root);
@@ -435,7 +464,30 @@ public static class SettingsManager
         if (worldEnv?.Environment == null) return;
         var env = worldEnv.Environment;
 
-        // SSAO
+        // Ambient Fill Lighting - Soft architectural ambient bounce
+        env.AmbientLightSource = Environment.AmbientSource.Color;
+        env.AmbientLightColor = new Color(0.12f, 0.13f, 0.16f, 1.0f);
+        env.AmbientLightEnergy = 0.40f;
+        env.AmbientLightSkyContribution = 0.0f;
+
+        // Tonemapping & Glow - ACES tonemapping and non-clipping Screen bloom
+        env.TonemapMode = Environment.ToneMapper.Aces;
+        env.TonemapExposure = 1.25f;
+        env.TonemapWhite = 4.0f;
+        env.GlowEnabled = true;
+        env.GlowBlendMode = Environment.GlowBlendModeEnum.Screen;
+        env.SetGlowLevel(1, 0.4f);
+        env.SetGlowLevel(2, 0.7f);
+        env.SetGlowLevel(3, 1.0f);
+        env.SetGlowLevel(4, 0.7f);
+        env.SetGlowLevel(5, 0.4f);
+        env.SetGlowLevel(6, 0.2f);
+        env.GlowIntensity = 0.55f;
+        env.GlowBloom = 0.12f;
+        env.GlowHdrScale = 1.8f;
+        env.GlowHdrLuminanceCap = 14.0f;
+
+        // SSAO (Screen Space Ambient Occlusion)
         switch (CurrentSsao)
         {
             case QualityLevel.Off:
@@ -443,40 +495,56 @@ public static class SettingsManager
                 break;
             case QualityLevel.Low:
                 env.SsaoEnabled = true;
-                env.SsaoRadius = 1.2f;
-                env.SsaoIntensity = 1.5f;
-                env.SsaoDetail = 0.4f;
+                env.SsaoRadius = 1.3f;
+                env.SsaoIntensity = 1.6f;
+                env.SsaoDetail = 0.5f;
+                env.SsaoHorizon = 0.06f;
+                env.SsaoSharpness = 0.98f;
                 break;
             case QualityLevel.Medium:
                 env.SsaoEnabled = true;
-                env.SsaoRadius = 1.3f;
-                env.SsaoIntensity = 1.8f;
-                env.SsaoDetail = 0.6f;
+                env.SsaoRadius = 1.4f;
+                env.SsaoIntensity = 1.9f;
+                env.SsaoDetail = 0.7f;
+                env.SsaoHorizon = 0.06f;
+                env.SsaoSharpness = 0.98f;
                 break;
             case QualityLevel.High:
                 env.SsaoEnabled = true;
-                env.SsaoRadius = 1.4f;
-                env.SsaoIntensity = 2.2f;
-                env.SsaoDetail = 0.85f;
+                env.SsaoRadius = 1.5f;
+                env.SsaoIntensity = 2.0f;
+                env.SsaoDetail = 0.8f;
+                env.SsaoHorizon = 0.06f;
+                env.SsaoSharpness = 0.98f;
                 break;
         }
 
-        // SSIL
+        // SSIL (Screen Space Indirect Lighting)
         switch (CurrentSsil)
         {
             case QualityLevel.Off:
                 env.SsilEnabled = false;
                 break;
             case QualityLevel.Low:
-            case QualityLevel.Medium:
                 env.SsilEnabled = true;
                 env.SsilRadius = 4.0f;
-                env.SsilIntensity = 1.0f;
+                env.SsilIntensity = 0.9f;
+                env.SsilSharpness = 0.95f;
+                env.SsilNormalRejection = 1.0f;
+                break;
+            case QualityLevel.Medium:
+                env.SsilEnabled = true;
+                env.SsilRadius = 4.5f;
+                env.SsilIntensity = 1.1f;
+                env.SsilSharpness = 0.95f;
+                env.SsilNormalRejection = 1.0f;
                 break;
             case QualityLevel.High:
                 env.SsilEnabled = true;
                 env.SsilRadius = 5.0f;
-                env.SsilIntensity = 1.4f;
+                env.SsilIntensity = 1.25f;
+                env.SsilSharpness = 0.95f;
+                env.SsilNormalRejection = 1.0f;
                 break;
         }
 
@@ -488,24 +556,24 @@ public static class SettingsManager
                 break;
             case QualityLevel.Low:
                 env.SsrEnabled = true;
-                env.SsrMaxSteps = 32;
-                env.SsrFadeIn = 0.06f;
+                env.SsrMaxSteps = 48;
+                env.SsrFadeIn = 0.15f;
                 env.SsrFadeOut = 2.0f;
-                env.SsrDepthTolerance = 0.2f;
+                env.SsrDepthTolerance = 0.25f;
                 break;
             case QualityLevel.Medium:
                 env.SsrEnabled = true;
                 env.SsrMaxSteps = 64;
-                env.SsrFadeIn = 0.05f;
-                env.SsrFadeOut = 2.2f;
-                env.SsrDepthTolerance = 0.2f;
+                env.SsrFadeIn = 0.15f;
+                env.SsrFadeOut = 2.0f;
+                env.SsrDepthTolerance = 0.25f;
                 break;
             case QualityLevel.High:
                 env.SsrEnabled = true;
-                env.SsrMaxSteps = 112;
-                env.SsrFadeIn = 0.04f;
-                env.SsrFadeOut = 2.5f;
-                env.SsrDepthTolerance = 0.2f;
+                env.SsrMaxSteps = 96;
+                env.SsrFadeIn = 0.15f;
+                env.SsrFadeOut = 2.0f;
+                env.SsrDepthTolerance = 0.25f;
                 break;
         }
 
@@ -517,12 +585,15 @@ public static class SettingsManager
                 break;
             case QualityLevel.Low:
                 env.VolumetricFogEnabled = true;
-                env.VolumetricFogDensity = 0.0018f;
+                env.VolumetricFogDensity = 0.0016f;
                 break;
             case QualityLevel.Medium:
+                env.VolumetricFogEnabled = true;
+                env.VolumetricFogDensity = 0.0022f;
+                break;
             case QualityLevel.High:
                 env.VolumetricFogEnabled = true;
-                env.VolumetricFogDensity = 0.003f;
+                env.VolumetricFogDensity = 0.0028f;
                 break;
         }
     }

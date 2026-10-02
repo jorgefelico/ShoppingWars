@@ -5,6 +5,7 @@
 [ext_resource type="Material" uid="uid://cw20jrehywe1q" path="res://Materials/clothing_rack_metal.tres" id="3_chrome"]
 [ext_resource type="Material" path="res://Materials/signage_navy.tres" id="4_navy"]
 [ext_resource type="Material" uid="uid://gfiufhmghujx" path="res://Materials/fluorescent_light.tres" id="5_light"]
+[ext_resource type="Material" path="res://Materials/tv_screen_lit.tres" id="6_screen"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_Checkout_Base"]
 lightmap_size_hint = Vector2i(48, 46)
@@ -28,7 +29,7 @@ height = 1.1
 
 [sub_resource type="BoxMesh" id="BoxMesh_Register_Screen"]
 lightmap_size_hint = Vector2i(16, 16)
-material = ExtResource("2_dark")
+material = ExtResource("6_screen")
 add_uv2 = true
 size = Vector3(0.4, 0.35, 0.08)
 
@@ -88,8 +89,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
 mesh = SubResource("CylMesh_Lane_Light")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="LaneLight" unique_id=228697939]
+light_color = Color(0.96, 0.98, 1, 1)
+light_energy = 1.2
 light_bake_mode = 1
-shadow_enabled = true
+shadow_enabled = false
+omni_range = 3.5
+omni_attenuation = 1.2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=974720040]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

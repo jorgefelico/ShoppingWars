@@ -1,0 +1,211 @@
+[gd_scene format=3 uid="uid://c6xk4e7m1p8s2"]
+
+[ext_resource type="Material" uid="uid://js7kvdbcmg6m" path="res://Materials/refrigerator_glass.tres" id="1_glass"]
+[ext_resource type="Material" uid="uid://6trabf6ue14a" path="res://Materials/shelf_dark.tres" id="2_dark"]
+[ext_resource type="Material" uid="uid://cw20jrehywe1q" path="res://Materials/clothing_rack_metal.tres" id="3_chrome"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_GlassFacade"]
+material = ExtResource("1_glass")
+add_uv2 = true
+size = Vector3(26, 6, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Mullion"]
+material = ExtResource("2_dark")
+add_uv2 = true
+size = Vector3(0.14, 6.2, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Transom"]
+material = ExtResource("2_dark")
+add_uv2 = true
+size = Vector3(26.4, 0.14, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_SensorBox"]
+material = ExtResource("2_dark")
+add_uv2 = true
+size = Vector3(2.4, 0.22, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="Mat_SensorLED"]
+albedo_color = Color(0.95, 0.15, 0.15, 1)
+emission_enabled = true
+emission = Color(1, 0.2, 0.2, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_SensorLED"]
+material = SubResource("Mat_SensorLED")
+size = Vector3(0.06, 0.06, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_MarqueeBoard"]
+material = ExtResource("2_dark")
+add_uv2 = true
+size = Vector3(14, 1.4, 0.25)
+
+[sub_resource type="CylinderMesh" id="CylMesh_CorralRail"]
+material = ExtResource("3_chrome")
+add_uv2 = true
+top_radius = 0.05
+bottom_radius = 0.05
+height = 1.1
+
+[sub_resource type="BoxShape3D" id="BoxShape_EntranceWall"]
+size = Vector3(26, 6.5, 0.4)
+
+[node name="StorefrontEntrance" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+shape = SubResource("BoxShape_EntranceWall")
+
+[node name="GlassFacade" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_GlassFacade")
+
+[node name="Mullions" type="Node3D" parent="."]
+
+[node name="Mullion_M4" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_M3" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.75, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_M2" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_M1" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_Center" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_P1" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.25, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_P2" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_P3" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.75, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Mullion_P4" type="MeshInstance3D" parent="Mullions"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 3.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Mullion")
+
+[node name="Transoms" type="Node3D" parent="."]
+
+[node name="Transom_Base" type="MeshInstance3D" parent="Transoms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Transom")
+
+[node name="Transom_Mid" type="MeshInstance3D" parent="Transoms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Transom")
+
+[node name="Transom_Top" type="MeshInstance3D" parent="Transoms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.1, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_Transom")
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="SensorBox_Left" type="MeshInstance3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 2.75, 0.12)
+gi_mode = 1
+mesh = SubResource("BoxMesh_SensorBox")
+
+[node name="LED_Left" type="MeshInstance3D" parent="Doors/SensorBox_Left"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12)
+mesh = SubResource("BoxMesh_SensorLED")
+
+[node name="Decal_Left" type="Label3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.25, 1.45, 0.06)
+pixel_size = 0.0035
+text = "⚡ AUTOMATIC DOOR ⚡
+CAUTION: STAND CLEAR"
+font_size = 20
+outline_size = 6
+outline_modulate = Color(0, 0, 0, 1)
+modulate = Color(1, 0.9, 0.2, 1)
+render_priority = 3
+
+[node name="SensorBox_Right" type="MeshInstance3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.25, 2.75, 0.12)
+gi_mode = 1
+mesh = SubResource("BoxMesh_SensorBox")
+
+[node name="LED_Right" type="MeshInstance3D" parent="Doors/SensorBox_Right"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12)
+mesh = SubResource("BoxMesh_SensorLED")
+
+[node name="Decal_Right" type="Label3D" parent="Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.25, 1.45, 0.06)
+pixel_size = 0.0035
+text = "⚡ AUTOMATIC DOOR ⚡
+CAUTION: STAND CLEAR"
+font_size = 20
+outline_size = 6
+outline_modulate = Color(0, 0, 0, 1)
+modulate = Color(1, 0.9, 0.2, 1)
+render_priority = 3
+
+[node name="Marquee" type="Node3D" parent="."]
+
+[node name="MarqueeBoard" type="MeshInstance3D" parent="Marquee"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
+gi_mode = 1
+mesh = SubResource("BoxMesh_MarqueeBoard")
+
+[node name="MarqueeText" type="Label3D" parent="Marquee"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0.14)
+pixel_size = 0.0055
+text = "🛒 WELCOME TO SUPERMART #404 🛒
+HOME OF THE MANAGER'S SPECIAL"
+font_size = 38
+outline_size = 10
+outline_modulate = Color(0, 0, 0, 1)
+modulate = Color(1, 0.95, 0.85, 1)
+render_priority = 4
+
+[node name="CorralRails" type="Node3D" parent="."]
+
+[node name="Rail_Left" type="MeshInstance3D" parent="CorralRails"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.5, 0.55, 1.2)
+gi_mode = 1
+mesh = SubResource("CylMesh_CorralRail")
+
+[node name="Rail_Right" type="MeshInstance3D" parent="CorralRails"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 0.55, 1.2)
+gi_mode = 1
+mesh = SubResource("CylMesh_CorralRail")
+
+[node name="EntranceSunlightShaft" type="SpotLight3D" parent="." groups=["StoreLights"]]
+transform = Transform3D(-1, 0, 0, 0, 0.882948, 0.469472, 0, 0.469472, -0.882948, 0, 6.4, 0.2)
+light_color = Color(1, 0.92, 0.78, 1)
+light_energy = 4.8
+light_volumetric_fog_energy = 3.6
+light_bake_mode = 1
+shadow_enabled = true
+shadow_bias = 0.06
+shadow_normal_bias = 1.0
+shadow_blur = 1.5
+spot_range = 55.0
+spot_attenuation = 1.05
+spot_angle = 65.0
